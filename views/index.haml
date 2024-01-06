@@ -1,0 +1,57 @@
+!!! 5
+%html{lang:"en"}
+  %head
+    %meta{charset:"UTF-8"}
+    %meta{name:"viewport", content:"width=device-width, initial-scale=1.0"}
+    %title Chess Game Viewer
+    %link{rel:"stylesheet",
+      href:"https://unpkg.com/@chrisoakman/chessboardjs@1.0.0/dist/chessboard-1.0.0.min.css",
+      integrity:"sha384-q94+BZtLrkL1/ohfjR8c6L+A6qzNH9R2hBLwyoAfu3i/WCvQjzL2RQJ3uNHDISdU",
+      crossorigin:"anonymous"}
+
+    %script{src:"https://code.jquery.com/jquery-3.5.1.min.js",
+      integrity:"sha384-ZvpUoO/+PpLXR1lu4jmpXWu80pZlYUAfxl5NsBMWOEPSjUn/6Z/hRTt8+pR6L4N2",
+      crossorigin:"anonymous"}
+    %script{src:"https://unpkg.com/@chrisoakman/chessboardjs@1.0.0/dist/chessboard-1.0.0.min.js",
+        integrity:"sha384-8Vi8VHwn3vjQ9eUHUxex3JSN/NFqUg3QbPyX8kWyb93+8AC/pPWTzj+nHtbC5bxD",
+        crossorigin:"anonymous"}
+
+    /%script{src:"../scripts/board.js"}
+  %body
+    %h1 Chess Game Viewer
+    #board
+    :javascript
+      // Define the chessboard and chess game
+      var board = Chessboard('board', {
+        draggable: true,
+        position: 'start'
+      });
+
+      /**var game = new Chess();
+
+      // Example moves (replace with your actual moves)
+      var moves = ['e4', 'e5', 'Nf3', 'Nc6', 'Bb5', 'a6'];
+
+      // Apply moves to the board
+      moves.forEach(function(move) {
+        game.move(move);
+        board.position(game.fen());
+      });
+
+      // You can now navigate through moves and update the board accordingly
+      // Example: Move forward
+      function forwardMove() {
+        var move = game.undo();
+        board.position(game.fen());
+      }
+
+      // Example: Move backward
+      function backwardMove() {
+        var move = game.undo();
+        board.position(game.fen());
+      } ***/
+
+  %form(action='/upload_pgn' method='post' enctype='multipart/form-data')
+    %label(for='pgn') Choose a PGN file:
+    %input(type='file' name='pgn' accept='.pgn' required)
+    %button(type='submit') Upload PGN

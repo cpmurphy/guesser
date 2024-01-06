@@ -16,42 +16,17 @@
         integrity:"sha384-8Vi8VHwn3vjQ9eUHUxex3JSN/NFqUg3QbPyX8kWyb93+8AC/pPWTzj+nHtbC5bxD",
         crossorigin:"anonymous"}
 
-    /%script{src:"../scripts/board.js"}
   %body
     %h1 Chess Game Viewer
-    #board
-    :javascript
-      // Define the chessboard and chess game
-      var board = Chessboard('board', {
-        draggable: true,
-        position: 'start'
-      });
+    %h2 =#{white} vs #{black}
+    #board{style:"width:392px"}
+    %button{onclick:"updateBoard('forward')"} Forward
+    %button{onclick:"updateBoard('backward')"} Backward
+    %script{src:"../scripts/board.js"}
+    %script
+      !="board.position('#{fen}');"
 
-      /**var game = new Chess();
-
-      // Example moves (replace with your actual moves)
-      var moves = ['e4', 'e5', 'Nf3', 'Nc6', 'Bb5', 'a6'];
-
-      // Apply moves to the board
-      moves.forEach(function(move) {
-        game.move(move);
-        board.position(game.fen());
-      });
-
-      // You can now navigate through moves and update the board accordingly
-      // Example: Move forward
-      function forwardMove() {
-        var move = game.undo();
-        board.position(game.fen());
-      }
-
-      // Example: Move backward
-      function backwardMove() {
-        var move = game.undo();
-        board.position(game.fen());
-      } ***/
-
-  %form(action='/upload_pgn' method='post' enctype='multipart/form-data')
-    %label(for='pgn') Choose a PGN file:
-    %input(type='file' name='pgn' accept='.pgn' required)
-    %button(type='submit') Upload PGN
+    %form(action='/upload_pgn' method='post' enctype='multipart/form-data')
+      %label(for='pgn') Choose a PGN file:
+      %input(type='file' name='pgn' accept='.pgn' required)
+      %button(type='submit') Upload PGN

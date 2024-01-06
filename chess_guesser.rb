@@ -1,10 +1,28 @@
 require 'sinatra/base'
 require 'pgn'
+require 'json'
 
 class ChessGuesser < Sinatra::Base
+  enable :sessions
+  set :session_store, Rack::Session::Pool
 
   get '/' do
-    haml :index
+    game_state = {}
+    if session['game']
+      game = session['game']
+      puts "we have a game: #{game.positions.last.to_fen}"
+      game_state['white'] = game.tags['White']
+      game_state['black'] = game.tags['Black']
+      game_state['fen'] = game.positions.last.to_fen.to_s
+      game_state['current_move'] = session['current_move'].to_i
+    else
+      puts "we have NO game"
+      game_state['white'] = 'White'
+      game_state['black'] = 'Black'
+      game_state['fen'] = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR'
+      game_state['current_move'] = 0
+    end
+    haml :index, locals: game_state
   end
 
   post '/upload_pgn' do
@@ -15,8 +33,48 @@ class ChessGuesser < Sinatra::Base
     # You can access moves, tags, etc. from the parsed game
 
     # Example: Display the moves
-    moves = games.first.inspect #.moves.map { |move| move.to_s }.join(' ')
-    "Parsed Moves: #{moves}"
+    session['game'] = games.first
+    session['current_move'] = 13
+    redirect '/'
+  end
+
+  post '/upload_pgn' do
+    pgn_content = params[:pgn][:tempfile].read
+    games = PGN.parse(pgn_content)
+
+    # Now 'game' contains the parsed PGN data
+    # You can access moves, tags, etc. from the parsed game
+
+    # Example: Display the moves
+    session['game'] = games.first
+    session['current_move'] = 13
+    redirect '/'
+  end
+
+  get '/forward' do
+    # Update the chess game position
+    game = session['game']
+    current_move = session['current_move'].to_i
+    if current_move < game.moves.size - 1
+      current_move += 1
+      session['current_move'] = current_move
+    end
+
+    # Return the updated FEN position
+    { fen: game.positions[current_move].to_fen }.to_json
+  end
+
+  get '/backward' do
+    # Update the chess game position
+    game = session['game']
+    current_move = session['current_move'].to_i
+    if current_move > 0
+      current_move -= 1
+      session['current_move'] = current_move
+    end
+
+    # Return the updated FEN position
+    { fen: game.positions[current_move].to_fen }.to_json
   end
 
 end

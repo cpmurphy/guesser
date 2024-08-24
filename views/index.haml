@@ -3,7 +3,7 @@
   %head
     %meta{charset:"UTF-8"}
     %meta{name:"viewport", content:"width=device-width, initial-scale=1.0"}
-    %title Chess Game Viewer
+    %title Chess Guesser
     %link{rel:"stylesheet",
       href:"https://unpkg.com/@chrisoakman/chessboardjs@1.0.0/dist/chessboard-1.0.0.min.css",
       integrity:"sha384-q94+BZtLrkL1/ohfjR8c6L+A6qzNH9R2hBLwyoAfu3i/WCvQjzL2RQJ3uNHDISdU",
@@ -17,14 +17,19 @@
         crossorigin:"anonymous"}
 
   %body
-    %h1 Chess Game Viewer
+    %h1 Chess Guesser
     %h2 #{white} vs #{black}
     #board{style:"width:392px"}
+    #guess_result
     %button{onclick:"updateBoard('forward')"} Forward
     %button{onclick:"updateBoard('backward')"} Backward
     %script{src:"../scripts/board.js"}
     %script
       !="board.position('#{fen}');"
+
+    %form(action='/start_guessing' method='post' enctype='multipart/form-data')
+      %button(type='submit') Start guessing
+
 
     %form(action='/upload_pgn' method='post' enctype='multipart/form-data')
       %label(for='pgn') Choose a PGN file:

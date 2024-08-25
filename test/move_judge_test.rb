@@ -56,4 +56,59 @@ class MoveJudgeTest < Minitest::Test
     guess = { 'move' => { 'source' => 'd2', 'target' => 'e1', 'piece' => 'bP' } }
     assert MoveJudge.are_same?(guess, 'dxe1=Q+')
   end
+
+  def test_guess_in_top_three_correct
+    guess = { 'move' => { 'source' => 'e2', 'target' => 'e4' } }
+    fen = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1'
+
+    mock_analyzer = Minitest::Mock.new
+    mock_analyzer.expect :best_moves, [
+      { move: 'e2e4', score: 100 },
+      { move: 'd2d4', score: 90 },
+      { move: 'g1f3', score: 80 }
+    ], [fen]
+
+    Analyzer.stub :new, mock_analyzer do
+      assert MoveJudge.guess_in_top_three?(guess, fen)
+    end
+
+    mock_analyzer.verify
+  end
+
+  def test_guess_in_top_three_incorrect
+    guess = { 'move' => { 'source' => 'a2', 'target' => 'a4' } }
+    fen = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1'
+
+    mock_analyzer = Minitest::Mock.new
+    mock_analyzer.expect :best_moves, [
+      { move: 'e2e4', score: 100 },
+      { move: 'd2d4', score: 90 },
+      { move: 'g1f3', score: 80 }
+    ], [fen]
+
+    Analyzer.stub :new, mock_analyzer do
+      refute MoveJudge.guess_in_top_three?(guess, fen)
+    end
+
+    mock_analyzer.verify
+  end
+
+  def test_guess_in_top_three_within_score_range
+    guess = { 'move' => { 'source' => 'g1', 'target' => 'f3' } }
+    fen = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1'
+
+    mock_analyzer = Minitest::Mock.new
+    mock_analyzer.expect :best_moves, [
+      { move: 'e2e4', score: 100 },
+      { move: 'd2d4', score: 90 },
+      { move: 'g1f3', score: 60 },
+      { move: 'b1c3', score: 40 }
+    ], [fen]
+
+    Analyzer.stub :new, mock_analyzer do
+      assert MoveJudge.guess_in_top_three?(guess, fen)
+    end
+
+    mock_analyzer.verify
+  end
 end

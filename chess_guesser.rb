@@ -42,24 +42,14 @@ class ChessGuesser < Sinatra::Base
   end
 
   get '/forward' do
+    current_move = move_forward
     game = session['game']
-    current_move = session['current_move'].to_i
-    if current_move < game.moves.size - 1
-      current_move += 1
-      session['current_move'] = current_move
-    end
-
     { fen: game.positions[current_move].to_fen }.to_json
   end
 
   get '/backward' do
+    current_move = move_backward
     game = session['game']
-    current_move = session['current_move'].to_i
-    if current_move > 0
-      current_move -= 1
-      session['current_move'] = current_move
-    end
-
     { fen: game.positions[current_move].to_fen }.to_json
   end
 
@@ -72,13 +62,9 @@ class ChessGuesser < Sinatra::Base
     game = session['game']
     current_move = session['current_move'].to_i
     guess = JSON.parse(request.body.read)
-    source = guess['move']['source']
-    target = guess['move']['target']
-    piece = guess['move']['piece']
-    move = to_algebraic(piece, source, target)
-    uci_move = to_uci(source, target)
-    if moves_equal(move, game.moves[current_move]) ||
-      move_in_top_three(uci_move, game.positions[current_move].to_fen)
+    if guess_matches(guess, game.moves[current_move].notation) ||
+      guess_in_top_three(guess, game.positions[current_move].to_fen)
+      move_forward
       { result: 'correct' }.to_json
     else
       puts "incorrect for #{guess.inspect}"
@@ -88,11 +74,62 @@ class ChessGuesser < Sinatra::Base
     end
   end
 
-  def moves_equal(move, game_move)
-    move == game_move.notation.sub(/x/, '')
+  def guess_matches(guess, game_move)
+    source = guess['move']['source']
+    target = guess['move']['target']
+    piece = guess['move']['piece']
+    move = to_algebraic(guess)
+    if move == game_move
+      true
+    else
+      if game_move =~ /x/
+        game_move.sub!(/x/, '') == move
+      end
+      if move == game_move
+        true
+      else
+        # check if game move includes a file or rank disambiguation
+        if game_move =~ /^[NBRQK][a-h1-8][a-h][1-8]$/
+          disambiguation = game_move[1]
+          game_target = game_move[2..3]
+
+          if ('a'..'h').include?(disambiguation) # file disambiguation
+            target == game_target && source[0] == disambiguation
+          elsif ('1'..'8').include?(disambiguation) # rank disambiguation
+            target == game_target && source[1] == disambiguation
+          else
+            false
+          end
+        else
+          false
+        end
+      end
+    end
   end
 
-  def to_algebraic(piece, source, target)
+  def move_forward
+    game = session['game']
+    current_move = session['current_move'].to_i
+    if current_move < game.moves.size - 1
+      current_move += 1
+      session['current_move'] = current_move
+    end
+    current_move
+  end
+
+  def move_backward
+    current_move = session['current_move'].to_i
+    if current_move > 0
+      current_move -= 1
+      session['current_move'] = current_move
+    end
+    current_move
+  end
+
+  def to_algebraic(guess)
+    source = guess['move']['source']
+    target = guess['move']['target']
+    piece = guess['move']['piece']
     if piece =~ /^.P$/
       target
     else
@@ -100,13 +137,16 @@ class ChessGuesser < Sinatra::Base
     end
   end
 
-  def move_in_top_three(uci_move, fen)
+  def guess_in_top_three(guess, fen)
+    source = guess['move']['source']
+    target = guess['move']['target']
+    uci_move = to_uci(source, target)
     analyzer = Analyzer.new
     top_moves = analyzer.best_moves(fen)
     best_score = top_moves[0][:score].to_i
     top_moves.filter! { |move| (best_score - move[:score].to_i).abs < 50 }
     success = top_moves.map { |move| move[:move] }.include?(uci_move)
-    puts "move_in_top_three: #{uci_move} in #{top_moves.inspect}? #{success}"
+    puts "guess_in_top_three: #{uci_move} in #{top_moves.inspect}? #{success}"
     success
   end
 

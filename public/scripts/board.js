@@ -13,14 +13,6 @@ class Board {
     this.updateButtonStates();
   }
 
-  updateButtonStates() {
-    const buttons = ['forwardBtn', 'backwardBtn', 'guessBtn'];
-    buttons.forEach(btnId => {
-      const btn = document.getElementById(btnId);
-      btn.disabled = !this.pgnLoaded;
-    });
-  }
-
   position(fen) {
     this.board.position(fen);
   }
@@ -44,6 +36,7 @@ class Board {
         }
       });
     });
+
     // Add event listener for PGN upload
     const pgnUploadForm = document.getElementById('pgn_upload_form');
     pgnUploadForm.addEventListener('submit', (e) => {
@@ -57,12 +50,20 @@ class Board {
       .then(data => {
         if (data.fen) {
           this.pgnLoaded = true;
-          this.board.position(data.fen);
           this.updateButtonStates();
+          this.position(data.fen);
         } else {
           console.error('PGN upload failed:', data.error);
         }
       });
+    });
+  }
+
+  updateButtonStates() {
+    const buttons = ['forwardBtn', 'backwardBtn', 'guessBtn'];
+    buttons.forEach(btnId => {
+      const btn = document.getElementById(btnId);
+      btn.disabled = !this.pgnLoaded;
     });
   }
 
@@ -107,7 +108,14 @@ class Board {
     console.log('~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~');
 
     if (source === target) {
-      return;
+      return 'snapback';
+    }
+
+    // Check for castling
+    if (piece === 'wK' || piece === 'bK') {
+      if (this.isCastling(piece, source, target)) {
+        this.performCastling(target, newPos);
+      }
     }
 
     fetch('/guess', {
@@ -130,5 +138,38 @@ class Board {
       .then(data => {
         this.handleGuessResult(data.result);
       });
+  }
+
+  isCastling(piece, source, target) {
+    const kingside = (piece === 'wK' && source === 'e1' && target === 'g1') ||
+      (piece === 'bK' && source === 'e8' && target === 'g8');
+    const queenside = (piece === 'wK' && source === 'e1' && target === 'c1') ||
+      (piece === 'bK' && source === 'e8' && target === 'c8');
+    return kingside || queenside;
+  }
+
+  performCastling(target, newPos) {
+    let rookSource, rookTarget;
+
+    if (target === 'g1') {
+      rookSource = 'h1';
+      rookTarget = 'f1';
+    } else if (target === 'c1') {
+      rookSource = 'a1';
+      rookTarget = 'd1';
+    } else if (target === 'g8') {
+      rookSource = 'h8';
+      rookTarget = 'f8';
+    } else if (target === 'c8') {
+      rookSource = 'a8';
+      rookTarget = 'd8';
+    }
+
+    // Move the rook
+    newPos[rookTarget] = newPos[rookSource];
+    delete newPos[rookSource];
+
+    // Update the board with the new position including the moved rook
+    this.board.position(newPos, false);
   }
 }

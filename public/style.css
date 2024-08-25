@@ -1,0 +1,10 @@
+#guess_result_container, #guess_comment_container {
+    height: 3em;
+    line-height: 2em;
+    margin-bottom: 1em;
+  }
+  
+  #guess_result {
+    font-weight: bold;
+    font-size: 1.5em;
+  }

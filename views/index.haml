@@ -13,14 +13,18 @@
       integrity:"sha384-ZvpUoO/+PpLXR1lu4jmpXWu80pZlYUAfxl5NsBMWOEPSjUn/6Z/hRTt8+pR6L4N2",
       crossorigin:"anonymous"}
     %script{src:"https://unpkg.com/@chrisoakman/chessboardjs@1.0.0/dist/chessboard-1.0.0.min.js",
-        integrity:"sha384-8Vi8VHwn3vjQ9eUHUxex3JSN/NFqUg3QbPyX8kWyb93+8AC/pPWTzj+nHtbC5bxD",
-        crossorigin:"anonymous"}
+      integrity:"sha384-8Vi8VHwn3vjQ9eUHUxex3JSN/NFqUg3QbPyX8kWyb93+8AC/pPWTzj+nHtbC5bxD",
+      crossorigin:"anonymous"}
+    %link{rel:"stylesheet", href:"/style.css"}
 
   %body
     %h1 Chess Guesser
     %h2 #{white} vs #{black}
     #board{style:"width:392px"}
-    #guess_result
+    #guess_result_container{style: "height: 24px;"}
+      #guess_result
+    #guess_comment_container{style: "height: 24px;"}
+      #guess_comment
     %button#forwardBtn Forward
     %button#backwardBtn Backward
     %button#guessBtn Start Guessing

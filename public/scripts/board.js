@@ -23,6 +23,7 @@ class Board {
       const btn = document.getElementById(btnId);
       btn.addEventListener('click', (e) => {
         e.preventDefault();
+        this.hideGuessResult();
         switch(btnId) {
           case 'forwardBtn':
             this.updateBoard('/forward');
@@ -42,6 +43,7 @@ class Board {
     pgnUploadForm.addEventListener('submit', (e) => {
       e.preventDefault();
       const formData = new FormData(pgnUploadForm);
+      this.hideGuessResult();
       fetch('/upload_pgn', {
         method: 'POST',
         body: formData
@@ -81,15 +83,24 @@ class Board {
     guessBtn.textContent = this.guessMode ? 'Stop Guessing' : 'Start Guessing';
   }
 
-  handleGuessResult(result) {
+  handleGuessResult(data) {
     const guessResult = document.getElementById('guess_result');
-    if (result === 'correct') {
+    const guessComment = document.getElementById('guess_comment');
+    if (data.result === 'correct') {
       guessResult.textContent = 'Correct!';
+      guessComment.textContent = data.same_as_game ? 'This is what was played.' : 'Not was played but engine approved!';
       guessResult.style.color = 'green';
     } else {
       guessResult.textContent = 'Incorrect!';
       guessResult.style.color = 'red';
     }
+  }
+
+  hideGuessResult() {
+    const guessResult = document.getElementById('guess_result');
+    const guessComment = document.getElementById('guess_comment');
+    if (guessResult) guessResult.textContent = '';
+    if (guessComment) guessComment.textContent = '';
   }
 
   onDragStart(source, piece, position, orientation) {
@@ -136,7 +147,7 @@ class Board {
     })
       .then(response => response.json())
       .then(data => {
-        this.handleGuessResult(data.result);
+        this.handleGuessResult(data);
       });
   }
 

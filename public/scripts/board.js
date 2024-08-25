@@ -8,6 +8,7 @@ class Board {
       onDragStart: this.onDragStart.bind(this),
       onDrop: this.onDrop.bind(this)
     });
+    this.lastPosition = this.board.position();
 
     this.setupEventListeners();
     this.updateButtonStates();
@@ -122,6 +123,9 @@ class Board {
       return 'snapback';
     }
 
+    // Store the old position before making any changes
+    this.lastPosition = oldPos;
+
     // Check for castling
     if (piece === 'wK' || piece === 'bK') {
       if (this.isCastling(piece, source, target)) {
@@ -148,6 +152,10 @@ class Board {
       .then(response => response.json())
       .then(data => {
         this.handleGuessResult(data);
+        if (data.result === 'incorrect') {
+          // Revert to the old position if the guess was incorrect
+          this.board.position(this.lastPosition);
+        }
       });
   }
 

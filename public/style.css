@@ -1,12 +1,12 @@
 #guess_result_container {
-    height: 3em;
+    height: 2em;
     line-height: 2em;
     margin-bottom: 1em;
   }
 
 #guess_comment_container, #guess_subcomment_container {
-    height: 2em;
-    line-height: 2em;
+    height: 3em;
+    line-height: 1.5em;
     margin-bottom: 0.5em;
   }
 
@@ -14,3 +14,6 @@
     font-weight: bold;
     font-size: 1.5em;
   }
+#board {
+    width: 392px;
+}

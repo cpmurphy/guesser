@@ -24,8 +24,6 @@ class ChessGuesser < Sinatra::Base
       else
         current_move = 0
       end
-      game_state['white'] = game.tags['White']
-      game_state['black'] = game.tags['Black']
       game_state['fen'] = game.positions[current_move].to_fen.to_s
       game_state['current_move'] = current_move
     else
@@ -41,10 +39,13 @@ class ChessGuesser < Sinatra::Base
   post '/upload_pgn' do
     pgn_content = params[:pgn][:tempfile].read
     games = PGN.parse(pgn_content)
+    game = games.first
 
-    session['game'] = games.first
+    session['game'] = game
     session['current_move'] = 0
-    { fen: games.first.positions[0].to_fen }.to_json
+    white = game.tags['White']
+    black = game.tags['Black']
+    { white: white, black: black, fen: games.first.positions[0].to_fen }.to_json
   end
 
   get '/forward' do

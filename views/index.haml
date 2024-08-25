@@ -19,17 +19,20 @@
 
   %body
     %h1 Chess Guesser
-    %h2 #{white} vs #{black}
-    #board{style:"width:392px"}
+    %h2
+      %span#white White
+      vs
+      %span#black Black
+    #board
     #guess_result_container
       #guess_result
     #guess_comment_container
       #guess_comment
-    #guess_subcomment_container
       #guess_subcomment
-    %button#forwardBtn Forward
-    %button#backwardBtn Backward
-    %button#guessBtn Start Guessing
+    #buttons_container
+      %button#forwardBtn Forward
+      %button#backwardBtn Backward
+      %button#guessBtn Start Guessing
     %script{src:"../scripts/board.js"}
     %script
       document.addEventListener('DOMContentLoaded', () => { new Board().position('#{fen}'); });

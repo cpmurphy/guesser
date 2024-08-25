@@ -55,6 +55,12 @@ class Board {
           this.pgnLoaded = true;
           this.updateButtonStates();
           this.position(data.fen);
+          if (data.white) {
+            document.getElementById('white').textContent = data.white;
+          }
+          if (data.black) {
+            document.getElementById('black').textContent = data.black;
+          }
         } else {
           console.error('PGN upload failed:', data.error);
         }
@@ -93,6 +99,7 @@ class Board {
       guessResult.style.color = 'green';
       if (data.same_as_game) {
         guessComment.textContent = 'This is what was played.';
+        guessSubcomment.textContent = '';
       } else {
         guessComment.textContent = 'Your move is engine approved!';
         guessSubcomment.textContent = 'In the game ' + data.game_move + ' was played.';

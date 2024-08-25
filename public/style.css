@@ -1,9 +1,15 @@
-#guess_result_container, #guess_comment_container {
+#guess_result_container {
     height: 3em;
     line-height: 2em;
     margin-bottom: 1em;
   }
-  
+
+#guess_comment_container, #guess_subcomment_container {
+    height: 2em;
+    line-height: 2em;
+    margin-bottom: 0.5em;
+  }
+
   #guess_result {
     font-weight: bold;
     font-size: 1.5em;

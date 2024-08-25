@@ -43,6 +43,7 @@ class ChessGuesser < Sinatra::Base
     games = PGN.parse(pgn_content)
 
     session['game'] = games.first
+    session['current_move'] = 0
     { fen: games.first.positions[0].to_fen }.to_json
   end
 
@@ -68,12 +69,13 @@ class ChessGuesser < Sinatra::Base
     current_move = session['current_move'].to_i
     guess = JSON.parse(request.body.read)
     fen = game.positions[current_move].to_fen
-    if @move_judge.are_same?(guess, game.moves[current_move].notation)
+    game_move = game.moves[current_move].notation
+    if @move_judge.are_same?(guess, game_move)
       move_forward
       { result: 'correct', same_as_game: true, fen: fen }.to_json
     elsif @move_judge.guess_in_top_three?(guess, fen)
       move_forward
-      { result: 'correct', same_as_game: false, fen: fen }.to_json
+      { result: 'correct', same_as_game: false, game_move: game_move, fen: fen }.to_json
     else
       puts "incorrect for #{guess.inspect}"
       puts "correct is #{game.moves[current_move].inspect}"

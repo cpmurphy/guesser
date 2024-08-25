@@ -87,21 +87,30 @@ class Board {
   handleGuessResult(data) {
     const guessResult = document.getElementById('guess_result');
     const guessComment = document.getElementById('guess_comment');
+    const guessSubcomment = document.getElementById('guess_subcomment');
     if (data.result === 'correct') {
       guessResult.textContent = 'Correct!';
-      guessComment.textContent = data.same_as_game ? 'This is what was played.' : 'Not was played but engine approved!';
       guessResult.style.color = 'green';
+      if (data.same_as_game) {
+        guessComment.textContent = 'This is what was played.';
+      } else {
+        guessComment.textContent = 'Your move is engine approved!';
+        guessSubcomment.textContent = 'In the game ' + data.game_move + ' was played.';
+      }
     } else {
       guessResult.textContent = 'Incorrect!';
       guessResult.style.color = 'red';
+      guessComment.textContent = '';
     }
   }
 
   hideGuessResult() {
     const guessResult = document.getElementById('guess_result');
     const guessComment = document.getElementById('guess_comment');
+    const guessSubcomment = document.getElementById('guess_subcomment');
     if (guessResult) guessResult.textContent = '';
     if (guessComment) guessComment.textContent = '';
+    if (guessSubcomment) guessSubcomment.textContent = '';
   }
 
   onDragStart(source, piece, position, orientation) {

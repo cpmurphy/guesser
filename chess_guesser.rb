@@ -43,8 +43,7 @@ class ChessGuesser < Sinatra::Base
     games = PGN.parse(pgn_content)
 
     session['game'] = games.first
-    session['current_move'] = 13
-    redirect '/'
+    { fen: games.first.positions[0].to_fen }.to_json
   end
 
   get '/forward' do

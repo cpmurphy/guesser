@@ -1,6 +1,7 @@
 class Board {
   constructor() {
-    this.guess_mode = false;
+    this.guessMode = false;
+    this.pgnLoaded = false;
     this.board = Chessboard('board', {
       draggable: true,
       position: 'start',
@@ -9,6 +10,15 @@ class Board {
     });
 
     this.setupEventListeners();
+    this.updateButtonStates();
+  }
+
+  updateButtonStates() {
+    const buttons = ['forwardBtn', 'backwardBtn', 'guessBtn'];
+    buttons.forEach(btnId => {
+      const btn = document.getElementById(btnId);
+      btn.disabled = !this.pgnLoaded;
+    });
   }
 
   position(fen) {
@@ -34,6 +44,26 @@ class Board {
         }
       });
     });
+    // Add event listener for PGN upload
+    const pgnUploadForm = document.getElementById('pgn_upload_form');
+    pgnUploadForm.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const formData = new FormData(pgnUploadForm);
+      fetch('/upload_pgn', {
+        method: 'POST',
+        body: formData
+      })
+      .then(response => response.json())
+      .then(data => {
+        if (data.fen) {
+          this.pgnLoaded = true;
+          this.board.position(data.fen);
+          this.updateButtonStates();
+        } else {
+          console.error('PGN upload failed:', data.error);
+        }
+      });
+    });
   }
 
   updateBoard(endpoint) {
@@ -45,9 +75,9 @@ class Board {
   }
 
   toggleGuessMode() {
-    this.guess_mode = !this.guess_mode;
+    this.guessMode = !this.guessMode;
     const guessBtn = document.getElementById('guessBtn');
-    guessBtn.textContent = this.guess_mode ? 'Stop Guessing' : 'Start Guessing';
+    guessBtn.textContent = this.guessMode ? 'Stop Guessing' : 'Start Guessing';
   }
 
   handleGuessResult(result) {
@@ -62,7 +92,7 @@ class Board {
   }
 
   onDragStart(source, piece, position, orientation) {
-    if (!this.guess_mode) {
+    if (!this.guessMode) {
       return false;
     }
   }

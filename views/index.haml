@@ -21,15 +21,12 @@
     %h2 #{white} vs #{black}
     #board{style:"width:392px"}
     #guess_result
-    %button{onclick:"updateBoard('forward')"} Forward
-    %button{onclick:"updateBoard('backward')"} Backward
+    %button{id:"forwardBtn"} Forward
+    %button{id:"backwardBtn"} Backward
+    %button{id:"guessBtn"} Start Guessing
     %script{src:"../scripts/board.js"}
     %script
-      !="board.position('#{fen}');"
-
-    %form(action='/start_guessing' method='post' enctype='multipart/form-data')
-      %button(type='submit') Start guessing
-
+      document.addEventListener('DOMContentLoaded', () => { new Board().position('#{fen}'); });
 
     %form(action='/upload_pgn' method='post' enctype='multipart/form-data')
       %label(for='pgn') Choose a PGN file:

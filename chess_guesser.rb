@@ -4,6 +4,7 @@ require 'json'
 
 $LOAD_PATH.unshift(File.expand_path('lib', __dir__))
 require 'analyzer'
+require_relative 'lib/move_judge'
 
 class ChessGuesser < Sinatra::Base
   enable :sessions
@@ -62,48 +63,14 @@ class ChessGuesser < Sinatra::Base
     game = session['game']
     current_move = session['current_move'].to_i
     guess = JSON.parse(request.body.read)
-    if guess_matches(guess, game.moves[current_move].notation) ||
+    if MoveJudge.are_same?(guess, game.moves[current_move].notation) ||
       guess_in_top_three(guess, game.positions[current_move].to_fen)
       move_forward
       { result: 'correct' }.to_json
     else
       puts "incorrect for #{guess.inspect}"
-      puts "interpreted as #{move.inspect}"
       puts "correct is #{game.moves[current_move].inspect}"
       { result: 'incorrect' }.to_json
-    end
-  end
-
-  def guess_matches(guess, game_move)
-    source = guess['move']['source']
-    target = guess['move']['target']
-    piece = guess['move']['piece']
-    move = to_algebraic(guess)
-    if move == game_move
-      true
-    else
-      if game_move =~ /x/
-        game_move.sub!(/x/, '') == move
-      end
-      if move == game_move
-        true
-      else
-        # check if game move includes a file or rank disambiguation
-        if game_move =~ /^[NBRQK][a-h1-8][a-h][1-8]$/
-          disambiguation = game_move[1]
-          game_target = game_move[2..3]
-
-          if ('a'..'h').include?(disambiguation) # file disambiguation
-            target == game_target && source[0] == disambiguation
-          elsif ('1'..'8').include?(disambiguation) # rank disambiguation
-            target == game_target && source[1] == disambiguation
-          else
-            false
-          end
-        else
-          false
-        end
-      end
     end
   end
 
@@ -124,17 +91,6 @@ class ChessGuesser < Sinatra::Base
       session['current_move'] = current_move
     end
     current_move
-  end
-
-  def to_algebraic(guess)
-    source = guess['move']['source']
-    target = guess['move']['target']
-    piece = guess['move']['piece']
-    if piece =~ /^.P$/
-      target
-    else
-      "#{piece[1]}#{target}"
-    end
   end
 
   def guess_in_top_three(guess, fen)

@@ -8,6 +8,15 @@ function updateBoard(endpoint) {
     });
 }
 
+function handleGuessResult(result) {
+  const guessResult = $('#guess_result');
+  if (result === 'correct') {
+    guessResult.text('Correct!').css('color', 'green');
+  } else {
+    guessResult.text('Incorrect!').css('color', 'red');
+  }
+}
+
 function onDrop (source, target, piece, newPos, oldPos, orientation) {
   console.log('Source: ' + source)
   console.log('Target: ' + target)
@@ -16,23 +25,20 @@ function onDrop (source, target, piece, newPos, oldPos, orientation) {
   console.log('Old position: ' + Chessboard.objToFen(oldPos))
   console.log('Orientation: ' + orientation)
   console.log('~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~')
+  if (source == target) {
+    return;
+  }
   fetch('/guess', { method: 'POST',
-    body: JSON.stringify({ move:
-      { source, target, piece,
-        newPos: Chessboard.objToFen(newPos),
-        oldPos: Chessboard.objToFen(oldPos),
-        orientation
-      } })
-    })
+    body: JSON.stringify({ move: {
+      source, target, piece,
+      newPos: Chessboard.objToFen(newPos),
+      oldPos: Chessboard.objToFen(oldPos),
+      orientation
+    } })
+  })
     .then(response => response.json())
     .then(data => {
-      if (data.result === 'correct') {
-        $('#guess_result').text('Correct!');
-        $('#guess_result').css('color', 'green');
-      } else {
-        $('#guess_result').text('Incorrect!');
-        $('#guess_result').css('color', 'red');
-      }
+      handleGuessResult(data.result);
     });
 }
 

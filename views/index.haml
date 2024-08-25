@@ -1,0 +1,43 @@
+!!! 5
+%html{lang:"en"}
+  %head
+    %meta{charset:"UTF-8"}
+    %meta{name:"viewport", content:"width=device-width, initial-scale=1.0"}
+    %title Chess Guesser
+    %link{rel:"stylesheet",
+      href:"https://unpkg.com/@chrisoakman/chessboardjs@1.0.0/dist/chessboard-1.0.0.min.css",
+      integrity:"sha384-q94+BZtLrkL1/ohfjR8c6L+A6qzNH9R2hBLwyoAfu3i/WCvQjzL2RQJ3uNHDISdU",
+      crossorigin:"anonymous"}
+
+    %script{src:"https://code.jquery.com/jquery-3.5.1.min.js",
+      integrity:"sha384-ZvpUoO/+PpLXR1lu4jmpXWu80pZlYUAfxl5NsBMWOEPSjUn/6Z/hRTt8+pR6L4N2",
+      crossorigin:"anonymous"}
+    %script{src:"https://unpkg.com/@chrisoakman/chessboardjs@1.0.0/dist/chessboard-1.0.0.min.js",
+      integrity:"sha384-8Vi8VHwn3vjQ9eUHUxex3JSN/NFqUg3QbPyX8kWyb93+8AC/pPWTzj+nHtbC5bxD",
+      crossorigin:"anonymous"}
+    %link{rel:"stylesheet", href:"/style.css"}
+
+  %body
+    %h1 Chess Guesser
+    %h2
+      %span#white White
+      vs
+      %span#black Black
+    #board
+    #guess_result_container
+      #guess_result
+    #guess_comment_container
+      #guess_comment
+      #guess_subcomment
+    #buttons_container
+      %button#forwardBtn Forward
+      %button#backwardBtn Backward
+      %button#guessBtn Start Guessing
+    %script{src:"../scripts/board.js"}
+    %script
+      document.addEventListener('DOMContentLoaded', () => { new Board().position('#{fen}'); });
+
+    %form#pgn_upload_form(action='/upload_pgn' method='post' enctype='multipart/form-data')
+      %label(for='pgn') Choose a PGN file:
+      %input(type='file' name='pgn' accept='.pgn' required)
+      %button(type='submit') Upload PGN

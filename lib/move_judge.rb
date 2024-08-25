@@ -1,4 +1,5 @@
 require_relative 'analyzer'
+require_relative 'algebraist'
 
 class MoveJudge
   def initialize(analyzer = Analyzer.new)
@@ -9,7 +10,7 @@ class MoveJudge
     source = guess['move']['source']
     target = guess['move']['target']
     piece = guess['move']['piece']
-    move = to_algebraic(guess)
+    move = Algebraist.to_algebraic(guess)
 
     return true if move == game_move
 
@@ -54,21 +55,6 @@ class MoveJudge
   end
 
   private
-
-  def to_algebraic(guess)
-    source = guess['move']['source']
-    target = guess['move']['target']
-    piece = guess['move']['piece']
-    if piece =~ /^.P$/
-      # if the source file and target file are different, it's a capture
-      if source[0] != target[0]
-        return "#{source[0]}x#{target}"
-      end
-      target
-    else
-      "#{piece[1]}#{target}"
-    end
-  end
 
   def to_uci(source, target)
     source + target

@@ -1,7 +1,11 @@
 require_relative 'analyzer'
 
 class MoveJudge
-  def self.are_same?(guess, game_move)
+  def initialize(analyzer = Analyzer.new)
+    @analyzer = analyzer
+  end
+
+  def are_same?(guess, game_move)
     source = guess['move']['source']
     target = guess['move']['target']
     piece = guess['move']['piece']
@@ -39,12 +43,11 @@ class MoveJudge
     false
   end
 
-  def self.guess_in_top_three?(guess, fen)
+  def guess_in_top_three?(guess, fen)
     source = guess['move']['source']
     target = guess['move']['target']
     uci_move = to_uci(source, target)
-    analyzer = Analyzer.new
-    top_moves = analyzer.best_moves(fen)
+    top_moves = @analyzer.best_moves(fen)
     best_score = top_moves[0][:score].to_i
     top_moves.filter! { |move| (best_score - move[:score].to_i).abs < 50 }
     top_moves.map { |move| move[:move] }.include?(uci_move)
@@ -52,7 +55,7 @@ class MoveJudge
 
   private
 
-  def self.to_algebraic(guess)
+  def to_algebraic(guess)
     source = guess['move']['source']
     target = guess['move']['target']
     piece = guess['move']['piece']
@@ -67,7 +70,7 @@ class MoveJudge
     end
   end
 
-  def self.to_uci(source, target)
+  def to_uci(source, target)
     source + target
   end
 end

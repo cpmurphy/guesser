@@ -10,6 +10,11 @@ class ChessGuesser < Sinatra::Base
   enable :sessions
   set :session_store, Rack::Session::Pool
 
+  def initialize
+    super
+    @move_judge = MoveJudge.new
+  end
+
   get '/' do
     game_state = {}
     if session['game']
@@ -63,8 +68,8 @@ class ChessGuesser < Sinatra::Base
     game = session['game']
     current_move = session['current_move'].to_i
     guess = JSON.parse(request.body.read)
-    if MoveJudge.are_same?(guess, game.moves[current_move].notation) ||
-      MoveJudge.guess_in_top_three?(guess, game.positions[current_move].to_fen)
+    if @move_judge.are_same?(guess, game.moves[current_move].notation) ||
+       @move_judge.guess_in_top_three?(guess, game.positions[current_move].to_fen)
       move_forward
       { result: 'correct' }.to_json
     else
@@ -91,10 +96,6 @@ class ChessGuesser < Sinatra::Base
       session['current_move'] = current_move
     end
     current_move
-  end
-
-  def to_uci(source, target)
-    source + target
   end
 
   # start the server if ruby file executed directly

@@ -72,11 +72,13 @@ class ChessGuesser < Sinatra::Base
     fen = game.positions[current_move].to_fen
     game_move = game.moves[current_move].notation
     if @move_judge.are_same?(guess, game_move)
-      move_forward
-      { result: 'correct', same_as_game: true, fen: fen }.to_json
+      current_move = move_forward
+      next_fen = game.positions[current_move].to_fen
+      { result: 'correct', same_as_game: true, fen: fen, fen: next_fen }.to_json
     elsif @move_judge.guess_in_top_three?(guess, fen)
-      move_forward
-      { result: 'correct', same_as_game: false, game_move: game_move, fen: fen }.to_json
+      current_move = move_forward
+      next_fen = game.positions[current_move].to_fen
+      { result: 'correct', same_as_game: false, game_move: game_move, fen: next_fen }.to_json
     else
       puts "incorrect for #{guess.inspect}"
       puts "correct is #{game.moves[current_move].inspect}"

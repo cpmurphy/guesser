@@ -22,6 +22,16 @@ class MoveJudgeTest < Minitest::Test
     assert @move_judge.are_same?(guess, 'exd5')
   end
 
+  def test_move_with_check
+    guess = { 'move' => { 'source' => 'c5', 'target' => 'b4', 'piece' => 'bB' } }
+    assert @move_judge.are_same?(guess, 'Bb4+')
+  end
+
+  def test_move_with_checkmate
+    guess = { 'move' => { 'source' => 'h2', 'target' => 'h8', 'piece' => 'wQ' } }
+    assert @move_judge.are_same?(guess, 'Qh8#')
+  end
+
   def test_file_disambiguation
     guess = { 'move' => { 'source' => 'c1', 'target' => 'e1', 'piece' => 'wR' } }
     assert @move_judge.are_same?(guess, 'Rce1')

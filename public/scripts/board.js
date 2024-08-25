@@ -95,19 +95,29 @@ class Board {
     const guessComment = document.getElementById('guess_comment');
     const guessSubcomment = document.getElementById('guess_subcomment');
     if (data.result === 'correct') {
-      guessResult.textContent = 'Correct!';
       guessResult.style.color = 'green';
       if (data.same_as_game) {
+        guessResult.textContent = 'Correct!';
         guessComment.textContent = 'This is what was played.';
         guessSubcomment.textContent = '';
       } else {
+        guessResult.textContent = 'Good!';
         guessComment.textContent = 'Your move is engine approved!';
         guessSubcomment.textContent = 'In the game ' + data.game_move + ' was played.';
+        // revert to previous position, then update with new position from game
+        setTimeout(() => {
+          this.board.position(this.lastPosition);
+          setTimeout(() => {
+            this.board.position(data.fen);
+          }, 500);
+        }, 500);
       }
     } else {
       guessResult.textContent = 'Incorrect!';
       guessResult.style.color = 'red';
       guessComment.textContent = '';
+      guessSubcomment.textContent = '';
+      this.board.position(this.lastPosition);
     }
   }
 
@@ -167,11 +177,7 @@ class Board {
     })
       .then(response => response.json())
       .then(data => {
-        this.handleGuessResult(data);
-        if (data.result === 'incorrect') {
-          // Revert to the old position if the guess was incorrect
-          this.board.position(this.lastPosition);
-        }
+        this.handleGuessResult(data, newPos);
       });
   }
 

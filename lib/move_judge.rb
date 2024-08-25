@@ -13,10 +13,8 @@ class MoveJudge
     move = Algebraist.to_algebraic(guess)
 
     return true if move == game_move
-
-    if game_move.include?('x')
-      return true if game_move.sub('x', '') == move
-    end
+    bare_move = game_move.sub('+', '').sub('#', '').sub('x', '')
+    return true if bare_move == move
 
     if game_move =~ /^[NBRQK][a-h1-8][a-h][1-8]$/
       disambiguation = game_move[1]

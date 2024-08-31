@@ -81,6 +81,10 @@ class Board {
       .then(response => response.json())
       .then(data => {
         this.board.position(data.fen);
+        // Enable/disable buttons
+        document.getElementById('forwardBtn').disabled = data.move_number >= data.total_moves;
+        document.getElementById('backwardBtn').disabled = data.move_number <= 1;
+
       });
   }
 

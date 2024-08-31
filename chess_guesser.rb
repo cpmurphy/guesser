@@ -50,14 +50,12 @@ class ChessGuesser < Sinatra::Base
 
   get '/forward' do
     current_move = move_forward
-    game = session['game']
-    { fen: game.positions[current_move].to_fen }.to_json
+    state_for_current_move(current_move).to_json
   end
 
   get '/backward' do
     current_move = move_backward
-    game = session['game']
-    { fen: game.positions[current_move].to_fen }.to_json
+    state_for_current_move(current_move).to_json
   end
 
   post '/start_guessing' do
@@ -66,29 +64,29 @@ class ChessGuesser < Sinatra::Base
   end
 
   post '/guess' do
-    game = session['game']
     current_move = session['current_move'].to_i
     guess = JSON.parse(request.body.read)
+    game = session['game']
     fen = game.positions[current_move].to_fen
     game_move = game.moves[current_move].notation
     if @move_judge.are_same?(guess, game_move)
       current_move = move_forward
       next_fen = game.positions[current_move].to_fen
-      { result: 'correct', same_as_game: true, fen: fen, fen: next_fen }.to_json
+      { result: 'correct', same_as_game: true }.merge(state_for_current_move(current_move)).to_json
     elsif @move_judge.guess_in_top_three?(guess, fen)
       current_move = move_forward
       next_fen = game.positions[current_move].to_fen
-      { result: 'correct', same_as_game: false, game_move: game_move, fen: next_fen }.to_json
+      { result: 'correct', same_as_game: false, game_move: game_move }.merge(state_for_current_move(current_move)).to_json
     else
       puts "incorrect for #{guess.inspect}"
       puts "correct is #{game.moves[current_move].inspect}"
-      { result: 'incorrect' }.to_json
+      { result: 'incorrect' }.merge(state_for_current_move(current_move)).to_json
     end
   end
 
   def move_forward
-    game = session['game']
     current_move = session['current_move'].to_i
+    game = session['game']
     if current_move < game.moves.size - 1
       current_move += 1
       session['current_move'] = current_move
@@ -103,6 +101,15 @@ class ChessGuesser < Sinatra::Base
       session['current_move'] = current_move
     end
     current_move
+  end
+
+  def state_for_current_move(current_move)
+    game = session['game']
+    { fen: game.positions[current_move].to_fen,
+      game_move: game.moves[current_move].notation,
+      move_number: current_move + 1,
+      total_moves: game.moves.size
+    }
   end
 
   # start the server if ruby file executed directly

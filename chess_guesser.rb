@@ -138,7 +138,6 @@ class ChessGuesser < Sinatra::Base
   def state_for_current_move(current_move)
     game = session['game']
     { fen: game.positions[current_move].to_fen,
-      game_move: game.moves[current_move].notation,
       move_number: current_move + 1,
       total_moves: game.moves.size
     }

@@ -1,6 +1,5 @@
 class Board {
   constructor() {
-    this.guessMode = 'both';
     this.board = Chessboard('board', {
       draggable: true,
       position: 'start',
@@ -20,7 +19,7 @@ class Board {
   }
 
   setupEventListeners() {
-    const buttons = ['forwardBtn', 'backwardBtn', 'guessBtn'];
+    const buttons = ['forwardBtn', 'backwardBtn'];
     buttons.forEach(btnId => {
       const btn = document.getElementById(btnId);
       btn.addEventListener('click', (e) => {
@@ -32,9 +31,6 @@ class Board {
             break;
           case 'backwardBtn':
             this.updateBoard('/backward');
-            break;
-          case 'guessBtn':
-            this.toggleGuessMode();
             break;
         }
       });
@@ -68,13 +64,18 @@ class Board {
     });
   }
 
+  guessMode() {
+    const selectedRadio = document.querySelector('input[name="guess_mode"]:checked');
+    return selectedRadio ? selectedRadio.value : undefined;
+  }
+
   setupGuessModeRadios() {
     const radios = document.querySelectorAll('input[name="guess_mode"]');
     radios.forEach(radio => {
+      radio.checked = false;
       radio.addEventListener('change', (e) => {
-        this.guessMode = e.target.value;
         const formData = new FormData();
-        formData.append('mode', this.guessMode);
+        formData.append('mode', e.target.value);
         fetch('/set_guess_mode', {
           method: 'POST',
           body: formData
@@ -86,11 +87,8 @@ class Board {
   initializeButtonStates(pgnLoaded) {
     const backBtn = document.getElementById('backwardBtn');
     backBtn.disabled = true;
-    const buttons = ['forwardBtn', 'guessBtn'];
-    buttons.forEach(btnId => {
-      const btn = document.getElementById(btnId);
-      btn.disabled = !pgnLoaded;
-    });
+    const forwardBtn = document.getElementById('forwardBtn');
+    forwardBtn.disabled = !pgnLoaded;
   }
 
   updateBoard(endpoint) {
@@ -101,13 +99,8 @@ class Board {
         this.currentMove = data.move_number;
         document.getElementById('forwardBtn').disabled = data.move_number >= data.total_moves;
         document.getElementById('backwardBtn').disabled = data.move_number <= 1;
+        this.currentMove = data.move_number;
       });
-  }
-
-  toggleGuessMode() {
-    this.guessingEnabled = !this.guessingEnabled;
-    const guessBtn = document.getElementById('guessBtn');
-    guessBtn.textContent = this.guessingEnabled ? 'Stop Guessing' : 'Start Guessing';
   }
 
   handleGuessResult(data) {
@@ -158,8 +151,10 @@ class Board {
   }
 
   onDragStart(source, piece, position, orientation) {
-    return this.guessingEnabled &&
-      (this.guessMode == 'both' || this.guessMode[0] == piece[0]);
+    const currentGuessMode = this.guessMode();
+    return currentGuessMode === 'both' ||
+       (currentGuessMode === 'white' && piece.charAt(0) === 'w') ||
+       (currentGuessMode === 'black' && piece.charAt(0) === 'b');
   }
 
   onDrop(source, target, piece, newPos, oldPos, orientation) {
@@ -246,7 +241,6 @@ class Board {
   }
 
   updateButtonStates(data) {
-    document.getElementById('guessBtn').disabled = false;
     document.getElementById('forwardBtn').disabled = data.move_number >= data.total_moves;
     document.getElementById('backwardBtn').disabled = data.move_number <= 1;
   }

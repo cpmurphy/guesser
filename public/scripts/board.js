@@ -1,15 +1,82 @@
 class Board {
   constructor() {
+    this.board = null;
+    this.setupPGNUploadListener();
+  }
+
+  setupPGNUploadListener() {
+    const pgnUploadForm = document.getElementById('pgn_upload_form');
+    pgnUploadForm.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const formData = new FormData(pgnUploadForm);
+      fetch('/upload_pgn', {
+        method: 'POST',
+        body: formData
+      })
+      .then(response => response.json())
+      .then(data => {
+        if (data.table) {
+          this.displayGameSelection(data.table);
+        } else {
+          console.error('PGN upload failed:', data.error);
+        }
+      });
+    });
+  }
+
+  displayGameSelection(games) {
+    const tableBody = document.querySelector('#game_selection_table tbody');
+    tableBody.innerHTML = '';
+    games.forEach(game => {
+      const row = tableBody.insertRow();
+      row.insertCell().textContent = game.white;
+      row.insertCell().textContent = game.black;
+      row.insertCell().textContent = game.date;
+      row.insertCell().textContent = game.event;
+      const actionCell = row.insertCell();
+      const loadButton = document.createElement('button');
+      loadButton.textContent = 'Load';
+      loadButton.addEventListener('click', () => this.loadGame(game.id));
+      actionCell.appendChild(loadButton);
+    });
+    document.getElementById('game_selection_container').style.display = 'block';
+    document.getElementById('board_container').style.display = 'none';
+  }
+
+  loadGame(gameId) {
+    const formData = new FormData(document.getElementById('pgn_upload_form'));
+    formData.append('game_id', gameId);
+    fetch('/load_game', {
+      method: 'POST',
+      body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+      if (data.fen) {
+        this.initializeBoard(data.fen);
+        this.initializeButtonStates(true);
+        document.getElementById('white').textContent = data.white;
+        document.getElementById('black').textContent = data.black;
+        document.getElementById('game_selection_container').style.display = 'none';
+        document.getElementById('board_container').style.display = 'block';
+      } else {
+        console.error('Game load failed:', data.error);
+      }
+    });
+  }
+
+  initializeBoard(fen) {
     this.board = Chessboard('board', {
+      position: fen,
       draggable: true,
-      position: 'start',
       onDragStart: this.onDragStart.bind(this),
       onDrop: this.onDrop.bind(this)
     });
     this.lastPosition = this.board.position();
     this.currentMove = 1;
 
-    this.setupEventListeners();
+    this.setupPGNUploadListener();
+    this.setupMoveButtons();
     this.initializeButtonStates(false);
     this.setupGuessModeRadios();
   }
@@ -18,7 +85,7 @@ class Board {
     this.board.position(fen);
   }
 
-  setupEventListeners() {
+  setupMoveButtons() {
     const buttons = ['forwardBtn', 'backwardBtn'];
     buttons.forEach(btnId => {
       const btn = document.getElementById(btnId);
@@ -32,33 +99,6 @@ class Board {
           case 'backwardBtn':
             this.updateBoard('/backward');
             break;
-        }
-      });
-    });
-
-    // Add event listener for PGN upload
-    const pgnUploadForm = document.getElementById('pgn_upload_form');
-    pgnUploadForm.addEventListener('submit', (e) => {
-      e.preventDefault();
-      const formData = new FormData(pgnUploadForm);
-      this.hideGuessResult();
-      fetch('/upload_pgn', {
-        method: 'POST',
-        body: formData
-      })
-      .then(response => response.json())
-      .then(data => {
-        if (data.fen) {
-          this.updateButtonStates(data);
-          this.position(data.fen);
-          if (data.white) {
-            document.getElementById('white').textContent = data.white;
-          }
-          if (data.black) {
-            document.getElementById('black').textContent = data.black;
-          }
-        } else {
-          console.error('PGN upload failed:', data.error);
         }
       });
     });
@@ -158,14 +198,6 @@ class Board {
   }
 
   onDrop(source, target, piece, newPos, oldPos, orientation) {
-    console.log('Source: ' + source);
-    console.log('Target: ' + target);
-    console.log('Piece: ' + piece);
-    console.log('New position: ' + Chessboard.objToFen(newPos));
-    console.log('Old position: ' + Chessboard.objToFen(oldPos));
-    console.log('Orientation: ' + orientation);
-    console.log('~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~');
-
     if (source === target) {
       return 'snapback';
     }

@@ -1,6 +1,6 @@
-require 'sinatra/base'
-require 'pgn'
+require 'sinatra'
 require 'json'
+require 'pgn'
 
 $LOAD_PATH.unshift(File.expand_path('lib', __dir__))
 require 'analyzer'
@@ -37,16 +37,43 @@ class ChessGuesser < Sinatra::Base
   end
 
   post '/upload_pgn' do
-    pgn_content = params[:pgn][:tempfile].read
-    games = PGN.parse(pgn_content)
-    game = games.first
+    if params[:pgn] && (tempfile = params[:pgn][:tempfile])
+      pgn_content = tempfile.read
+      games = PGN.parse(pgn_content)
+      session['games'] = games
+      table = games.map.with_index do |game, index|
+        {
+          id: index,
+          white: game.tags['White'],
+          black: game.tags['Black'],
+          date: game.tags['Date'],
+          event: game.tags['Event']
+        }
+      end
+      { table: table }.to_json
+    else
+      status 400
+      { error: 'No PGN file uploaded' }.to_json
+    end
+  end
 
-    session['game'] = game
-    session['current_move'] = 0
-    white = game.tags['White']
-    black = game.tags['Black']
-    session['guess_mode'] = 'both' # Default to guessing both sides
-    { white: white, black: black, fen: games.first.positions[0].to_fen }.to_json
+  post '/load_game' do
+    game_id = params['game_id'].to_i
+    games = session['games']
+    if games && game_id >= 0 && game_id < games.length
+      game = games[game_id]
+      session['game'] = game
+      session['current_move'] = 0
+      session['guess_mode'] = 'both'
+      {
+        fen: game.positions.first.to_fen,
+        white: game.tags['White'],
+        black: game.tags['Black']
+      }.to_json
+    else
+      status 400
+      { error: 'Invalid game ID' }.to_json
+    end
   end
 
   post '/set_guess_mode' do

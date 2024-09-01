@@ -23,29 +23,43 @@
       %span#white White
       vs
       %span#black Black
-    #board
-    #guess_result_container
-      #guess_result
-    #guess_comment_container
-      #guess_comment
-      #guess_subcomment
-    #guess_mode_selection
-      %label
-        %input{type: "radio", name: "guess_mode", value: "both", checked: true}
-        Guess Both
-      %label
-        %input{type: "radio", name: "guess_mode", value: "white"}
-        Guess White
-      %label
-        %input{type: "radio", name: "guess_mode", value: "black"}
-        Guess Black
+    #board_container{style: "display: none;"}
+      #board
+      #guess_result_container
+        #guess_result
+      #guess_comment_container
+        #guess_comment
+        #guess_subcomment
 
-    #buttons_container
-      %button#forwardBtn Forward
-      %button#backwardBtn Backward
+      #buttons_container
+        %button#forwardBtn Forward
+        %button#backwardBtn Backward
+
+      #guess_mode_selection
+        %label
+          %input{type: "radio", name: "guess_mode", value: "both", checked: true}
+          Guess Both
+        %label
+          %input{type: "radio", name: "guess_mode", value: "white"}
+          Guess White
+        %label
+          %input{type: "radio", name: "guess_mode", value: "black"}
+          Guess Black
+
+    #game_selection_container{style: "display: none;"}
+      %table#game_selection_table
+        %thead
+          %tr
+            %th White
+            %th Black
+            %th Date
+            %th Event
+            %th Action
+        %tbody
+
     %script{src:"../scripts/board.js"}
     %script
-      document.addEventListener('DOMContentLoaded', () => { new Board().position('#{fen}'); });
+      document.addEventListener('DOMContentLoaded', () => { new Board(); });
 
     %form#pgn_upload_form(action='/upload_pgn' method='post' enctype='multipart/form-data')
       %label(for='pgn') Choose a PGN file:

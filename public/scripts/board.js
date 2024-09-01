@@ -16,7 +16,11 @@ class Board {
       .then(response => response.json())
       .then(data => {
         if (data.table) {
-          this.displayGameSelection(data.table);
+          if (data.table.length == 1) {
+            this.loadGame(0); // automatically load the single game
+          } else {
+            this.displayGameSelection(data.table);
+          }
         } else {
           console.error('PGN upload failed:', data.error);
         }
@@ -77,6 +81,7 @@ class Board {
 
     this.setupPGNUploadListener();
     this.setupMoveButtons();
+    this.hideGuessResult();
     this.initializeButtonStates(false);
     this.setupGuessModeRadios();
   }
@@ -91,7 +96,6 @@ class Board {
       const btn = document.getElementById(btnId);
       btn.addEventListener('click', (e) => {
         e.preventDefault();
-        this.hideGuessResult();
         switch(btnId) {
           case 'forwardBtn':
             this.updateBoard('/forward');
@@ -106,7 +110,7 @@ class Board {
 
   guessMode() {
     const selectedRadio = document.querySelector('input[name="guess_mode"]:checked');
-    return selectedRadio ? selectedRadio.value : undefined;
+    return selectedRadio ? selectedRadio.value : 'neither';
   }
 
   setupGuessModeRadios() {

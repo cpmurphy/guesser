@@ -29,6 +29,17 @@
     #guess_comment_container
       #guess_comment
       #guess_subcomment
+    #guess_mode_selection
+      %label
+        %input{type: "radio", name: "guess_mode", value: "both", checked: true}
+        Guess Both
+      %label
+        %input{type: "radio", name: "guess_mode", value: "white"}
+        Guess White
+      %label
+        %input{type: "radio", name: "guess_mode", value: "black"}
+        Guess Black
+
     #buttons_container
       %button#forwardBtn Forward
       %button#backwardBtn Backward

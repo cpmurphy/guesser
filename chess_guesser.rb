@@ -45,7 +45,19 @@ class ChessGuesser < Sinatra::Base
     session['current_move'] = 0
     white = game.tags['White']
     black = game.tags['Black']
+    session['guess_mode'] = 'both' # Default to guessing both sides
     { white: white, black: black, fen: games.first.positions[0].to_fen }.to_json
+  end
+
+  post '/set_guess_mode' do
+    mode = params['mode']
+    if ['white', 'black', 'both'].include?(mode)
+      session['guess_mode'] = mode
+      { success: true }.to_json
+    else
+      status 400
+      { error: 'Invalid guess mode' }.to_json
+    end
   end
 
   get '/forward' do
@@ -69,18 +81,38 @@ class ChessGuesser < Sinatra::Base
     game = session['game']
     fen = game.positions[current_move].to_fen
     game_move = game.moves[current_move].notation
-    if @move_judge.are_same?(guess, game_move)
+    guess_mode = session['guess_mode'] || 'both'
+
+    if guess_mode == 'both' || guess_mode == active_color(current_move)
+      if @move_judge.are_same?(guess, game_move)
+        current_move = move_forward
+        next_fen = game.positions[current_move].to_fen
+        guess_state = { result: 'correct', same_as_game: true }.merge(state_for_current_move(current_move))
+      elsif @move_judge.guess_in_top_three?(guess, fen)
+        current_move = move_forward
+        next_fen = game.positions[current_move].to_fen
+        guess_state = { result: 'correct', same_as_game: false, game_move: game_move }.merge(state_for_current_move(current_move))
+      else
+        puts "incorrect for #{guess.inspect}"
+        puts "correct is #{game.moves[current_move].inspect}"
+        guess_state = { result: 'incorrect' }.merge(state_for_current_move(current_move))
+      end
+    end
+    response = [guess_state]
+    if guess_mode != 'both' && guess_state[:result] != 'incorrect'
+      # Automatically play the move for the non-guessing side
       current_move = move_forward
-      next_fen = game.positions[current_move].to_fen
-      { result: 'correct', same_as_game: true }.merge(state_for_current_move(current_move)).to_json
-    elsif @move_judge.guess_in_top_three?(guess, fen)
-      current_move = move_forward
-      next_fen = game.positions[current_move].to_fen
-      { result: 'correct', same_as_game: false, game_move: game_move }.merge(state_for_current_move(current_move)).to_json
+      session['current_move'] = current_move
+      response.push({ result: 'auto_move'}.merge(state_for_current_move(current_move)))
+    end
+    response.to_json
+  end
+
+  def active_color(current_move)
+    if current_move % 2 == 0
+      'white'
     else
-      puts "incorrect for #{guess.inspect}"
-      puts "correct is #{game.moves[current_move].inspect}"
-      { result: 'incorrect' }.merge(state_for_current_move(current_move)).to_json
+      'black'
     end
   end
 
@@ -110,6 +142,18 @@ class ChessGuesser < Sinatra::Base
       move_number: current_move + 1,
       total_moves: game.moves.size
     }
+  end
+
+  def fen_for_current_move
+    game = session['game']
+    current_move = session['current_move'].to_i
+    guess_mode = session['guess_mode'] || 'both'
+    {
+      fen: game.positions[current_move].to_fen,
+      can_move_forward: current_move < game.moves.size - 1,
+      can_move_backward: current_move > 0,
+      guess_mode: guess_mode
+    }.to_json
   end
 
   # start the server if ruby file executed directly

@@ -94,8 +94,14 @@ class Board {
     const buttons = ['forwardBtn', 'backwardBtn'];
     buttons.forEach(btnId => {
       const btn = document.getElementById(btnId);
-      btn.addEventListener('click', (e) => {
+
+      // Remove any existing event listeners
+      const newBtn = btn.cloneNode(true);
+      btn.parentNode.replaceChild(newBtn, btn);
+
+      newBtn.addEventListener('click', (e) => {
         e.preventDefault();
+        this.hideGuessResult();
         switch(btnId) {
           case 'forwardBtn':
             this.updateBoard('/forward');

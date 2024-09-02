@@ -5,7 +5,7 @@ gem 'webrick'
 gem 'rack'
 gem 'rackup'
 gem 'haml'
-gem 'pgn'
+gem 'pgn2'
 gem 'stockfish'
 
 group :development do

@@ -15,7 +15,7 @@ GEM
       reline (>= 0.4.2)
     mustermann (3.0.2)
       ruby2_keywords (~> 0.0.1)
-    pgn (0.3.0)
+    pgn2 (0.4.0)
       whittle
     psych (5.1.2)
       stringio
@@ -54,7 +54,7 @@ PLATFORMS
 DEPENDENCIES
   debug (>= 1.0.0)
   haml
-  pgn
+  pgn2
   rack
   rackup
   sinatra

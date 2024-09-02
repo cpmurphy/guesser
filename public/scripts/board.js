@@ -157,6 +157,8 @@ class Board {
     const guessResult = document.getElementById('guess_result');
     const guessComment = document.getElementById('guess_comment');
     const guessSubcomment = document.getElementById('guess_subcomment');
+    const moveQueue = [];
+
     data.forEach((move) => {
       this.currentMove = move.move_number;
       if (move.result === 'correct') {
@@ -169,26 +171,33 @@ class Board {
           guessResult.textContent = 'Good!';
           guessComment.textContent = 'Your move is engine approved!';
           guessSubcomment.textContent = 'In the game ' + move.game_move + ' was played.';
-          // revert to previous position, then update with new position from game
-          setTimeout(() => {
-            this.board.position(this.lastPosition);
-            setTimeout(() => {
-              this.board.position(move.fen);
-            }, 500);
-          }, 500);
+          moveQueue.push({ fen: this.lastPosition }, { fen: move.fen });
         }
       } else if (move.result === 'incorrect') {
         guessResult.textContent = 'Incorrect!';
         guessResult.style.color = 'red';
         guessComment.textContent = '';
         guessSubcomment.textContent = '';
-        this.board.position(this.lastPosition);
+        moveQueue.push({ fen: this.lastPosition });
       } else if (move.result === 'auto_move') {
-        this.board.position(move.fen);
+        moveQueue.push({ fen: move.fen });
       } else {
-        alert('should never get here:' + move)
+        console.error('Unexpected move result:', move);
       }
     });
+
+    this.replayMoves(moveQueue);
+  }
+
+  replayMoves(moveQueue) {
+    if (moveQueue.length === 0) return;
+
+    const move = moveQueue.shift();
+    this.board.position(move.fen);
+
+    setTimeout(() => {
+      this.replayMoves(moveQueue);
+    }, 500);
   }
 
   hideGuessResult() {

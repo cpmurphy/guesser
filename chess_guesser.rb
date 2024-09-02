@@ -109,6 +109,7 @@ class ChessGuesser < Sinatra::Base
     fen = game.positions[current_move].to_fen
     game_move = game.moves[current_move].notation
     guess_mode = session['guess_mode'] || 'both'
+    guess_state = {}
 
     if guess_mode == 'both' || guess_mode == active_color(current_move)
       if @move_judge.are_same?(guess, game_move)
@@ -146,7 +147,7 @@ class ChessGuesser < Sinatra::Base
   def move_forward
     current_move = session['current_move'].to_i
     game = session['game']
-    if current_move < game.moves.size - 1
+    if current_move < game.moves.size + 1
       current_move += 1
       session['current_move'] = current_move
     end
@@ -168,18 +169,6 @@ class ChessGuesser < Sinatra::Base
       move_number: current_move + 1,
       total_moves: game.moves.size
     }
-  end
-
-  def fen_for_current_move
-    game = session['game']
-    current_move = session['current_move'].to_i
-    guess_mode = session['guess_mode'] || 'both'
-    {
-      fen: game.positions[current_move].to_fen,
-      can_move_forward: current_move < game.moves.size - 1,
-      can_move_backward: current_move > 0,
-      guess_mode: guess_mode
-    }.to_json
   end
 
   # start the server if ruby file executed directly

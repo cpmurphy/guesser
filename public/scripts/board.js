@@ -147,9 +147,7 @@ class Board {
       .then(data => {
         this.board.position(data.fen);
         this.currentMove = data.move_number;
-        document.getElementById('forwardBtn').disabled = data.move_number >= data.total_moves;
-        document.getElementById('backwardBtn').disabled = data.move_number <= 1;
-        this.currentMove = data.move_number;
+        this.updateButtonStates(data);
       });
   }
 
@@ -292,7 +290,7 @@ class Board {
   }
 
   updateButtonStates(data) {
-    document.getElementById('forwardBtn').disabled = data.move_number >= data.total_moves;
+    document.getElementById('forwardBtn').disabled = data.move_number > data.total_moves;
     document.getElementById('backwardBtn').disabled = data.move_number <= 1;
   }
 }

@@ -37,6 +37,16 @@ class MoveJudgeTest < Minitest::Test
     assert @move_judge.are_same?(guess, 'Rce1')
   end
 
+  def test_file_disambiguation_with_capture
+    guess = { 'move' => { 'source' => 'b1', 'target' => 'd2', 'piece' => 'wN' } }
+    assert @move_judge.are_same?(guess, 'Nbxd2')
+  end
+
+  def test_file_disambiguation_with_capture_but_files_not_matching
+    guess = { 'move' => { 'source' => 'c1', 'target' => 'e1', 'piece' => 'wR' } }
+    refute @move_judge.are_same?(guess, 'Nfxd2')
+  end
+
   def test_rank_disambiguation
     guess = { 'move' => { 'source' => 'f3', 'target' => 'd4', 'piece' => 'wN' } }
     assert @move_judge.are_same?(guess, 'N3d4')

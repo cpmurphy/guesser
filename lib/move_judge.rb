@@ -16,9 +16,9 @@ class MoveJudge
     bare_move = game_move.sub('+', '').sub('#', '').sub('x', '')
     return true if bare_move == move
 
-    if game_move =~ /^[NBRQK][a-h1-8][a-h][1-8]$/
-      disambiguation = game_move[1]
-      game_target = game_move[2..3]
+    if bare_move =~ /^[NBRQK][a-h1-8][a-h][1-8]$/
+      disambiguation = bare_move[1]
+      game_target = bare_move[2..3]
 
       if ('a'..'h').include?(disambiguation) # file disambiguation
         return target == game_target && source[0] == disambiguation

@@ -1,10 +1,11 @@
+require 'tempfile'
 require 'sinatra'
 require 'json'
 require 'pgn'
 
-$LOAD_PATH.unshift(File.expand_path('lib', __dir__))
-require 'analyzer'
+require_relative 'lib/analyzer'
 require_relative 'lib/move_judge'
+require_relative 'lib/pgn_summary'
 
 class ChessGuesser < Sinatra::Base
   enable :sessions
@@ -38,16 +39,18 @@ class ChessGuesser < Sinatra::Base
 
   post '/upload_pgn' do
     if params[:pgn] && (tempfile = params[:pgn][:tempfile])
-      pgn_content = tempfile.read
-      games = PGN.parse(pgn_content)
-      session['games'] = games
-      table = games.map.with_index do |game, index|
+      pgn_file = Tempfile.new('pgn')
+      FileUtils.copy_file(tempfile.path, pgn_file.path)
+      pgn_file.rewind
+      summary = PgnSummary.new(pgn_file.path)
+      session['summary'] = summary
+      table = summary.load.map.with_index do |game, index|
         {
           id: index,
-          white: game.tags['White'],
-          black: game.tags['Black'],
-          date: game.tags['Date'],
-          event: game.tags['Event']
+          white: game['White'],
+          black: game['Black'],
+          date: game['Date'],
+          event: game['Event']
         }
       end
       { table: table }.to_json
@@ -59,16 +62,19 @@ class ChessGuesser < Sinatra::Base
 
   post '/load_game' do
     game_id = params['game_id'].to_i
-    games = session['games']
-    if games && game_id >= 0 && game_id < games.length
-      game = games[game_id]
+    summary = session['summary']
+    if summary && game_id >= 0 && game_id < summary.games.length
+      games = PGN.parse(summary.game_at(game_id))
+      game = games.first
       session['game'] = game
       session['current_move'] = 0
       session['guess_mode'] = 'both'
       {
         fen: game.positions.first.to_fen,
         white: game.tags['White'],
-        black: game.tags['Black']
+        black: game.tags['Black'],
+        date: game.tags['Date'],
+        event: game.tags['Event']
       }.to_json
     else
       status 400

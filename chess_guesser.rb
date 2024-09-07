@@ -6,6 +6,7 @@ require 'pgn'
 require_relative 'lib/analyzer'
 require_relative 'lib/move_judge'
 require_relative 'lib/pgn_summary'
+require_relative 'lib/move_translator'
 
 class ChessGuesser < Sinatra::Base
   enable :sessions
@@ -66,11 +67,15 @@ class ChessGuesser < Sinatra::Base
     if summary && game_id >= 0 && game_id < summary.games.length
       games = PGN.parse(summary.game_at(game_id))
       game = games.first
+      moves = game.moves.map(&:notation)
+      move_translator = MoveTranslator.new
       session['game'] = game
       session['current_move'] = 0
       session['guess_mode'] = 'both'
       {
         fen: game.positions.first.to_fen,
+        moves: moves,
+        ui_moves: moves.map { |move| move_translator.translate_move(move) },
         white: game.tags['White'],
         black: game.tags['Black'],
         date: game.tags['Date'],

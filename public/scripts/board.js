@@ -56,6 +56,12 @@ class Board {
     })
     .then(response => response.json())
     .then(data => {
+      if (data.moves) {
+        this.moves = data.moves;
+      }
+      if (data.ui_moves) {
+        this.uiMoves = data.ui_moves;
+      }
       if (data.fen) {
         this.initializeBoard(data.fen);
         this.initializeButtonStates(true);
@@ -104,10 +110,10 @@ class Board {
         this.hideGuessResult();
         switch(btnId) {
           case 'forwardBtn':
-            this.updateBoard('/forward');
+            this.moveForward();
             break;
           case 'backwardBtn':
-            this.updateBoard('/backward');
+            this.moveBackward();
             break;
         }
       });
@@ -141,14 +147,68 @@ class Board {
     forwardBtn.disabled = !pgnLoaded;
   }
 
-  updateBoard(endpoint) {
-    fetch(endpoint, { method: 'GET' })
-      .then(response => response.json())
-      .then(data => {
-        this.board.position(data.fen);
-        this.currentMove = data.move_number;
-        this.updateButtonStates(data);
+  moveForward() {
+    const uiMove = this.uiMoves[this.currentMove - 1];
+    if (uiMove.moves) {
+      const newPosition = this.board.position();
+      uiMove.moves.forEach(m => {
+        const [from, to] = m.split('-');
+        newPosition[to] = newPosition[from];
+        delete newPosition[from];
       });
+      if (uiMove.remove || uiMove.add) {
+        if (uiMove.remove && uiMove.remove[1] != uiMove.moves[0].substring(3, 5)) {
+          delete newPosition[uiMove.remove[1]];
+        }
+        if (uiMove.add) {
+          newPosition[uiMove.add[1]] = this.translatePiece(uiMove.add[0]);
+        }
+      }
+      this.board.position(newPosition, true);
+    }
+    this.currentMove++;
+    this.updateButtonStates();
+  }
+
+  moveBackward() {
+    this.currentMove--;
+    this.reverseMove(this.uiMoves[this.currentMove - 1]);
+    this.updateButtonStates();
+  }
+
+  reverseMove(uiMove) {
+    if (uiMove.moves && Array.isArray(uiMove.moves)) {
+      if (uiMove.add) {
+        // reverse the addition of the piece
+        const position = this.board.position();
+        position[uiMove.add[1]] = this.pawnForCurrentMove();
+        this.board.position(position);
+      }
+      uiMove.moves.forEach(m => this.board.move(m.split('-').reverse().join('-')));
+      if (uiMove.remove || uiMove.add) {
+        const position = this.board.position();
+        if (uiMove.remove) {
+          // reverse the removal of the piece
+          position[uiMove.remove[1]] = this.translatePiece(uiMove.remove[0]);
+        }
+        this.board.position(position);
+      }
+    }
+  }
+
+  translatePiece(piece) {
+    if (piece.match(/^[rnbqkp]$/)) {
+      return "b" + piece.toUpperCase();
+    }
+    return "w" + piece;
+  }
+
+  pawnForCurrentMove() {
+    if ((this.currentMove - 1) % 2 == 0) {
+      return "wP";
+    } else {
+      return "bP";
+    }
   }
 
   handleGuessResult(data) {
@@ -235,6 +295,7 @@ class Board {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
+        current_move: this.currentMove,
         move: {
           source,
           target,
@@ -249,7 +310,7 @@ class Board {
       .then(data => {
         if (data.result === 'auto_move') {
           this.board.position(data.fen);
-          this.updateButtonStates(data);
+          this.updateButtonStates();
         } else {
           this.handleGuessResult(data);
         }
@@ -289,8 +350,8 @@ class Board {
     this.board.position(newPos, false);
   }
 
-  updateButtonStates(data) {
-    document.getElementById('forwardBtn').disabled = data.move_number > data.total_moves;
-    document.getElementById('backwardBtn').disabled = data.move_number <= 1;
+  updateButtonStates() {
+    document.getElementById('forwardBtn').disabled = this.currentMove > this.moves.length;
+    document.getElementById('backwardBtn').disabled = this.currentMove <= 1;
   }
 }

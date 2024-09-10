@@ -10,7 +10,7 @@ require 'debug'
 #
 # The translate_move method returns a Hash with the following possible keys:
 #
-# - :move => An array of strings representing the move(s) made.
+# - :moves => An array of strings representing the move(s) made.
 #            Each string is in the format "from-to" (e.g., "e2-e4").
 #            For castling, this array contains two moves: one for the king and one for the rook.
 #
@@ -22,10 +22,10 @@ require 'debug'
 #           Indicates a pawn was promoted. The piece is the promotion choice (e.g., 'Q' for queen).
 #
 # Examples:
-#   translator.translate_move("e4")     #=> { move: ["e2-e4"] }
-#   translator.translate_move("exd5")   #=> { move: ["e4-d5"], remove: ['p', 'd5'] }
-#   translator.translate_move("a8=Q")   #=> { move: ["a7-a8"], add: ['Q', 'a8'] }
-#   translator.translate_move("O-O")    #=> { move: ["e1-g1", "h1-f1"] }
+#   translator.translate_move("e4")     #=> { moves: ["e2-e4"] }
+#   translator.translate_move("exd5")   #=> { moves: ["e4-d5"], remove: ['p', 'd5'] }
+#   translator.translate_move("a8=Q")   #=> { moves: ["a7-a8"], add: ['Q', 'a8'] }
+#   translator.translate_move("O-O")    #=> { moves: ["e1-g1", "h1-f1"] }
 #
 # The class maintains the state of the chess board internally, allowing it to
 # correctly translate moves that depend on the current board position (like castling or en passant).
@@ -206,8 +206,8 @@ class MoveTranslator
 
   def valid_en_passant?(from, to)
     direction = @current_player == 'white' ? 1 : -1
-    return false unless @last_move && @last_move[:move].size == 1
-    last_from, last_to = @last_move[:move][0].split('-')
+    return false unless @last_move && @last_move[:moves].size == 1
+    last_from, last_to = @last_move[:moves][0].split('-')
 
     # Check if the last move was a two-square pawn move
     return false unless (last_to[1].to_i - last_from[1].to_i).abs == 2
@@ -326,12 +326,12 @@ class MoveTranslator
     @board.delete(rook_from)
 
     {
-      move: ["#{king_from}-#{king_to}", "#{rook_from}-#{rook_to}"]
+      moves: ["#{king_from}-#{king_to}", "#{rook_from}-#{rook_to}"]
     }
   end
 
   def handle_regular_move(from, to, piece, capture, promotion)
-    result = { move: ["#{from}-#{to}"] }
+    result = { moves: ["#{from}-#{to}"] }
 
     # Handle capture
     if capture || (@board[to] && piece.upcase == 'P' && from[0] != to[0])

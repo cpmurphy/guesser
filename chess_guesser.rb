@@ -114,8 +114,8 @@ class ChessGuesser < Sinatra::Base
   end
 
   post '/guess' do
-    current_move = session['current_move'].to_i
     guess = JSON.parse(request.body.read)
+    current_move = guess['current_move'].to_i - 1
     game = session['game']
     fen = game.positions[current_move].to_fen
     game_move = game.moves[current_move].notation

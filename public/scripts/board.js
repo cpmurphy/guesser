@@ -212,30 +212,19 @@ class Board {
   }
 
   handleGuessResult(data) {
-    const guessResult = document.getElementById('guess_result');
-    const guessComment = document.getElementById('guess_comment');
-    const guessSubcomment = document.getElementById('guess_subcomment');
     const moveQueue = [];
 
     data.forEach((move) => {
       this.currentMove = move.move_number;
       if (move.result === 'correct') {
-        guessResult.style.color = 'green';
         if (move.same_as_game) {
-          guessResult.textContent = 'Correct!';
-          guessComment.textContent = 'This is what was played.';
-          guessSubcomment.textContent = '';
+          this.updateGuessStatus('green', 'Correct!', 'This is what was played.', '');
         } else {
-          guessResult.textContent = 'Good!';
-          guessComment.textContent = 'Your move is engine approved!';
-          guessSubcomment.textContent = 'In the game ' + move.game_move + ' was played.';
+          this.updateGuessStatus('green', 'Good!', 'Your move is engine approved!', 'In the game ' + move.game_move + ' was played.');
           moveQueue.push({ fen: this.lastPosition }, { fen: move.fen });
         }
       } else if (move.result === 'incorrect') {
-        guessResult.textContent = 'Incorrect!';
-        guessResult.style.color = 'red';
-        guessComment.textContent = '';
-        guessSubcomment.textContent = '';
+        this.updateGuessStatus('red', 'Incorrect!', '', '');
         moveQueue.push({ fen: this.lastPosition });
       } else if (move.result === 'auto_move') {
         moveQueue.push({ fen: move.fen });
@@ -289,6 +278,15 @@ class Board {
       }
     }
 
+    // Check if the move matches the current move exactly
+    const currentMove = this.uiMoves[this.currentMove - 1];
+    if (currentMove && this.isExactMatch(source, target, currentMove)) {
+      // Handle as correct guess without making a POST request
+      this.handleCorrectGuess(currentMove);
+      return;
+    }
+
+    // If not an exact match, proceed with the POST request
     fetch('/guess', {
       method: 'POST',
       headers: {
@@ -315,6 +313,31 @@ class Board {
           this.handleGuessResult(data);
         }
       });
+  }
+
+  isExactMatch(source, target, currentMove) {
+    return currentMove.moves.some(move => move === `${source}-${target}`);
+  }
+
+  updateGuessStatus(headlineColor, headlineText, commentText, subcommentText) {
+    const guessResult = document.getElementById('guess_result');
+    const guessComment = document.getElementById('guess_comment');
+    const guessSubcomment = document.getElementById('guess_subcomment');
+
+    guessResult.style.color = headlineColor;
+    guessResult.textContent = headlineText;
+    guessComment.textContent = commentText;
+    guessSubcomment.textContent = subcommentText;
+  }
+
+  handleCorrectGuess(move) {
+    this.updateGuessStatus('green', 'Correct!', 'This is what was played.', '');
+    this.currentMove++;
+    // autoplay the opponent's move unless guess mode is both
+    if (this.guessMode() !== 'both') {
+      this.moveForward();
+    }
+    this.updateButtonStates();
   }
 
   isCastling(piece, source, target) {

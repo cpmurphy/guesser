@@ -21,11 +21,7 @@ class ChessGuesser < Sinatra::Base
     game_state = {}
     if session['game']
       game = session['game']
-      if session['current_move']
-        current_move = session['current_move'].to_i
-      else
-        current_move = 0
-      end
+      current_move = 0
       game_state['fen'] = game.positions[current_move].to_fen.to_s
       game_state['current_move'] = current_move
     else
@@ -70,7 +66,6 @@ class ChessGuesser < Sinatra::Base
       moves = game.moves.map(&:notation)
       move_translator = MoveTranslator.new
       session['game'] = game
-      session['current_move'] = 0
       session['guess_mode'] = 'both'
       {
         fen: game.positions.first.to_fen,
@@ -98,20 +93,9 @@ class ChessGuesser < Sinatra::Base
     end
   end
 
-  get '/forward' do
-    current_move = move_forward
-    state_for_current_move(current_move).to_json
-  end
-
-  get '/backward' do
-    current_move = move_backward
-    state_for_current_move(current_move).to_json
-  end
-
   post '/guess' do
     guess = JSON.parse(request.body.read)
     current_move = guess['current_move'].to_i - 1
-    session['current_move'] = current_move
     game = session['game']
     fen = game.positions[current_move].to_fen
     game_move = game.moves[current_move].notation
@@ -120,11 +104,11 @@ class ChessGuesser < Sinatra::Base
 
     if guess_mode == 'both' || guess_mode == active_color(current_move)
       if @move_judge.are_same?(guess, game_move)
-        current_move = move_forward
+        current_move = move_forward(current_move)
         next_fen = game.positions[current_move].to_fen
         guess_state = { result: 'correct', same_as_game: true }.merge(state_for_current_move(current_move))
       elsif @move_judge.guess_in_top_three?(guess, fen)
-        current_move = move_forward
+        current_move = move_forward(current_move)
         next_fen = game.positions[current_move].to_fen
         guess_state = { result: 'correct', same_as_game: false, game_move: game_move }.merge(state_for_current_move(current_move))
       else
@@ -137,8 +121,7 @@ class ChessGuesser < Sinatra::Base
     if guess_mode != 'both' && guess_state[:result] != 'incorrect'
       # Automatically play the move for the non-guessing side
       if current_move < game.moves.size
-        current_move = move_forward
-        session['current_move'] = current_move
+        current_move = move_forward(current_move)
         response.push({ result: 'auto_move'}.merge(state_for_current_move(current_move)))
       end
     end
@@ -153,21 +136,10 @@ class ChessGuesser < Sinatra::Base
     end
   end
 
-  def move_forward
-    current_move = session['current_move'].to_i
+  def move_forward(current_move)
     game = session['game']
     if current_move < game.moves.size
       current_move += 1
-      session['current_move'] = current_move
-    end
-    current_move
-  end
-
-  def move_backward
-    current_move = session['current_move'].to_i
-    if current_move > 0
-      current_move -= 1
-      session['current_move'] = current_move
     end
     current_move
   end

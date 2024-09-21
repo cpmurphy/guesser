@@ -26,6 +26,7 @@ class Board {
     this.result = data.result;
     this.uiMoves = data.ui_moves;
     this.fen = data.fen;
+    this.gameResult = data.result;
     this.initializeBoard(this.fen);
     this.initializeButtonStates(true);
     document.getElementById('white').textContent = data.white;

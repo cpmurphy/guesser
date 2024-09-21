@@ -73,7 +73,18 @@
     %script
       document.addEventListener('DOMContentLoaded', () => { new Board(); });
 
-    %form#pgn_upload_form(action='/upload_pgn' method='post' enctype='multipart/form-data')
-      %label(for='pgn') Choose a PGN file:
-      %input#pgn_file_input(type='file' name='pgn' accept='.pgn' required)
+    %form#pgn_upload_form{action: "/upload_pgn", method: "post", enctype: "multipart/form-data"}
+      %div
+        %input#upload_method_file{type: "radio", name: "upload_method", value: "file", checked: true}
+        %label{for: "upload_method_file"} Upload PGN file
+      %div
+        %input#upload_method_paste{type: "radio", name: "upload_method", value: "paste"}
+        %label{for: "upload_method_paste"} Paste PGN text
+
+      #file_upload_container
+        %input#pgn_file_input{type: "file", name: "pgn_file", accept: ".pgn"}
+
+      #pgn_paste_container{style: "display: none;"}
+        %textarea#pgn_text_input{name: "pgn_text", rows: "10", cols: "50", placeholder: "Paste your PGN here"}
+
       %button#upload_pgn_btn{type: "submit"} Upload PGN

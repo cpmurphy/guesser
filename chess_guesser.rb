@@ -35,11 +35,20 @@ class ChessGuesser < Sinatra::Base
   end
 
   post '/upload_pgn' do
-    if params[:pgn] && (tempfile = params[:pgn][:tempfile])
+    if params[:upload_method] == 'file'
+      if params[:pgn_file] && (tempfile = params[:pgn_file][:tempfile])
+        pgn_file = Tempfile.new('pgn')
+        FileUtils.copy_file(tempfile.path, pgn_file.path)
+        pgn_file.rewind
+        summary = PgnSummary.new(pgn_file.path)
+      end
+    else
       pgn_file = Tempfile.new('pgn')
-      FileUtils.copy_file(tempfile.path, pgn_file.path)
+      pgn_file.write(params[:pgn_text])
       pgn_file.rewind
       summary = PgnSummary.new(pgn_file.path)
+    end
+    if summary
       session['summary'] = summary
       table = summary.load.map.with_index do |game, index|
         {

@@ -7,6 +7,7 @@ class Board {
     this.setupMoveButtons();
     this.setupFlipBoardButton();
     this.setupUploadButton();
+    this.setupPgnInputMethod();
   }
 
   setupPGNUploadListener() {
@@ -458,9 +459,31 @@ class Board {
     move();
   }
 
+  setupPgnInputMethod() {
+    const fileRadio = document.getElementById('upload_method_file');
+    const pasteRadio = document.getElementById('upload_method_paste');
+    const fileContainer = document.getElementById('file_upload_container');
+    const pasteContainer = document.getElementById('pgn_paste_container');
+    const uploadBtn = document.getElementById('upload_pgn_btn');
+
+    fileRadio.addEventListener('change', () => {
+      fileContainer.style.display = 'block';
+      pasteContainer.style.display = 'none';
+      uploadBtn.textContent = 'Upload PGN';
+    });
+
+    pasteRadio.addEventListener('change', () => {
+      fileContainer.style.display = 'none';
+      pasteContainer.style.display = 'block';
+      uploadBtn.textContent = 'Upload PGN';
+    });
+  }
+
   setupUploadButton() {
     const uploadBtn = document.getElementById('upload_pgn_btn');
     const pgnFileInput = document.getElementById('pgn_file_input');
+    const pgnTextArea = document.getElementById('pgn_text_input');
+
 
     uploadBtn.addEventListener('click', (e) => {
       if (uploadBtn.textContent === 'Back to Games') {
@@ -470,6 +493,10 @@ class Board {
     });
 
     pgnFileInput.addEventListener('change', () => {
+      uploadBtn.textContent = 'Upload PGN';
+    });
+
+    pgnTextArea.addEventListener('input', () => {
       uploadBtn.textContent = 'Upload PGN';
     });
   }

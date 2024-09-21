@@ -430,16 +430,26 @@ class Board {
     this.board.flip();
   }
 
-  fastRewind() {
-    while (this.currentMove > 1) {
-      this.moveBackward();
-    }
+  fastForward() {
+    const numMoves = this.moves.length - this.currentMove;
+    this.sequentialMove(numMoves, this.moveForward.bind(this));
   }
 
-  fastForward() {
-    while (this.currentMove <= this.moves.length) {
-      this.moveForward();
-    }
+  fastRewind() {
+    const numMoves = this.currentMove - 1;
+    this.sequentialMove(numMoves, this.moveBackward.bind(this));
+  }
+
+  sequentialMove(numMoves, moveFunction) {
+    const move = () => {
+      if (numMoves > 0) {
+        moveFunction();
+        numMoves--;
+        setTimeout(move, 10);
+      }
+    };
+
+    move();
   }
 
 }

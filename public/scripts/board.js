@@ -220,9 +220,16 @@ class Board {
 
   onDragStart(source, piece, position, orientation) {
     const currentGuessMode = this.guessMode();
+    const pieceColor = piece.charAt(0);
+    if (pieceColor === 'w' && this.currentMove % 2 == 0) {
+      return false;
+    }
+    if (pieceColor === 'b' && this.currentMove % 2 == 1) {
+      return false;
+    }
     return currentGuessMode === 'both' ||
-       (currentGuessMode === 'white' && piece.charAt(0) === 'w') ||
-       (currentGuessMode === 'black' && piece.charAt(0) === 'b');
+       (currentGuessMode === 'white' && pieceColor === 'w') ||
+       (currentGuessMode === 'black' && pieceColor === 'b');
   }
 
   gameOver() {

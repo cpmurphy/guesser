@@ -69,9 +69,10 @@
             %th Action
         %tbody
 
+    %script{src:"../scripts/pgn_uploader.js"}
     %script{src:"../scripts/board.js"}
     %script
-      document.addEventListener('DOMContentLoaded', () => { new Board(); });
+      document.addEventListener('DOMContentLoaded', () => { const board = new Board(); const uploader = new PgnUploader(board.onGameLoaded.bind(board)); });
 
     %form#pgn_upload_form{action: "/upload_pgn", method: "post", enctype: "multipart/form-data"}
       %div

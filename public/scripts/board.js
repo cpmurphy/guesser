@@ -2,90 +2,8 @@ class Board {
   constructor() {
     this.board = null;
     this.gameResult = null;
-    this.singleGameLoaded = true;
-    this.setupPGNUploadListener();
     this.setupMoveButtons();
     this.setupFlipBoardButton();
-    this.setupUploadButton();
-    this.setupPgnInputMethod();
-  }
-
-  setupPGNUploadListener() {
-    const pgnUploadForm = document.getElementById('pgn_upload_form');
-    pgnUploadForm.addEventListener('submit', (e) => {
-      e.preventDefault();
-      const formData = new FormData(pgnUploadForm);
-      fetch('/upload_pgn', {
-        method: 'POST',
-        body: formData
-      })
-      .then(response => response.json())
-      .then(data => {
-        if (data.table) {
-          if (data.table.length == 1) {
-            this.loadGame(0); // automatically load the single game
-            this.singleGameLoaded = true;
-          } else {
-            this.singleGameLoaded = false;
-            this.displayGameSelection(data.table);
-          }
-        } else {
-          console.error('PGN upload failed:', data.error);
-        }
-      });
-    });
-  }
-
-  displayGameSelection(games) {
-    const tableBody = document.querySelector('#game_selection_table tbody');
-    tableBody.innerHTML = '';
-    games.forEach(game => {
-      const row = tableBody.insertRow();
-      row.insertCell().textContent = game.white;
-      row.insertCell().textContent = game.black;
-      row.insertCell().textContent = game.date;
-      row.insertCell().textContent = game.event;
-      const actionCell = row.insertCell();
-      const loadButton = document.createElement('button');
-      loadButton.textContent = 'Load';
-      loadButton.addEventListener('click', () => this.loadGame(game.id));
-      actionCell.appendChild(loadButton);
-    });
-    document.getElementById('game_selection_container').style.display = 'block';
-    document.getElementById('board_container').style.display = 'none';
-  }
-
-  loadGame(gameId) {
-    const formData = new FormData(document.getElementById('pgn_upload_form'));
-    formData.append('game_id', gameId);
-    fetch('/load_game', {
-      method: 'POST',
-      body: formData
-    })
-    .then(response => response.json())
-    .then(data => {
-      if (data.moves) {
-        this.moves = data.moves;
-      }
-      if (data.result) {
-        this.gameResult = data.result;
-      }
-      if (data.ui_moves) {
-        this.uiMoves = data.ui_moves;
-      }
-      if (data.fen) {
-        this.initializeBoard(data.fen);
-        this.initializeButtonStates(true);
-        document.getElementById('white').textContent = data.white;
-        document.getElementById('black').textContent = data.black;
-        this.swapToBoard();
-        if (!this.singleGameLoaded) {
-          this.changeUploadButtonToBackButton();
-        }
-      } else {
-        console.error('Game load failed:', data.error);
-      }
-    });
   }
 
   initializeBoard(fen) {
@@ -101,6 +19,17 @@ class Board {
     this.hideGuessResult();
     this.initializeButtonStates(false);
     this.setupGuessModeRadios();
+  }
+
+  onGameLoaded(data) {
+    this.moves = data.moves;
+    this.result = data.result;
+    this.uiMoves = data.ui_moves;
+    this.fen = data.fen;
+    this.initializeBoard(this.fen);
+    this.initializeButtonStates(true);
+    document.getElementById('white').textContent = data.white;
+    document.getElementById('black').textContent = data.black;
   }
 
   position(fen) {
@@ -457,63 +386,6 @@ class Board {
     };
 
     move();
-  }
-
-  setupPgnInputMethod() {
-    const fileRadio = document.getElementById('upload_method_file');
-    const pasteRadio = document.getElementById('upload_method_paste');
-    const fileContainer = document.getElementById('file_upload_container');
-    const pasteContainer = document.getElementById('pgn_paste_container');
-    const uploadBtn = document.getElementById('upload_pgn_btn');
-
-    fileRadio.addEventListener('change', () => {
-      fileContainer.style.display = 'block';
-      pasteContainer.style.display = 'none';
-      uploadBtn.textContent = 'Upload PGN';
-    });
-
-    pasteRadio.addEventListener('change', () => {
-      fileContainer.style.display = 'none';
-      pasteContainer.style.display = 'block';
-      uploadBtn.textContent = 'Upload PGN';
-    });
-  }
-
-  setupUploadButton() {
-    const uploadBtn = document.getElementById('upload_pgn_btn');
-    const pgnFileInput = document.getElementById('pgn_file_input');
-    const pgnTextArea = document.getElementById('pgn_text_input');
-
-
-    uploadBtn.addEventListener('click', (e) => {
-      if (uploadBtn.textContent === 'Back to Games') {
-        e.preventDefault();
-        this.swapToGameSelection();
-      }
-    });
-
-    pgnFileInput.addEventListener('change', () => {
-      uploadBtn.textContent = 'Upload PGN';
-    });
-
-    pgnTextArea.addEventListener('input', () => {
-      uploadBtn.textContent = 'Upload PGN';
-    });
-  }
-
-  swapToBoard() {
-    document.getElementById('game_selection_container').style.display = 'none';
-    document.getElementById('board_container').style.display = 'block';
-  }
-
-  swapToGameSelection() {
-    document.getElementById('board_container').style.display = 'none';
-    document.getElementById('game_selection_container').style.display = 'block';
-  }
-
-  changeUploadButtonToBackButton() {
-    const uploadBtn = document.getElementById('upload_pgn_btn');
-    uploadBtn.textContent = 'Back to Games';
   }
 
 }

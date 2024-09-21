@@ -308,7 +308,9 @@ class Board {
     this.currentMove++;
     // autoplay the opponent's move unless guess mode is both
     if (this.guessMode() !== 'both') {
-      this.moveForward();
+      setTimeout(() => {
+        this.moveForward();
+      }, 200);
     }
     this.updateButtonStates();
   }

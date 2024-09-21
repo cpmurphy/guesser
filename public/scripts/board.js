@@ -87,21 +87,23 @@ class Board {
   moveForward() {
     if (!this.gameOver()) {
       const uiMove = this.uiMoves[this.currentMove - 1];
-      const newPosition = this.board.position();
-      uiMove.moves.forEach(m => {
-        const [from, to] = m.split('-');
-        newPosition[to] = newPosition[from];
-        delete newPosition[from];
-      });
-      if (uiMove.remove || uiMove.add) {
+      if (!uiMove.remove && !uiMove.add) {
+        this.board.move(uiMove.moves[0]);
+      } else {
+        const newPosition = this.board.position();
+        uiMove.moves.forEach(m => {
+          const [from, to] = m.split('-');
+          newPosition[to] = newPosition[from];
+          delete newPosition[from];
+        });
         if (uiMove.remove && uiMove.remove[1] != uiMove.moves[0].substring(3, 5)) {
           delete newPosition[uiMove.remove[1]];
         }
         if (uiMove.add) {
           newPosition[uiMove.add[1]] = this.translatePiece(uiMove.add[0]);
         }
+        this.board.position(newPosition, true);
       }
-      this.board.position(newPosition, true);
       this.currentMove++;
     }
     this.updateButtonStates();

@@ -25,4 +25,14 @@ class PgnSummaryTest < Minitest::Test
     assert_includes game, "1.b3 Nf6"
     assert_includes game, "1-0"
   end
+
+  def test_load_dos_format
+    summary = PgnSummary.new('test/data/mason-winawer.pgn')
+    games = summary.load
+    assert_equal 1, games.count
+    game = summary.game_at(0)
+    assert_includes game, "[White \"James Mason\"]"
+    assert_includes game, "[Black \"Simon Winawer\"]"
+  end
+
 end

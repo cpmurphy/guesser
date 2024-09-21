@@ -24,12 +24,12 @@ class PgnSummary
       elsif state == :headers
         if line =~ /^\s*\[/
           headers.merge!(parse_header(line))
-        elsif line =~ /^$/
+        elsif line =~ /^\s*$/
           @games.push(headers)
           state = :start
         end
       elsif state == :game
-        if line =~ /^$/
+        if line =~ /^\s*$/
           state = :start
           pos = file.pos
         end

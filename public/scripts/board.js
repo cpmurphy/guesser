@@ -101,22 +101,22 @@ class Board {
   }
 
   setupMoveButtons() {
-    const buttons = ['forwardBtn', 'backwardBtn'];
-    buttons.forEach(btnId => {
-      const btn = document.getElementById(btnId);
+    const buttons = [
+      { id: 'fastRewindBtn', action: this.fastRewind.bind(this) },
+      { id: 'backwardBtn', action: this.moveBackward.bind(this) },
+      { id: 'forwardBtn', action: this.moveForward.bind(this) },
+      { id: 'fastForwardBtn', action: this.fastForward.bind(this) }
+    ];
 
-      btn.addEventListener('click', (e) => {
-        e.preventDefault();
-        this.hideGuessResult();
-        switch(btnId) {
-          case 'forwardBtn':
-            this.moveForward();
-            break;
-          case 'backwardBtn':
-            this.moveBackward();
-            break;
-        }
-      });
+    buttons.forEach(({ id, action }) => {
+      const btn = document.getElementById(id);
+      if (btn) {
+        btn.addEventListener('click', (e) => {
+          e.preventDefault();
+          this.hideGuessResult();
+          action();
+        });
+      }
     });
   }
 
@@ -403,8 +403,19 @@ class Board {
   }
 
   updateButtonStates() {
-    document.getElementById('forwardBtn').disabled = this.gameOver();
-    document.getElementById('backwardBtn').disabled = this.currentMove <= 1;
+    const buttons = [
+      { id: 'fastRewindBtn', disabled: this.currentMove <= 1 },
+      { id: 'backwardBtn', disabled: this.currentMove <= 1 },
+      { id: 'forwardBtn', disabled: this.currentMove > this.moves.length },
+      { id: 'fastForwardBtn', disabled: this.currentMove > this.moves.length }
+    ];
+
+    buttons.forEach(({ id, disabled }) => {
+      const btn = document.getElementById(id);
+      if (btn) {
+        btn.disabled = disabled;
+      }
+    });
   }
 
   setupFlipBoardButton() {
@@ -417,6 +428,18 @@ class Board {
 
   flipBoard() {
     this.board.flip();
+  }
+
+  fastRewind() {
+    while (this.currentMove > 1) {
+      this.moveBackward();
+    }
+  }
+
+  fastForward() {
+    while (this.currentMove <= this.moves.length) {
+      this.moveForward();
+    }
   }
 
 }

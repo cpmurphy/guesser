@@ -25,16 +25,27 @@
       %span#black Black
     #board_container{style: "display: none;"}
       #board
+      #move_controls
+        %button#fastRewindBtn.control-btn{title: "Go to start"}
+          %svg.icon{viewBox: "0 0 24 24"}
+            %path{d: "M11 18V6l-8.5 6 8.5 6zm.5-6l8.5 6V6l-8.5 6z"}
+        %button#backwardBtn.control-btn{title: "Previous move"}
+          %svg.icon{viewBox: "0 0 24 24"}
+            %path{d: "M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z"}
+        %button#forwardBtn.control-btn{title: "Next move"}
+          %svg.icon{viewBox: "0 0 24 24"}
+            %path{d: "M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z"}
+        %button#fastForwardBtn.control-btn{title: "Go to end"}
+          %svg.icon{viewBox: "0 0 24 24"}
+            %path{d: "M4 18l8.5-6L4 6v12zm9-12v12l8.5-6L13 6z"}
+        %button#flipBoardBtn.control-btn{title: "Flip Board"}
+          %svg.icon{viewBox: "0 0 24 24"}
+            %path{d: "M19 8l-4 4h3c0 3.31-2.69 6-6 6-1.01 0-1.97-.25-2.8-.7l-1.46 1.46C8.97 19.54 10.43 20 12 20c4.42 0 8-3.58 8-8h3l-4-4zM6 12c0-3.31 2.69-6 6-6 1.01 0 1.97.25 2.8.7l1.46-1.46C15.03 4.46 13.57 4 12 4c-4.42 0-8 3.58-8 8H1l4 4 4-4H6z"}
       #guess_result_container
         #guess_result
       #guess_comment_container
         #guess_comment
         #guess_subcomment
-
-      #buttons_container
-        %button#forwardBtn Forward
-        %button#backwardBtn Backward
-        %button#flipBoardBtn Flip Board
 
       #guess_mode_selection
         %label

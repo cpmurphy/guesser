@@ -3,6 +3,7 @@ class Board {
     this.board = null;
     this.setupPGNUploadListener();
     this.setupMoveButtons();
+    this.setupFlipBoardButton();
   }
 
   setupPGNUploadListener() {
@@ -372,4 +373,17 @@ class Board {
     document.getElementById('forwardBtn').disabled = this.currentMove > this.moves.length;
     document.getElementById('backwardBtn').disabled = this.currentMove <= 1;
   }
+
+  setupFlipBoardButton() {
+    const flipBtn = document.getElementById('flipBoardBtn');
+    flipBtn.addEventListener('click', (e) => {
+      e.preventDefault();
+      this.flipBoard();
+    });
+  }
+
+  flipBoard() {
+    this.board.flip();
+  }
+
 }

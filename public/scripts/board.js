@@ -2,6 +2,7 @@ class Board {
   constructor() {
     this.board = null;
     this.setupPGNUploadListener();
+    this.setupMoveButtons();
   }
 
   setupPGNUploadListener() {
@@ -85,8 +86,6 @@ class Board {
     this.lastPosition = this.board.position();
     this.currentMove = 1;
 
-    this.setupPGNUploadListener();
-    this.setupMoveButtons();
     this.hideGuessResult();
     this.initializeButtonStates(false);
     this.setupGuessModeRadios();
@@ -101,11 +100,7 @@ class Board {
     buttons.forEach(btnId => {
       const btn = document.getElementById(btnId);
 
-      // Remove any existing event listeners
-      const newBtn = btn.cloneNode(true);
-      btn.parentNode.replaceChild(newBtn, btn);
-
-      newBtn.addEventListener('click', (e) => {
+      btn.addEventListener('click', (e) => {
         e.preventDefault();
         this.hideGuessResult();
         switch(btnId) {

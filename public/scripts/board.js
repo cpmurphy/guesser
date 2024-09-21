@@ -2,9 +2,11 @@ class Board {
   constructor() {
     this.board = null;
     this.gameResult = null;
+    this.singleGameLoaded = true;
     this.setupPGNUploadListener();
     this.setupMoveButtons();
     this.setupFlipBoardButton();
+    this.setupUploadButton();
   }
 
   setupPGNUploadListener() {
@@ -21,7 +23,9 @@ class Board {
         if (data.table) {
           if (data.table.length == 1) {
             this.loadGame(0); // automatically load the single game
+            this.singleGameLoaded = true;
           } else {
+            this.singleGameLoaded = false;
             this.displayGameSelection(data.table);
           }
         } else {
@@ -73,8 +77,10 @@ class Board {
         this.initializeButtonStates(true);
         document.getElementById('white').textContent = data.white;
         document.getElementById('black').textContent = data.black;
-        document.getElementById('game_selection_container').style.display = 'none';
-        document.getElementById('board_container').style.display = 'block';
+        this.swapToBoard();
+        if (!this.singleGameLoaded) {
+          this.changeUploadButtonToBackButton();
+        }
       } else {
         console.error('Game load failed:', data.error);
       }
@@ -450,6 +456,37 @@ class Board {
     };
 
     move();
+  }
+
+  setupUploadButton() {
+    const uploadBtn = document.getElementById('upload_pgn_btn');
+    const pgnFileInput = document.getElementById('pgn_file_input');
+
+    uploadBtn.addEventListener('click', (e) => {
+      if (uploadBtn.textContent === 'Back to Games') {
+        e.preventDefault();
+        this.swapToGameSelection();
+      }
+    });
+
+    pgnFileInput.addEventListener('change', () => {
+      uploadBtn.textContent = 'Upload PGN';
+    });
+  }
+
+  swapToBoard() {
+    document.getElementById('game_selection_container').style.display = 'none';
+    document.getElementById('board_container').style.display = 'block';
+  }
+
+  swapToGameSelection() {
+    document.getElementById('board_container').style.display = 'none';
+    document.getElementById('game_selection_container').style.display = 'block';
+  }
+
+  changeUploadButtonToBackButton() {
+    const uploadBtn = document.getElementById('upload_pgn_btn');
+    uploadBtn.textContent = 'Back to Games';
   }
 
 }

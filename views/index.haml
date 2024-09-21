@@ -75,5 +75,5 @@
 
     %form#pgn_upload_form(action='/upload_pgn' method='post' enctype='multipart/form-data')
       %label(for='pgn') Choose a PGN file:
-      %input(type='file' name='pgn' accept='.pgn' required)
-      %button(type='submit') Upload PGN
+      %input#pgn_file_input(type='file' name='pgn' accept='.pgn' required)
+      %button#upload_pgn_btn{type: "submit"} Upload PGN

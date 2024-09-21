@@ -74,7 +74,8 @@ class ChessGuesser < Sinatra::Base
         white: game.tags['White'],
         black: game.tags['Black'],
         date: game.tags['Date'],
-        event: game.tags['Event']
+        event: game.tags['Event'],
+        result: game.result
       }.to_json
     else
       status 400

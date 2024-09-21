@@ -1,6 +1,7 @@
 class Board {
   constructor() {
     this.board = null;
+    this.gameResult = null;
     this.setupPGNUploadListener();
     this.setupMoveButtons();
     this.setupFlipBoardButton();
@@ -60,6 +61,9 @@ class Board {
     .then(data => {
       if (data.moves) {
         this.moves = data.moves;
+      }
+      if (data.result) {
+        this.gameResult = data.result;
       }
       if (data.ui_moves) {
         this.uiMoves = data.ui_moves;
@@ -144,8 +148,8 @@ class Board {
   }
 
   moveForward() {
-    const uiMove = this.uiMoves[this.currentMove - 1];
-    if (uiMove.moves) {
+    if (!this.gameOver()) {
+      const uiMove = this.uiMoves[this.currentMove - 1];
       const newPosition = this.board.position();
       uiMove.moves.forEach(m => {
         const [from, to] = m.split('-');
@@ -161,9 +165,31 @@ class Board {
         }
       }
       this.board.position(newPosition, true);
+      this.currentMove++;
     }
-    this.currentMove++;
     this.updateButtonStates();
+    if (this.gameOver()) {
+      this.displayGameResult();
+    }
+  }
+
+  displayGameResult() {
+    const guessResult = document.getElementById('guess_result');
+
+    // Check if the result span already exists
+    let resultSpan = guessResult.querySelector('.game-result');
+
+    if (!resultSpan) {
+      // If it doesn't exist, create a new span
+      resultSpan = document.createElement('span');
+      resultSpan.className = 'game-result';
+      resultSpan.style.marginLeft = '10px';  // Add some space between existing content and result
+      guessResult.appendChild(resultSpan);
+    }
+
+    // Set the content and style of the result span
+    resultSpan.textContent = this.gameResult || 'Game Over';
+    resultSpan.style.color = 'blue';
   }
 
   moveBackward() {
@@ -241,6 +267,9 @@ class Board {
     setTimeout(() => {
       this.replayMoves(moveQueue);
     }, 500);
+    if (this.gameOver()) {
+      this.displayGameResult();
+    }
   }
 
   hideGuessResult() {
@@ -259,8 +288,12 @@ class Board {
        (currentGuessMode === 'black' && piece.charAt(0) === 'b');
   }
 
+  gameOver() {
+    return this.currentMove > this.moves.length;
+  }
+
   onDrop(source, target, piece, newPos, oldPos, orientation) {
-    if (source === target) {
+    if (source === target || this.gameOver()) {
       return 'snapback';
     }
 
@@ -370,7 +403,7 @@ class Board {
   }
 
   updateButtonStates() {
-    document.getElementById('forwardBtn').disabled = this.currentMove > this.moves.length;
+    document.getElementById('forwardBtn').disabled = this.gameOver();
     document.getElementById('backwardBtn').disabled = this.currentMove <= 1;
   }
 

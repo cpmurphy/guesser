@@ -431,7 +431,7 @@ class Board {
   }
 
   fastForward() {
-    const numMoves = this.moves.length - this.currentMove;
+    const numMoves = (this.moves.length + 1) - this.currentMove;
     this.sequentialMove(numMoves, this.moveForward.bind(this));
   }
 

@@ -18,12 +18,11 @@
     %link{rel:"stylesheet", href:"/style.css"}
 
   %body
-    %h1 Chess Guesser
-    %h2
-      %span#white White
-      vs
-      %span#black Black
-    #board_container{style: "display: none;"}
+    #board_container
+      %h2
+        %span#white White
+        vs
+        %span#black Black
       #board
       #move_controls
         %button#fastRewindBtn.control-btn{title: "Go to start"}
@@ -65,7 +64,7 @@
             %th White
             %th Black
             %th Date
-            %th Event
+            %th Result
             %th Action
         %tbody
 

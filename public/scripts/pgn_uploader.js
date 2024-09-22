@@ -84,10 +84,10 @@ class PgnUploader {
       row.insertCell().textContent = game.white;
       row.insertCell().textContent = game.black;
       row.insertCell().textContent = game.date;
-      row.insertCell().textContent = game.event;
+      row.insertCell().textContent = game.result;
       const actionCell = row.insertCell();
       const loadButton = document.createElement('button');
-      loadButton.textContent = 'Load';
+      loadButton.textContent = 'Play';
       loadButton.addEventListener('click', () => this.loadGame(game.id));
       actionCell.appendChild(loadButton);
     });

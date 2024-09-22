@@ -56,7 +56,8 @@ class ChessGuesser < Sinatra::Base
           white: game['White'],
           black: game['Black'],
           date: game['Date'],
-          event: game['Event']
+          event: game['Event'],
+          result: game['Result']
         }
       end
       { table: table }.to_json

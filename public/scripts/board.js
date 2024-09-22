@@ -88,7 +88,7 @@ class Board {
     if (!this.gameOver()) {
       const uiMove = this.uiMoves[this.currentMove - 1];
       if (!uiMove.remove && !uiMove.add) {
-        this.board.move(uiMove.moves[0]);
+        uiMove.moves.forEach(m => this.board.move(m));
       } else {
         const newPosition = this.board.position();
         uiMove.moves.forEach(m => {

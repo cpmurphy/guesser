@@ -114,7 +114,11 @@ class ChessGuesser < Sinatra::Base
     guess_state = {}
 
     if guess_mode == 'both' || guess_mode == active_color(current_move)
-      if @move_judge.guess_in_top_three?(guess, fen)
+      source = guess['guessed_move']['source']
+      target = guess['guessed_move']['target']
+      game_move_uci = guess['game_move']['moves'][0].sub('-', '')
+      guessed_move_uci = source + target
+      if @move_judge.good_move?(fen, guessed_move_uci, game_move_uci)
         current_move = move_forward(current_move)
         next_fen = game.positions[current_move].to_fen
         guess_state = { result: 'correct', same_as_game: false, game_move: game_move }.merge(state_for_current_move(current_move))

@@ -7,11 +7,12 @@ class AnalyzerTest < Minitest::Test
   def setup
     @mock_engine = Minitest::Mock.new
     Stockfish::Engine.stub :new, @mock_engine do
-      @analyzer = Analyzer.new('mock_path')
+      @analyzer = Analyzer.new
     end
   end
 
   def test_best_moves_returns_moves_with_scores_and_notations
+    @mock_engine.expect :multipv, nil, [3]
     mock_analysis_result(standard_analysis)
     result = @analyzer.best_moves('mock_fen')
     assert_equal 3, result.length
@@ -23,7 +24,29 @@ class AnalyzerTest < Minitest::Test
     end
   end
 
+  def test_evaluate_best_move_returns_move_with_score_and_notation
+    @mock_engine.expect :multipv, nil, [1]
+    mock_analysis_result(standard_analysis)
+    result = @analyzer.evaluate_best_move('mock_fen')
+    assert_includes result.keys, :score
+    assert_includes result.keys, :move
+    assert_instance_of Integer, result[:score]
+    assert_instance_of String, result[:move]
+  end
+
+  def test_evaluate_move_returns_move_with_score_and_notation
+    @mock_engine.expect :multipv, nil, [1]
+    @mock_engine.expect :execute, nil, ['position fen mock_fen moves h6h3']
+    @mock_engine.expect :execute, standard_analysis, ['go depth 14']
+    result = @analyzer.evaluate_move('mock_fen', 'h6h3')
+    assert_includes result.keys, :score
+    assert_includes result.keys, :move
+    assert_instance_of Integer, result[:score]
+    assert_instance_of String, result[:move]
+  end
+
   def test_best_moves_handles_score_with_mate_in_n
+    @mock_engine.expect :multipv, nil, [3]
     mock_analysis_result(mate_in_n_analysis)
     result = @analyzer.best_moves('mock_fen')
     assert_equal 3, result.length
@@ -38,7 +61,6 @@ class AnalyzerTest < Minitest::Test
   private
 
   def mock_analysis_result(analysis_string)
-    @mock_engine.expect :multipv, nil, [3]
     @mock_engine.expect :analyze, analysis_string do |fen, kw|
       fen == 'mock_fen' &&
         kw[:depth].is_a?(Integer)
@@ -58,4 +80,5 @@ class AnalyzerTest < Minitest::Test
     "info depth 18 seldepth 6 multipv 3 score mate 3 nodes 9700 nps 1212500 hashfull 0 tbhits 0 time 8 pv a8f8 d1c2 h7h5 g4h3 f5f3\n" \
     "bestmove h7h5 ponder g4h3"
   end
+
 end

@@ -5,19 +5,22 @@ class MoveJudge
     @analyzer = analyzer
   end
 
-  def guess_in_top_three?(guess, fen)
-    source = guess['move']['source']
-    target = guess['move']['target']
-    uci_move = to_uci(source, target)
-    top_moves = @analyzer.best_moves(fen)
-    best_score = top_moves[0][:score].to_i
-    top_moves.filter! { |move| (best_score - move[:score].to_i).abs < 50 }
-    top_moves.map { |move| move[:move] }.include?(uci_move)
-  end
+  def good_move?(fen, guessed_move, actual_move)
+    guess_eval = 0 - @analyzer.evaluate_move(fen, guessed_move)[:score]
+    return true if guess_eval > 500
 
-  private
+    actual_eval = 0 - @analyzer.evaluate_move(fen, actual_move)[:score]
+    return true if guess_eval > actual_eval
 
-  def to_uci(source, target)
-    source + target
+    best_eval = @analyzer.evaluate_best_move(fen)[:score]
+    if best_eval > 200
+      return true if guess_eval >= best_eval * 0.75
+    elsif best_eval > 100 && best_eval <= 200
+      return true if guess_eval >= best_eval * 0.90
+    elsif best_eval <= 100
+      return true if (best_eval - guess_eval).abs <= 30
+    end
+
+    false
   end
 end

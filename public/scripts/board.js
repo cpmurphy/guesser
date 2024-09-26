@@ -238,7 +238,7 @@ class Board {
     return this.currentMove > this.moves.length;
   }
 
-  onDrop(source, target, piece, newPos, oldPos, orientation) {
+  onDrop(source, target, piece, newPos, oldPos) {
     if (source === target || this.gameOver()) {
       return 'snapback';
     }
@@ -269,13 +269,13 @@ class Board {
       },
       body: JSON.stringify({
         current_move: this.currentMove,
-        move: {
+        game_move: this.uiMoves[this.currentMove - 1],
+        guessed_move: {
           source,
           target,
           piece,
           newPos: Chessboard.objToFen(newPos),
-          oldPos: Chessboard.objToFen(oldPos),
-          orientation
+          oldPos: Chessboard.objToFen(oldPos)
         }
       })
     })

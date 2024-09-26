@@ -18,7 +18,6 @@ class Board {
 
     this.hideGuessResult();
     this.initializeButtonStates(false);
-    this.setupGuessModeRadios();
   }
 
   onGameLoaded(data) {
@@ -60,21 +59,6 @@ class Board {
   guessMode() {
     const selectedRadio = document.querySelector('input[name="guess_mode"]:checked');
     return selectedRadio ? selectedRadio.value : 'neither';
-  }
-
-  setupGuessModeRadios() {
-    const radios = document.querySelectorAll('input[name="guess_mode"]');
-    radios.forEach(radio => {
-      radio.checked = false;
-      radio.addEventListener('change', (e) => {
-        const formData = new FormData();
-        formData.append('mode', e.target.value);
-        fetch('/set_guess_mode', {
-          method: 'POST',
-          body: formData
-        });
-      });
-    });
   }
 
   initializeButtonStates(pgnLoaded) {

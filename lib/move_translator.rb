@@ -40,8 +40,13 @@ class MoveTranslator
 
   def initialize
     @board = STARTING_POSITION.dup
-    @current_player = 'white'
+    @current_player = :white
     @last_move = nil
+    @white_castle_moves_allowed = "KQ"
+    @black_castle_moves_allowed = "kq"
+    @en_passant_target = "-"
+    @halfmove_clock = 0
+    @fullmove_number = 1
   end
 
   def translate_moves(pgn_moves)
@@ -54,6 +59,7 @@ class MoveTranslator
     case pgn_move
     when /^O-O(-O)?$/
       result = handle_castling(pgn_move)
+      @halfmove_clock += 1
     when /^([KQRBN])?([a-h])?([1-8])?(x)?([a-h][1-8])(=[QRBN])?(\+|#)?$/
       piece = $1 || 'P'
       file_hint = $2
@@ -63,21 +69,56 @@ class MoveTranslator
       promotion = $6
       check = $7
 
+      if piece == 'P' || capture
+        @halfmove_clock = 0
+      else
+        @halfmove_clock += 1
+      end
       from = find_source_square(piece, capture, to, file_hint, rank_hint)
       result = handle_regular_move(from, to, piece, capture, promotion)
+      update_castling_status(piece, from)
     else
       raise "Invalid move: #{pgn_move}"
     end
 
+    if @current_player == :black
+      @fullmove_number += 1
+    end
+    update_en_passant_status(result)
     @last_move = result
     switch_player
     result
   end
 
+  def board_as_fen
+    fen = ""
+    for file in (1..8).to_a.reverse
+      empty_count = 0
+      for rank in ('a'..'h')
+        square = "#{rank}#{file}"
+        if @board[square]
+          if empty_count > 0
+            fen += empty_count.to_s
+            empty_count = 0
+          end
+          fen += @board[square]
+        else
+          empty_count += 1
+        end
+      end
+      if empty_count > 0
+        fen += empty_count.to_s
+      end
+      fen += '/' unless file == 1
+    end
+    castling_rights = (@white_castle_moves_allowed || @black_castle_moves_allowed) ? " #{@white_castle_moves_allowed}#{@black_castle_moves_allowed}" : " -"
+    fen + " #{@current_player == :white ? 'w' : 'b'}#{castling_rights} #{@en_passant_target} #{@halfmove_clock} #{@fullmove_number}"
+  end
+
   private
 
   def find_source_square(piece, capture, to, file_hint, rank_hint)
-    piece = piece.downcase if @current_player == 'black'
+    piece = piece.downcase if @current_player == :black
     candidates = @board.select { |square, p| p == piece }
     
     if piece.upcase == 'P'
@@ -97,7 +138,7 @@ class MoveTranslator
 
   def handle_pawn_move(candidates, capture, to, file_hint)
     to_file, to_rank = to.chars
-    direction = @current_player == 'white' ? 1 : -1
+    direction = @current_player == :white ? 1 : -1
     
     if capture # capture move
       if file_hint
@@ -106,7 +147,7 @@ class MoveTranslator
       candidates.select! { |square, _| (square[1].to_i - to_rank.to_i).abs == 1 }
     else # non-capture move
       candidates.select! { |square, _| square[0] == to_file }
-      if @current_player == 'white'
+      if @current_player == :white
         allowed_destination_rank = '4'
       else
         allowed_destination_rank = '5'
@@ -181,7 +222,7 @@ class MoveTranslator
   def valid_pawn_move?(from, to)
     from_file, from_rank = from.chars
     to_file, to_rank = to.chars
-    direction = @current_player == 'white' ? 1 : -1
+    direction = @current_player == :white ? 1 : -1
     
     file_diff = (from_file.ord - to_file.ord).abs
     rank_diff = (to_rank.to_i - from_rank.to_i) * direction
@@ -190,7 +231,7 @@ class MoveTranslator
       if rank_diff == 1
         return !@board[to] # Destination must be empty
       elsif rank_diff == 2
-        return false unless ((@current_player == 'white' && from_rank == '2') || (@current_player == 'black' && from_rank == '7'))
+        return false unless ((@current_player == :white && from_rank == '2') || (@current_player == :black && from_rank == '7'))
         middle_square = "#{from_file}#{from_rank.to_i + direction}"
         return !@board[middle_square] && !@board[to] # Both squares must be empty
       else
@@ -205,7 +246,7 @@ class MoveTranslator
   end
 
   def valid_en_passant?(from, to)
-    direction = @current_player == 'white' ? 1 : -1
+    direction = @current_player == :white ? 1 : -1
     return false unless @last_move && @last_move[:moves].size == 1
     last_from, last_to = @last_move[:moves][0].split('-')
 
@@ -217,7 +258,7 @@ class MoveTranslator
     return false unless to == expected_to
 
     # Check if our pawn is on the correct rank for en passant
-    correct_rank = @current_player == 'white' ? '5' : '4'
+    correct_rank = @current_player == :white ? '5' : '4'
     return false unless from[1] == correct_rank
 
     true
@@ -284,7 +325,7 @@ class MoveTranslator
   end
 
   def valid_castling?(from, to)
-    rank = @current_player == 'white' ? '1' : '8'
+    rank = @current_player == :white ? '1' : '8'
     king_file = 'e'
     kingside_rook_file = 'h'
     queenside_rook_file = 'a'
@@ -310,7 +351,7 @@ class MoveTranslator
   end
 
   def handle_castling(pgn_move)
-    rank = @current_player == 'white' ? '1' : '8'
+    rank = @current_player == :white ? '1' : '8'
     if pgn_move == 'O-O' # Kingside castling
       king_from, king_to = "e#{rank}", "g#{rank}"
       rook_from, rook_to = "h#{rank}", "f#{rank}"
@@ -324,6 +365,11 @@ class MoveTranslator
     @board[rook_to] = @board[rook_from]
     @board.delete(king_from)
     @board.delete(rook_from)
+    if @current_player == :white
+      @white_castle_moves_allowed = nil
+    else
+      @black_castle_moves_allowed = nil
+    end
 
     {
       moves: ["#{king_from}-#{king_to}", "#{rook_from}-#{rook_to}"]
@@ -337,7 +383,7 @@ class MoveTranslator
     if capture || (@board[to] && piece.upcase == 'P' && from[0] != to[0])
       captured_piece = @board[to]
       if !captured_piece
-        if @current_player == 'white'
+        if @current_player == :white
           captured_piece = 'p'
         else
           captured_piece = 'P'
@@ -345,7 +391,7 @@ class MoveTranslator
       end
       captured_square = to
       if piece.upcase == 'P' && capture && !@board[to] # En passant
-        direction = @current_player == 'white' ? 1 : -1
+        direction = @current_player == :white ? 1 : -1
         captured_square = "#{to[0]}#{from[1].to_i + direction}"
       end
       result[:remove] = [captured_piece, captured_square]
@@ -366,6 +412,53 @@ class MoveTranslator
   end
 
   def switch_player
-    @current_player = @current_player == 'white' ? 'black' : 'white'
+    @current_player = @current_player == :white ? :black : :white
+  end
+
+  def update_en_passant_status(ui_move)
+    move = ui_move[:moves][0]
+    if @current_player == :white && move =~ /^[a-h]2-[a-h]4$/
+      @en_passant_target = move.sub(/^([a-h]).*/, "\\13")
+    elsif @current_player == :black && move =~ /^[a-h]7-[a-h]5$/
+      @en_passant_target = move.sub(/^([a-h]).*/, "\\16")
+    else
+      @en_passant_target = '-'
+    end
+  end
+
+  def update_castling_status(piece, from)
+    if piece == 'K'
+      if @current_player == :white
+        @white_castle_moves_allowed = nil
+      else
+        @black_castle_moves_allowed = nil
+      end
+    elsif piece == 'R'
+      if from == 'h1' && @white_castle_moves_allowed
+        if @white_castle_moves_allowed.length > 1
+          @white_castle_moves_allowed = 'Q'
+        else
+          @white_castle_moves_allowed = nil
+        end
+      elsif from == 'a1' && @white_castle_moves_allowed
+        if @white_castle_moves_allowed.length > 1
+          @white_castle_moves_allowed = 'K'
+        else
+          @white_castle_moves_allowed = nil
+        end
+      elsif from == 'h8' && @black_castle_moves_allowed
+        if @black_castle_moves_allowed.length > 1
+          @black_castle_moves_allowed = 'q'
+        else
+          @black_castle_moves_allowed = nil
+        end
+      elsif from == 'a8' && @black_castle_moves_allowed
+        if @black_castle_moves_allowed.length > 1
+          @black_castle_moves_allowed = 'k'
+        else
+          @black_castle_moves_allowed = nil
+        end
+      end
+    end
   end
 end

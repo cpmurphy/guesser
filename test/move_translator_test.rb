@@ -72,13 +72,64 @@ class MoveTranslatorTest < Minitest::Test
 
   def test_promotion_to_queen
     @translator.instance_variable_set(:@board, {'a7' => 'P', 'a8' => nil})
-    @translator.instance_variable_set(:@current_player, 'white')
+    @translator.instance_variable_set(:@current_player, :white)
     assert_equal({ moves: ["a7-a8"], add: ['Q', 'a8'] }, @translator.translate_move("a8=Q"))
   end
 
   def test_promotion_to_knight
     @translator.instance_variable_set(:@board, {'a7' => 'P', 'a8' => nil})
-    @translator.instance_variable_set(:@current_player, 'white')
+    @translator.instance_variable_set(:@current_player, :white)
     assert_equal({ moves: ["a7-a8"], add: ['N', 'a8'] }, @translator.translate_move("a8=N"))
   end
+
+  def test_start_position_to_fen
+    assert_equal("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1", @translator.board_as_fen)
+  end
+
+  def test_position_to_fen_after_some_moves
+    @translator.translate_moves(["e4", "e5", "Nf3", "Nc6", "Bc4", "Bc5", "c3", "d6", "d4", "exd4", "cxd4", "Bb6", "h3", "Nf6", "O-O"])
+    assert_equal("r1bqk2r/ppp2ppp/1bnp1n2/8/2BPP3/5N1P/PP3PP1/RNBQ1RK1 b kq - 2 8", @translator.board_as_fen)
+  end
+
+  def test_position_to_fen_after_e4
+    @translator.translate_move("e4")
+    # it is correct to populate the en passant target even if no enemy pawn can actually take it
+    assert_equal("rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq e3 0 1", @translator.board_as_fen)
+  end
+
+  def test_position_to_fen_after_e4_e5
+    @translator.translate_moves(["e4", "e5"])
+    assert_equal("rnbqkbnr/pppp1ppp/8/4p3/4P3/8/PPPP1PPP/RNBQKBNR w KQkq e6 0 2", @translator.board_as_fen)
+  end
+
+  def test_position_to_fen_after_white_bong_cloud
+    @translator.translate_moves(["e4", "e5", "Ke2"])
+    assert_equal("rnbqkbnr/pppp1ppp/8/4p3/4P3/8/PPPPKPPP/RNBQ1BNR b kq - 1 2", @translator.board_as_fen)
+  end
+
+  def test_position_to_fen_after_both_bong_cloud
+    @translator.translate_moves(["e4", "e5", "Ke2", "Ke7"])
+    assert_equal("rnbq1bnr/ppppkppp/8/4p3/4P3/8/PPPPKPPP/RNBQ1BNR w - - 2 3", @translator.board_as_fen)
+  end
+
+  def test_position_to_fen_after_white_kingside_rook_move
+    @translator.translate_moves(["e4", "e5", "Nf3", "Nc6", "Bc4", "Bc5", "Rf1"])
+    assert_equal("r1bqk1nr/pppp1ppp/2n5/2b1p3/2B1P3/5N2/PPPP1PPP/RNBQKR2 b Qkq - 5 4", @translator.board_as_fen)
+  end
+
+  def test_position_to_fen_after_white_queenside_rook_move
+    @translator.translate_moves(["a4", "d6", "Ra3"])
+    assert_equal("rnbqkbnr/ppp1pppp/3p4/8/P7/R7/1PPPPPPP/1NBQKBNR b Kkq - 1 2", @translator.board_as_fen)
+  end
+
+  def test_position_to_fen_after_black_kingside_rook_move
+    @translator.translate_moves(["e4", "h6", "d4", "Rh7"])
+    assert_equal("rnbqkbn1/pppppppr/7p/8/3PP3/8/PPP2PPP/RNBQKBNR w KQq - 1 3", @translator.board_as_fen)
+  end
+
+  def test_position_to_fen_after_black_queenside_rook_move
+    @translator.translate_moves(["e4", "Nc6", "d4", "Rb8"])
+    assert_equal("1rbqkbnr/pppppppp/2n5/8/3PP3/8/PPP2PPP/RNBQKBNR w KQk - 1 3", @translator.board_as_fen)
+  end
+
 end

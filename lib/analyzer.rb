@@ -43,8 +43,17 @@ class Analyzer
         else
           match = line.match(/multipv (\d+) score mate (-?\d+) .* pv (\w+)/)
           if match
-          # store both the move and the mate score (1000 - mate score)
-            moves[match[1].to_i - 1] = { score: 1000 - match[2].to_i, move: match[3] }
+            move_number = match[1].to_i
+            mate_score = match[2].to_i
+            base = mate_score < 0 ? -1000 : 1000
+            # store both the move and the mate score (1000 - mate score)
+            moves[move_number - 1] = { score: base - mate_score, move: match[3] }
+          else
+            match = line.match(/info depth 0 score mate 0/)
+            if match
+              # already mate, store score but no move
+              moves << { score: -1000 }
+            end
           end
         end
       end

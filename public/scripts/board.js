@@ -2,7 +2,10 @@ class Board {
   constructor() {
     this.board = null;
     this.gameResult = null;
+    this.lastMoveElement = document.getElementById('last-move');
+    this.moveInput = document.getElementById('move-input');
     this.setupMoveButtons();
+    this.setupMoveInputListener();
     this.setupFlipBoardButton();
   }
 
@@ -15,7 +18,6 @@ class Board {
     });
     this.lastPosition = this.board.position();
     this.currentMove = 1;
-
     this.hideGuessResult();
     this.initializeButtonStates(false);
   }
@@ -30,7 +32,6 @@ class Board {
     this.initializeButtonStates(true);
     document.getElementById('white').textContent = data.white;
     document.getElementById('black').textContent = data.black;
-    this.lastMoveElement = document.getElementById('last-move');
     this.updateLastMoveDisplay();
   }
 
@@ -56,6 +57,38 @@ class Board {
         });
       }
     });
+  }
+
+  setupMoveInputListener() {
+    this.moveInput.addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') {
+        this.goToMove();
+      }
+    });
+  }
+
+  goToMove() {
+    const moveNumber = parseInt(this.moveInput.value, 10);
+    if (isNaN(moveNumber) || moveNumber < 1 || moveNumber > Math.ceil(this.moves.length / 2)) {
+      alert('Please enter a valid move number.');
+      return;
+    }
+
+    const targetMove = moveNumber * 2 - 1; // Convert to 1-based index for White's move
+
+    if (targetMove < this.currentMove) {
+      while (this.currentMove > targetMove) {
+        this.moveBackward();
+      }
+    } else {
+      while (this.currentMove <= targetMove && this.currentMove <= this.moves.length) {
+        this.moveForward();
+      }
+    }
+
+    this.updateLastMoveDisplay();
+    this.updateButtonStates();
+    this.moveInput.value = ''; // Clear the input after moving
   }
 
   guessMode() {

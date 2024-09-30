@@ -79,3 +79,7 @@
 .small-font {
   font-size: 0.9em;
 }
+
+input#move-input {
+  width: 1.8em;
+}

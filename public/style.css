@@ -27,7 +27,7 @@
   width: 100%;
 }
 
-#move_controls {
+#move_controls, #last-move {
   display: flex;
   justify-content: center;
   margin-top: 10px;
@@ -70,4 +70,12 @@
 
 .control-btn:disabled .icon {
   fill: #ccc;
+}
+
+#last-move {
+  height: 20px; /* Fixed height to prevent layout shifts */
+}
+
+.small-font {
+  font-size: 0.9em;
 }

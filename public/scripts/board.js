@@ -30,6 +30,8 @@ class Board {
     this.initializeButtonStates(true);
     document.getElementById('white').textContent = data.white;
     document.getElementById('black').textContent = data.black;
+    this.lastMoveElement = document.getElementById('last-move');
+    this.updateLastMoveDisplay();
   }
 
   position(fen) {
@@ -94,6 +96,7 @@ class Board {
     if (this.gameOver()) {
       this.displayGameResult();
     }
+    this.updateLastMoveDisplay();
   }
 
   displayGameResult() {
@@ -119,6 +122,7 @@ class Board {
     this.currentMove--;
     this.reverseMove(this.uiMoves[this.currentMove - 1]);
     this.updateButtonStates();
+    this.updateLastMoveDisplay();
   }
 
   reverseMove(uiMove) {
@@ -382,6 +386,18 @@ class Board {
     };
 
     move();
+  }
+
+  updateLastMoveDisplay() {
+    if (this.currentMove <= 1) {
+      this.lastMoveElement.textContent = '';
+    } else {
+      const lastMoveIndex = this.currentMove - 2;
+      const moveNumber = Math.floor(lastMoveIndex / 2) + 1;
+      const isBlackMove = lastMoveIndex % 2 === 1;
+      const moveNotation = this.moves[lastMoveIndex];
+      this.lastMoveElement.textContent = `${moveNumber}${isBlackMove ? '...' : '.'} ${moveNotation}`;
+    }
   }
 
 }

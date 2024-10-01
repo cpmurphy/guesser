@@ -131,7 +131,7 @@ class MoveTranslator
     candidates.select! { |square, _| valid_move?(square, to, piece) }
 
     raise "Ambiguous move" if candidates.size > 1
-    raise "No valid source square found" if candidates.empty?
+    raise "No valid source square found for #{piece}#{file_hint}#{rank_hint}#{capture}#{to}" if candidates.empty?
 
     candidates.keys.first
   end
@@ -392,7 +392,7 @@ class MoveTranslator
       captured_square = to
       if piece.upcase == 'P' && capture && !@board[to] # En passant
         direction = @current_player == :white ? 1 : -1
-        captured_square = "#{to[0]}#{from[1].to_i + direction}"
+        captured_square = "#{to[0]}#{from[1].to_i}"
       end
       result[:remove] = [captured_piece, captured_square]
       @board.delete(captured_square)

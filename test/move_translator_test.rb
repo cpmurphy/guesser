@@ -24,12 +24,12 @@ class MoveTranslatorTest < Minitest::Test
 
   def test_pawn_en_passant_capture
     @translator.translate_moves(["e4", "a6", "e5", "d5"])
-    assert_equal({ moves: ["e5-d6"], remove: ['p', 'd6'] }, @translator.translate_move("exd6"))
+    assert_equal({ moves: ["e5-d6"], remove: ['p', 'd5'] }, @translator.translate_move("exd6"))
   end
 
   def test_pawn_en_passant_capture_black
     @translator.translate_moves(["Nf3", "c5", "e4", "c4", "d4"])
-    assert_equal({ moves: ["c4-d3"], remove: ['P', 'd3'] }, @translator.translate_move("cxd3"))
+    assert_equal({ moves: ["c4-d3"], remove: ['P', 'd4'] }, @translator.translate_move("cxd3"))
   end
 
   def test_knight_move
@@ -130,6 +130,11 @@ class MoveTranslatorTest < Minitest::Test
   def test_position_to_fen_after_black_queenside_rook_move
     @translator.translate_moves(["e4", "Nc6", "d4", "Rb8"])
     assert_equal("1rbqkbnr/pppppppp/2n5/8/3PP3/8/PPP2PPP/RNBQKBNR w KQk - 1 3", @translator.board_as_fen)
+  end
+
+  def test_position_when_pawn_moves_after_en_passant
+    @translator.translate_moves(["e4", "e6", "e5", "Bc5", "f4", "f5", "exf6", "gxf6", "f5"])
+    assert_equal("rnbqk1nr/pppp3p/4pp2/2b2P2/8/8/PPPP2PP/RNBQKBNR b KQkq - 0 5", @translator.board_as_fen)
   end
 
 end

@@ -137,4 +137,10 @@ class MoveTranslatorTest < Minitest::Test
     assert_equal("rnbqk1nr/pppp3p/4pp2/2b2P2/8/8/PPPP2PP/RNBQKBNR b KQkq - 0 5", @translator.board_as_fen)
   end
 
+  def test_position_when_move_is_disambiguated_by_check
+    @translator.translate_moves(["Nf3", "e6", "Nc3", "d6", "Nd4", "c6", "d3", "Qa5"])
+    @translator.translate_move("Nb5") # the other knight is pinned
+    assert_equal("rnb1kbnr/pp3ppp/2ppp3/qN6/8/2NP4/PPP1PPPP/R1BQKB1R b KQkq - 2 5", @translator.board_as_fen)
+  end
+
 end

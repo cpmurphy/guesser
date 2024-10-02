@@ -117,6 +117,39 @@ class MoveTranslator
 
   private
 
+  def moves_into_check?(square, to, piece)
+    # temporarily move the piece to the square and see if the king is in check
+    @board[to] = @board[square]
+    @board.delete(square)
+    king_square = find_king_square
+    in_check = opponent_attacks_square?(king_square)
+    @board[square] = @board[to]
+    @board.delete(to)
+    in_check
+  end
+
+  def find_king_square
+    @board.each do |square, piece|
+      return square if piece == (@current_player == :white ? 'K' : 'k')
+    end
+  end
+
+  def opponent_attacks_square?(square)
+    # check if the square is under attack by an opposing piece
+    if @current_player == :white
+      opposing_pieces = @board.select { |_, piece| piece =~ /[pnbrq]/ }
+      opposing_pieces.each do |current_square, piece|
+        return true if valid_move?(current_square, square, piece)
+      end
+    else
+      opposing_pieces = @board.select { |_, piece| piece =~ /[PNBRQ]/ }
+      opposing_pieces.each do |current_square, piece|
+        return true if valid_move?(current_square, square, piece)
+      end
+    end
+    false
+  end
+
   def find_source_square(piece, capture, to, file_hint, rank_hint)
     piece = piece.downcase if @current_player == :black
     candidates = @board.select { |square, p| p == piece }
@@ -130,10 +163,20 @@ class MoveTranslator
     
     candidates.select! { |square, _| valid_move?(square, to, piece) }
 
-    raise "Ambiguous move" if candidates.size > 1
-    raise "No valid source square found for #{piece}#{file_hint}#{rank_hint}#{capture}#{to}" if candidates.empty?
+    if candidates.size > 1
+      candidates.reject! { |square, piece| moves_into_check?(square, to, piece) }
+    end
+    raise "Ambiguous move for #{annotation_for(piece, file_hint, rank_hint, capture, to)}: could be #{candidates.inspect}" if candidates.size > 1
+    raise "No valid source square found for #{annotation_for(piece, file_hint, rank_hint, capture, to)}" if candidates.empty?
 
     candidates.keys.first
+  end
+
+  def annotation_for(piece, file_hint, rank_hint, capture, to)
+    "#{@fullmove_number}." +
+      (@current_player == :black ? '...' : '') +
+      (piece.upcase == 'P' ? '' : piece) +
+      "#{file_hint}#{rank_hint}#{capture}#{to}"
   end
 
   def handle_pawn_move(candidates, capture, to, file_hint)

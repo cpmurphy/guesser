@@ -3,7 +3,7 @@ require_relative '../lib/pgn_summary'
 
 class PgnSummaryTest < Minitest::Test
   def setup
-    @summary = PgnSummary.new('test/data/DrNykterstein-recent.pgn')
+    @summary = PgnSummary.new(File.open('test/data/DrNykterstein-recent.pgn', encoding: Encoding::ISO_8859_1))
   end
 
   def test_load
@@ -27,7 +27,7 @@ class PgnSummaryTest < Minitest::Test
   end
 
   def test_load_dos_format
-    summary = PgnSummary.new('test/data/mason-winawer.pgn')
+    summary = PgnSummary.new(File.open('test/data/mason-winawer.pgn', encoding: Encoding::ISO_8859_1))
     games = summary.load
     assert_equal 1, games.count
     game = summary.game_at(0)

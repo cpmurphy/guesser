@@ -1,6 +1,6 @@
 class PgnSummary
-  def initialize(file_path)
-    @file_path = file_path
+  def initialize(file)
+    @file = file
     @games = []
   end
 
@@ -9,9 +9,9 @@ class PgnSummary
   def load
     state = :start
     @games = []
-    file = File.open(@file_path, 'r', encoding: Encoding::ISO_8859_1)
     pos = 0
-    while line = file.gets
+    @file.rewind
+    while line = @file.gets
       if state == :start
         if line =~ /^\s*\[/
           headers = {}
@@ -31,26 +31,22 @@ class PgnSummary
       elsif state == :game
         if line =~ /^\s*$/
           state = :start
-          pos = file.pos
+          pos = @file.pos
         end
       end
     end
-    file.close
     @games
   end
 
   def game_at(index)
-    file = File.open(@file_path, encoding: Encoding::ISO_8859_1)
-    file.pos = @games[index]['pos']
+    @file.pos = @games[index]['pos']
     if index < @games.length - 1
       end_pos = @games[index + 1]['pos']
     else
-      end_pos = file.size
+      end_pos = @file.size
     end
-    read_len = end_pos - file.pos
-    game = file.read(read_len)
-    puts game.inspect
-    file.close
+    read_len = end_pos - @file.pos
+    game = @file.read(read_len)
     game
   end
 

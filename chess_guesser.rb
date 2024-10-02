@@ -37,16 +37,16 @@ class ChessGuesser < Sinatra::Base
   post '/upload_pgn' do
     if params[:upload_method] == 'file'
       if params[:pgn_file] && (tempfile = params[:pgn_file][:tempfile])
-        pgn_file = Tempfile.new('pgn')
+        pgn_file = Tempfile.new('pgn', encoding: Encoding::ISO_8859_1)
         FileUtils.copy_file(tempfile.path, pgn_file.path)
         pgn_file.rewind
-        summary = PgnSummary.new(pgn_file.path)
+        summary = PgnSummary.new(pgn_file)
       end
     else
-      pgn_file = Tempfile.new('pgn')
+      pgn_file = Tempfile.new('pgn', encoding: Encoding::ISO_8859_1)
       pgn_file.write(params[:pgn_text])
       pgn_file.rewind
-      summary = PgnSummary.new(pgn_file.path)
+      summary = PgnSummary.new(pgn_file)
     end
     if summary
       session['summary'] = summary

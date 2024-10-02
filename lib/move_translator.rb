@@ -67,7 +67,6 @@ class MoveTranslator
       capture = $4
       to = $5
       promotion = $6
-      check = $7
 
       if piece == 'P' || capture
         @halfmove_clock = 0
@@ -434,7 +433,6 @@ class MoveTranslator
       end
       captured_square = to
       if piece.upcase == 'P' && capture && !@board[to] # En passant
-        direction = @current_player == :white ? 1 : -1
         captured_square = "#{to[0]}#{from[1].to_i}"
       end
       result[:remove] = [captured_piece, captured_square]

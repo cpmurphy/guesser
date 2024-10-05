@@ -154,4 +154,10 @@ class MoveTranslatorTest < Minitest::Test
     @translator.translate_move("Qb4")
     assert_equal("rnbqkbnr/1ppppppp/8/8/1q6/5NP1/P2PPPBP/R1BQ1RK1 w kq - 2 7", @translator.board_as_fen)
   end
+
+  def test_position_from_starting_fen
+    @translator.load_game_from_fen("8/8/1k6/3K4/5R2/8/2B5/8 w - - 0 1")
+    @translator.translate_moves(["Ba4", "Kc7", "Bc6", "Kb6", "Kd6", "Ka5", "Kc5", "Ka6", "Ra4"])
+    assert_equal("8/8/k1B5/2K5/R7/8/8/8 b - - 9 5", @translator.board_as_fen)
+  end
 end

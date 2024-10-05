@@ -75,6 +75,9 @@ class ChessGuesser < Sinatra::Base
       game = games.first
       moves = game.moves.map(&:notation)
       move_translator = MoveTranslator.new
+      if game.starting_position
+        move_translator.load_game_from_fen(game.starting_position.to_fen.to_s)
+    end
       session['game'] = game
       session['guess_mode'] = 'both'
       {

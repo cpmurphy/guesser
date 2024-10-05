@@ -114,6 +114,45 @@ class MoveTranslator
     fen + " #{@current_player == :white ? 'w' : 'b'}#{castling_rights} #{@en_passant_target} #{@halfmove_clock} #{@fullmove_number}"
   end
 
+  def load_game_from_fen(fen)
+    # Clear the current board state
+    @board = {}
+
+    # Split the FEN string into its components
+    position, active_color, castling, en_passant, halfmove, fullmove = fen.split(' ')
+
+    # Populate the board
+    rank = 8
+    position.split('/').each do |row|
+      file = 'a'
+      row.each_char do |char|
+        if char.match?(/\d/)
+          file = (file.ord + char.to_i).chr
+        else
+          @board["#{file}#{rank}"] = char
+          file = (file.ord + 1).chr
+        end
+      end
+      rank -= 1
+    end
+
+    # Set the current player
+    @current_player = active_color == 'w' ? :white : :black
+
+    # Set castling rights
+    @white_castle_moves_allowed = castling.include?('K') ? 'K' : ''
+    @white_castle_moves_allowed += castling.include?('Q') ? 'Q' : ''
+    @black_castle_moves_allowed = castling.include?('k') ? 'k' : ''
+    @black_castle_moves_allowed += castling.include?('q') ? 'q' : ''
+
+    # Set en passant target square
+    @en_passant_target = en_passant == '-' ? '-' : en_passant
+
+    # Set halfmove clock and fullmove number
+    @halfmove_clock = halfmove.to_i
+    @fullmove_number = fullmove.to_i
+  end
+
   private
 
   def moves_into_check?(square, to, piece)
@@ -152,14 +191,14 @@ class MoveTranslator
   def find_source_square(piece, capture, to, file_hint, rank_hint)
     piece = piece.downcase if @current_player == :black
     candidates = @board.select { |square, p| p == piece }
-    
+
     if piece.upcase == 'P'
       candidates = handle_pawn_move(candidates, capture, to, file_hint)
     else
       candidates.select! { |square, _| square[0] == file_hint } if file_hint
       candidates.select! { |square, _| square[1] == rank_hint } if rank_hint
     end
-    
+
     candidates.select! { |square, _| valid_move?(square, to, piece) }
 
     if candidates.size > 1
@@ -181,7 +220,7 @@ class MoveTranslator
   def handle_pawn_move(candidates, capture, to, file_hint)
     to_file, to_rank = to.chars
     direction = @current_player == :white ? 1 : -1
-    
+
     if capture # capture move
       if file_hint
         candidates.select! { |square, _| square[0] == file_hint }
@@ -201,7 +240,7 @@ class MoveTranslator
 
       candidates.select! { |square, _| allowed_from_ranks.include?(square[1]) }
     end
-    
+
     candidates
   end
 
@@ -265,7 +304,7 @@ class MoveTranslator
     from_file, from_rank = from.chars
     to_file, to_rank = to.chars
     direction = @current_player == :white ? 1 : -1
-    
+
     file_diff = (from_file.ord - to_file.ord).abs
     rank_diff = (to_rank.to_i - from_rank.to_i) * direction
 
@@ -375,7 +414,7 @@ class MoveTranslator
     # Check if king and rook are in their initial positions
     return false unless from == "#{king_file}#{rank}"
     return false unless @board["#{king_file}#{rank}"]&.upcase == 'K'
-    
+
     if to[0] > from[0] # Kingside castling
       rook_file = kingside_rook_file
       path = ('f'...'h').map { |file| "#{file}#{rank}" }

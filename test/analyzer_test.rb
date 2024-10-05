@@ -71,6 +71,17 @@ class AnalyzerTest < Minitest::Test
     end
   end
 
+  def test_best_moves_with_draw_on_the_board
+    draw_analysis = "info string NNUE evaluation using nn-b1a57edbea57.nnue\ninfo depth 0 score cp 0\nbestmove (none)\n"
+    @mock_engine.expect :multipv, nil, [3]
+    mock_analysis_result(draw_analysis)
+    result = @analyzer.best_moves('mock_fen')
+    assert_equal 1, result.length
+    result.each do |move|
+      assert_includes move.keys, :score
+    end
+  end
+
   private
 
   def mock_analysis_result(analysis_string)

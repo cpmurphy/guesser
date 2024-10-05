@@ -53,6 +53,12 @@ class Analyzer
             if match
               # already mate, store score but no move
               moves << { score: -1000 }
+            else
+              match = line.match(/info depth 0 score cp 0/)
+              if match
+                # draw
+                moves << { score: 0 }
+              end
             end
           end
         end

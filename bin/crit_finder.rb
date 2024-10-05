@@ -2,6 +2,8 @@
 require 'pgn'
 require_relative '../lib/analyzer'
 require_relative '../lib/move_translator'
+require_relative '../lib/pgn_summary'
+require 'json'
 
 class CriticalMomentFinder
   def initialize(game)
@@ -10,7 +12,7 @@ class CriticalMomentFinder
     @positions = generate_positions
   end
 
-  def find_last_critical_moment
+  def analyze_for_last_critical_moment
     winner = deduce_winner
     return "The ending position was about equal. No critical moment found." if winner == :draw
 
@@ -34,7 +36,6 @@ class CriticalMomentFinder
         analysis = @analyzer.evaluate_best_move(@positions[move_index])
         current_score = analysis[:score]
         scores << current_score
-        puts "#{move_index}: #{notation_for(move_index)} #{current_score}"
         if last_score
           diff = last_score - current_score
           if diff > max_score_drop
@@ -53,8 +54,10 @@ class CriticalMomentFinder
     is_black_move = critical_index.odd?
     move = @game.moves[critical_index]
 
-    puts "scores: #{scores.inspect}"
-    "Critical moment: Move #{move_number}#{is_black_move ? '...' : '.'} #{move}"
+    { scores: scores.inspect,
+      last_critical_moment: "Move #{move_number}. #{is_black_move ? '...' : ''} #{move}",
+      winner: winner
+    }
   end
 
   def deduce_winner
@@ -87,6 +90,9 @@ class CriticalMomentFinder
   def generate_positions
     positions = []
     translator = MoveTranslator.new
+    if @game.starting_position
+      translator.load_game_from_fen(@game.starting_position.to_fen.to_s)
+    end
     @game.moves.each do |move|
       translator.translate_move(move.notation)
       positions << translator.board_as_fen
@@ -97,14 +103,21 @@ end
 
 # Command line interface
 if ARGV.empty?
-  puts "Please provide a PGN file as an argument."
+  puts "Usage: ruby crit_finder.rb <pgn_file>"
   exit
 end
 
 pgn_file = ARGV[0]
-pgn = File.read(pgn_file)
-game = PGN.parse(pgn).first  # Parse the first game in the file
-puts "game: #{game.tags['White']} vs #{game.tags['Black']}"
-finder = CriticalMomentFinder.new(game)
-puts finder.find_last_critical_moment
-puts finder.deduce_winner
+puts '['
+summary = PgnSummary.new(File.open(pgn_file, encoding: Encoding::ISO_8859_1))
+summary.load.each_with_index do |game, index|
+  games = PGN.parse(summary.game_at(index))
+  game = games.first
+  finder = CriticalMomentFinder.new(game)
+  print({
+    game: "#{game.tags['White']} vs #{game.tags['Black']}",
+    analysis: finder.analyze_for_last_critical_moment
+  }.to_json)
+  puts ',' if index < summary.games.length - 1
+end
+puts "\n]"

@@ -166,7 +166,7 @@ class MoveTranslator
       candidates.reject! { |square, piece| moves_into_check?(square, to, piece) }
     end
     raise "Ambiguous move for #{annotation_for(piece, file_hint, rank_hint, capture, to)}: could be #{candidates.inspect}" if candidates.size > 1
-    raise "No valid source square found for #{annotation_for(piece, file_hint, rank_hint, capture, to)}" if candidates.empty?
+    raise "No valid source square found for #{annotation_for(piece, file_hint, rank_hint, capture, to)} FEN #{board_as_fen}" if candidates.empty?
 
     candidates.keys.first
   end
@@ -443,6 +443,9 @@ class MoveTranslator
     if promotion
       promoted_piece = promotion[-1]
       result[:add] = [promoted_piece, to]
+      if @current_player != :white
+        promoted_piece = promoted_piece.downcase
+      end
       @board[to] = promoted_piece
     else
       @board[to] = @board[from]

@@ -149,4 +149,9 @@ class MoveTranslatorTest < Minitest::Test
     assert_equal("rnb2rk1/ppppn1pp/4p1p1/8/7q/b3PK2/PPPPQPPP/RNB3NR w - - 4 7", @translator.board_as_fen)
   end
 
+  def test_position_when_black_promotes
+    @translator.translate_moves(["b4", "a5", "c3", "axb4", "Nf3", "bxc3", "g3", "c2", "Bg2", "cxb1=Q", "O-O"])
+    @translator.translate_move("Qb4")
+    assert_equal("rnbqkbnr/1ppppppp/8/8/1q6/5NP1/P2PPPBP/R1BQ1RK1 w kq - 2 7", @translator.board_as_fen)
+  end
 end

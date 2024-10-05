@@ -12,6 +12,7 @@ class PgnSummary
     pos = 0
     @file.rewind
     while line = @file.gets
+      line = line.encode('ISO-8859-1', 'cp1252', invalid: :replace, undef: :replace, replace: '')
       if state == :start
         if line =~ /^\s*\[/
           headers = {}
@@ -47,6 +48,7 @@ class PgnSummary
     end
     read_len = end_pos - @file.pos
     game = @file.read(read_len)
+    game = game.encode('ISO-8859-1', 'cp1252', invalid: :replace, undef: :replace, replace: '')
     game
   end
 

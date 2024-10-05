@@ -35,4 +35,16 @@ class PgnSummaryTest < Minitest::Test
     assert_includes game, "[Black \"Simon Winawer\"]"
   end
 
+  def test_game_with_cp1252_encoding
+    cp1252_data = "[White \"Foo\"]\n[Black \"Bar\"]\n\n1.b3 Nf6 {After \205d5 Black is completely lost} 1-0"
+    summary = PgnSummary.new(StringIO.new(cp1252_data))
+    games = summary.load
+    assert_equal 1, games.count
+    game = summary.game_at(0)
+    assert_includes game, "[White \"Foo\"]"
+    assert_includes game, "[Black \"Bar\"]"
+    assert_includes game, "1.b3 Nf6"
+    assert_includes game, "1-0"
+  end
+
 end

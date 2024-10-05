@@ -57,7 +57,7 @@ class MoveTranslator
     result = {}
 
     case pgn_move
-    when /^O-O(-O)?$/
+    when /^O-O(-O)?[+#]?$/
       result = handle_castling(pgn_move)
       @halfmove_clock += 1
     when /^([KQRBN])?([a-h])?([1-8])?(x)?([a-h][1-8])(=[QRBN])?(\+|#)?$/
@@ -394,7 +394,7 @@ class MoveTranslator
 
   def handle_castling(pgn_move)
     rank = @current_player == :white ? '1' : '8'
-    if pgn_move == 'O-O' # Kingside castling
+    if pgn_move =~ /^O-O[+#]?$/ # Kingside castling
       king_from, king_to = "e#{rank}", "g#{rank}"
       rook_from, rook_to = "h#{rank}", "f#{rank}"
     else # O-O-O, Queenside castling

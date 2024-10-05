@@ -143,4 +143,10 @@ class MoveTranslatorTest < Minitest::Test
     assert_equal("rnb1kbnr/pp3ppp/2ppp3/qN6/8/2NP4/PPP1PPPP/R1BQKB1R b KQkq - 2 5", @translator.board_as_fen)
   end
 
+  def test_position_with_castling_and_check
+    @translator.translate_moves(["e3", "e6", "Bd3", "Ba3", "Ke2", "Qh4", "Bg6", "fxg6", "Kf3", "Ne7", "Qe2"])
+    @translator.translate_move("O-O#")
+    assert_equal("rnb2rk1/ppppn1pp/4p1p1/8/7q/b3PK2/PPPPQPPP/RNB3NR w - - 4 7", @translator.board_as_fen)
+  end
+
 end

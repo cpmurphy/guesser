@@ -7,10 +7,13 @@ class Board {
     this.setupMoveButtons();
     this.setupMoveInputListener();
     this.setupFlipBoardButton();
+    const gameId = window.location.pathname.split('/').pop();
+    this.loadGame(gameId);
   }
 
   initializeBoard(fen) {
     this.board = Chessboard('board', {
+      pieceTheme: '/img/chesspieces/wikipedia/{piece}.png',
       position: fen,
       draggable: true,
       onDragStart: this.onDragStart.bind(this),
@@ -20,6 +23,14 @@ class Board {
     this.currentMove = 1;
     this.hideGuessResult();
     this.initializeButtonStates(false);
+  }
+
+  loadGame(gameId) {
+    fetch(`/load_game/${gameId}`)
+    .then(response => response.json())
+    .then(data => {
+      this.onGameLoaded(data);
+    });
   }
 
   onGameLoaded(data) {

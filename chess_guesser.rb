@@ -18,6 +18,24 @@ class ChessGuesser < Sinatra::Base
   end
 
   get '/' do
+    table = []
+    if session['summary']
+      summary = session['summary']
+      table = summary.load.map.with_index do |game, index|
+        {
+          id: index,
+          white: game['White'],
+          black: game['Black'],
+          date: game['Date'],
+          event: game['Event'],
+          result: game['Result']
+        }
+      end
+    end
+    haml :game_selection, locals: { table: table }
+  end
+
+  get '/game/:id' do
     game_state = {}
     if session['game']
       game = session['game']
@@ -25,13 +43,37 @@ class ChessGuesser < Sinatra::Base
       game_state['fen'] = game.positions[current_move].to_fen.to_s
       game_state['current_move'] = current_move
     else
-      puts "we have NO game"
       game_state['white'] = 'White'
       game_state['black'] = 'Black'
       game_state['fen'] = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR'
       game_state['current_move'] = 0
     end
-    haml :index, locals: game_state
+    haml :game, locals: game_state
+  end
+
+  get '/builtins' do
+    builtin_pgns = Dir.glob('data/builtins/*.pgn').map do |file|
+      basename = File.basename(file, '.pgn')
+      description = basename.split('-').map(&:capitalize).join(' ')
+      [file, description]
+    end
+
+    haml :builtin_menu, locals: { builtin_pgns: builtin_pgns }
+  end
+
+  get '/builtin/:index' do
+    builtin_pgns = Dir.glob('data/builtins/*.pgn')
+    file_path = builtin_pgns[params[:index].to_i]
+    if File.exist?(file_path)
+      summary = PgnSummary.new(File.open(file_path, encoding: Encoding::ISO_8859_1))
+    end
+    if summary
+      session['summary'] = summary
+      redirect '/'
+    else
+      status 404
+      "File not found"
+    end
   end
 
   post '/upload_pgn' do
@@ -67,8 +109,8 @@ class ChessGuesser < Sinatra::Base
     end
   end
 
-  post '/load_game' do
-    game_id = params['game_id'].to_i
+  get '/load_game/:id' do
+    game_id = params['id'].to_i
     summary = session['summary']
     if summary && game_id >= 0 && game_id < summary.games.length
       games = PGN.parse(summary.game_at(game_id))
@@ -77,7 +119,7 @@ class ChessGuesser < Sinatra::Base
       move_translator = MoveTranslator.new
       if game.starting_position
         move_translator.load_game_from_fen(game.starting_position.to_fen.to_s)
-    end
+      end
       session['game'] = game
       session['guess_mode'] = 'both'
       {

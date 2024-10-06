@@ -58,35 +58,9 @@
         %label
           %input{type: "radio", name: "guess_mode", value: "black"}
           Guess Black
+      #actions
+        %a{href: "/"} Other games
 
-    #game_selection_container{style: "display: none;"}
-      %table#game_selection_table
-        %thead
-          %tr
-            %th White
-            %th Black
-            %th Date
-            %th Result
-            %th Action
-        %tbody
-
-    %script{src:"../scripts/pgn_uploader.js"}
     %script{src:"../scripts/board.js"}
     %script
-      document.addEventListener('DOMContentLoaded', () => { const board = new Board(); const uploader = new PgnUploader(board.onGameLoaded.bind(board)); });
-
-    %form#pgn_upload_form{action: "/upload_pgn", method: "post", enctype: "multipart/form-data"}
-      %div
-        %input#upload_method_file{type: "radio", name: "upload_method", value: "file", checked: true}
-        %label{for: "upload_method_file"} Upload PGN file
-      %div
-        %input#upload_method_paste{type: "radio", name: "upload_method", value: "paste"}
-        %label{for: "upload_method_paste"} Paste PGN text
-
-      #file_upload_container
-        %input#pgn_file_input{type: "file", name: "pgn_file", accept: ".pgn"}
-
-      #pgn_paste_container{style: "display: none;"}
-        %textarea#pgn_text_input{name: "pgn_text", rows: "10", cols: "50", placeholder: "Paste your PGN here"}
-
-      %button#upload_pgn_btn{type: "submit"} Upload PGN
+      document.addEventListener('DOMContentLoaded', () => { const board = new Board(); });

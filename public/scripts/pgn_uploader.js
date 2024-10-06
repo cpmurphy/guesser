@@ -21,7 +21,7 @@ class PgnUploader {
       .then(data => {
         if (data.table) {
           if (data.table.length == 1) {
-            this.loadGame(0); // automatically load the single game
+            this.showGame(data.table[0].id); // automatically load the single game
             this.singleGameLoaded = true;
           } else {
             this.singleGameLoaded = false;
@@ -88,41 +88,13 @@ class PgnUploader {
       const actionCell = row.insertCell();
       const loadButton = document.createElement('button');
       loadButton.textContent = 'Play';
-      loadButton.addEventListener('click', () => this.loadGame(game.id));
+      loadButton.addEventListener('click', () => this.showGame(game.id));
       actionCell.appendChild(loadButton);
     });
-    document.getElementById('game_selection_container').style.display = 'block';
-    document.getElementById('board_container').style.display = 'none';
   }
 
-  loadGame(gameId) {
-    const formData = new FormData(document.getElementById('pgn_upload_form'));
-    formData.append('game_id', gameId);
-    fetch('/load_game', {
-      method: 'POST',
-      body: formData
-    })
-    .then(response => response.json())
-    .then(data => {
-      this.swapToBoard();
-      if (!this.singleGameLoaded) {
-        this.changeUploadButtonToBackButton();
-      } else {
-        console.error('Game load failed:', data.error);
-      }
-
-      this.gameLoadedCallback(data);
-    });
-  }
-
-  swapToBoard() {
-    document.getElementById('game_selection_container').style.display = 'none';
-    document.getElementById('board_container').style.display = 'block';
-  }
-
-  swapToGameSelection() {
-    document.getElementById('board_container').style.display = 'none';
-    document.getElementById('game_selection_container').style.display = 'block';
+  showGame(gameId) {
+    window.location.href = `/game/${gameId}`;
   }
 
   changeUploadButtonToBackButton() {

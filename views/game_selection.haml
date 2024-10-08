@@ -8,24 +8,32 @@
     %link{rel:"stylesheet", href:"/style.css"}
 
   %body
-    #game_selection_container
-      %table#game_selection_table
-        %thead
+    - unless table.empty?
+      #game_selection_container
+        %table#game_selection_table
+          %thead
           %tr
             %th White
             %th Black
             %th Date
             %th Result
             %th Action
-        %tbody
-          - table.each do |game|
-            %tr
-              %td= game[:white]
-              %td= game[:black]
-              %td= game[:date]
-              %td= game[:result]
-              %td
-                %a{href: "/game/#{game[:id]}"} Play
+          %tbody
+            - table.each do |game|
+              %tr
+                %td= game[:white]
+                %td= game[:black]
+                %td= game[:date]
+                %td= game[:result]
+                %td
+                  %a{href: "/game/#{game[:id]}"} Play
+    - unless builtin_pgns.empty?
+      #builtin_selection_container
+        %h3 Choose From Built-in Games
+        %ul.game-list
+          - builtin_pgns.each_with_index do |(file, description), index|
+            %li
+              %a{href: "/builtin/#{index}"} #{description}
 
     %script{src:"../scripts/pgn_uploader.js"}
     %script
@@ -46,6 +54,3 @@
         %textarea#pgn_text_input{name: "pgn_text", rows: "10", cols: "50", placeholder: "Paste your PGN here"}
 
       %button#upload_pgn_btn{type: "submit"} Upload PGN
-
-    %div
-      %a{href: '/builtins'} Built-in Games

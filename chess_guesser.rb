@@ -18,6 +18,11 @@ class ChessGuesser < Sinatra::Base
   end
 
   get '/' do
+    builtin_pgns = Dir.glob('data/builtins/*.pgn').map do |file|
+      basename = File.basename(file, '.pgn')
+      description = basename.split('-').map(&:capitalize).join(' ')
+      [file, description]
+    end
     table = []
     if session['summary']
       summary = session['summary']
@@ -32,7 +37,7 @@ class ChessGuesser < Sinatra::Base
         }
       end
     end
-    haml :game_selection, locals: { table: table }
+    haml :game_selection, locals: { table: table, builtin_pgns: builtin_pgns }
   end
 
   get '/game/:id' do
@@ -49,16 +54,6 @@ class ChessGuesser < Sinatra::Base
       game_state['current_move'] = 0
     end
     haml :game, locals: game_state
-  end
-
-  get '/builtins' do
-    builtin_pgns = Dir.glob('data/builtins/*.pgn').map do |file|
-      basename = File.basename(file, '.pgn')
-      description = basename.split('-').map(&:capitalize).join(' ')
-      [file, description]
-    end
-
-    haml :builtin_menu, locals: { builtin_pgns: builtin_pgns }
   end
 
   get '/builtin/:index' do
@@ -92,17 +87,11 @@ class ChessGuesser < Sinatra::Base
     end
     if summary
       session['summary'] = summary
-      table = summary.load.map.with_index do |game, index|
-        {
-          id: index,
-          white: game['White'],
-          black: game['Black'],
-          date: game['Date'],
-          event: game['Event'],
-          result: game['Result']
-        }
+      if summary.load.length == 1
+        redirect "/game/#{0}"
+      else
+        redirect '/'
       end
-      { table: table }.to_json
     else
       status 400
       { error: 'No PGN file uploaded' }.to_json

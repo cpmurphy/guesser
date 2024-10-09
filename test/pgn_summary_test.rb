@@ -47,4 +47,22 @@ class PgnSummaryTest < Minitest::Test
     assert_includes game, "1-0"
   end
 
+  def test_add_analysis
+    @summary.load
+    @summary.add_analysis([
+      {"game" => 1, "analysis" => { "last_critical_moment" => {"move_number" => 19, "side" => "white", "move" => "e4"}}},
+      {"game" => 2, "analysis" => { "last_critical_moment" => {"move_number" => 20, "side" => "black", "move" => "e5"}}},
+      {"game" => 3, "analysis" => { "last_critical_moment" => {"move_number" => 21, "side" => "black", "move" => "e5"}}},
+      {"game" => 4, "analysis" => { "last_critical_moment" => {"move_number" => 22, "side" => "white", "move" => "e4"}}},
+      {"game" => 5, "analysis" => { "last_critical_moment" => {"move_number" => 23, "side" => "black", "move" => "e5"}}},
+      {"game" => 6, "analysis" => { "last_critical_moment" => {"move_number" => 24, "side" => "black", "move" => "e5"}}},
+      {"game" => 7, "analysis" => { "last_critical_moment" => {"move_number" => 25, "side" => "white", "move" => "e4"}}},
+      {"game" => 8, "analysis" => { "last_critical_moment" => {"move_number" => 26, "side" => "black", "move" => "e5"}}},
+      {"game" => 9, "analysis" => { "last_critical_moment" => {"move_number" => 27, "side" => "black", "move" => "e5"}}},
+      {"game" => 10,"analysis" => { "last_critical_moment" => {"move_number" => 28, "side" => "white", "move" => "e4"}}},
+    ])
+    assert_equal 10, @summary.games.count
+    assert_equal 19, @summary.games[0][:analysis]["last_critical_moment"]["move_number"]
+    assert_equal 28, @summary.games[9][:analysis]["last_critical_moment"]["move_number"]
+  end
 end

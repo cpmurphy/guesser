@@ -18,26 +18,44 @@ class ChessGuesser < Sinatra::Base
   end
 
   get '/' do
-    builtin_pgns = Dir.glob('data/builtins/*.pgn').map do |file|
+    builtin_pgns = gather_builtins
+
+    table = []
+    if session['summary']
+      table = build_table(session['summary'])
+    end
+
+    haml :game_selection, locals: { table: table, builtin_pgns: builtin_pgns }
+  end
+
+  def gather_builtins
+    Dir.glob('data/builtins/*.pgn').map do |file|
       basename = File.basename(file, '.pgn')
       description = basename.split('-').map(&:capitalize).join(' ')
       [file, description]
     end
-    table = []
-    if session['summary']
-      summary = session['summary']
-      table = summary.load.map.with_index do |game, index|
-        {
-          id: index,
-          white: game['White'],
-          black: game['Black'],
-          date: game['Date'],
-          event: game['Event'],
-          result: game['Result']
-        }
-      end
+  end
+
+  def build_table(summary)
+    summary.games.map.with_index do |game, index|
+      {
+        id: index,
+        white: game['White'],
+        black: game['Black'],
+        date: game['Date'],
+        event: game['Event'],
+        result: game['Result'],
+        critical_moment: game[:analysis] ? annotate_critical_moment(game[:analysis]['last_critical_moment']) : nil
+      }
     end
-    haml :game_selection, locals: { table: table, builtin_pgns: builtin_pgns }
+  end
+
+  def annotate_critical_moment(critical_moment)
+    if critical_moment && critical_moment['move_number']
+      "#{critical_moment['move_number']}. #{critical_moment['side'] == 'white' ? '' : '...'} #{critical_moment['move']}"
+    else
+      nil
+    end
   end
 
   get '/game/:id' do
@@ -61,6 +79,11 @@ class ChessGuesser < Sinatra::Base
     file_path = builtin_pgns[params[:index].to_i]
     if File.exist?(file_path)
       summary = PgnSummary.new(File.open(file_path, encoding: Encoding::ISO_8859_1))
+      json_path = file_path.gsub('.pgn', '.json')
+      if File.exist?(json_path)
+        summary.load
+        summary.add_analysis(JSON.parse(File.read(json_path)))
+      end
     end
     if summary
       session['summary'] = summary

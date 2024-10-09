@@ -57,4 +57,13 @@ class PgnSummary
       [key.strip, value.gsub(/"/, '')]
     end.to_h
   end
+
+  def add_analysis(analysis)
+    if analysis.size != @games.size
+      raise "Analysis size #{analysis.size} does not match game size #{@games.size}"
+    end
+    @games.each_with_index do |game, index|
+      game[:analysis] = analysis[index]['analysis']
+    end
+  end
 end

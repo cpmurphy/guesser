@@ -17,6 +17,7 @@
             %th Black
             %th Date
             %th Result
+            %th Critical Moment
             %th Action
           %tbody
             - table.each do |game|
@@ -25,6 +26,7 @@
                 %td= game[:black]
                 %td= game[:date]
                 %td= game[:result]
+                %td= game[:critical_moment]
                 %td
                   %a{href: "/game/#{game[:id]}"} Play
     - unless builtin_pgns.empty?

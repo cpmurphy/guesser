@@ -55,7 +55,11 @@ class CriticalMomentFinder
     move = @game.moves[critical_index]
 
     { scores: scores.inspect,
-      last_critical_moment: "Move #{move_number}. #{is_black_move ? '...' : ''} #{move}",
+      last_critical_moment: {
+        move_number: move_number,
+        side: is_black_move ? 'black' : 'white',
+        move: move
+      },
       winner: winner
     }
   end

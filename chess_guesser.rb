@@ -59,18 +59,7 @@ class ChessGuesser < Sinatra::Base
   end
 
   get '/game/:id' do
-    game_state = {}
-    if session['game']
-      game = session['game']
-      current_move = 0
-      game_state['fen'] = game.positions[current_move].to_fen.to_s
-      game_state['current_move'] = current_move
-    else
-      game_state['white'] = 'White'
-      game_state['black'] = 'Black'
-      game_state['fen'] = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR'
-      game_state['current_move'] = 0
-    end
+    game_state = game_state(params[:id].to_i)
     haml :game, locals: game_state
   end
 
@@ -121,33 +110,27 @@ class ChessGuesser < Sinatra::Base
     end
   end
 
-  get '/load_game/:id' do
-    game_id = params['id'].to_i
+  def game_state(game_id)
     summary = session['summary']
-    if summary && game_id >= 0 && game_id < summary.games.length
-      games = PGN.parse(summary.game_at(game_id))
-      game = games.first
-      moves = game.moves.map(&:notation)
-      move_translator = MoveTranslator.new
-      if game.starting_position
-        move_translator.load_game_from_fen(game.starting_position.to_fen.to_s)
-      end
-      session['game'] = game
-      session['guess_mode'] = 'both'
-      {
-        fen: game.positions.first.to_fen,
-        moves: moves,
-        ui_moves: moves.map { |move| move_translator.translate_move(move) },
-        white: game.tags['White'],
-        black: game.tags['Black'],
-        date: game.tags['Date'],
-        event: game.tags['Event'],
-        result: game.result
-      }.to_json
-    else
-      status 400
-      { error: 'Invalid game ID' }.to_json
+    games = PGN.parse(summary.game_at(game_id))
+    game = games.first
+    moves = game.moves.map(&:notation)
+    move_translator = MoveTranslator.new
+    if game.starting_position
+      move_translator.load_game_from_fen(game.starting_position.to_fen.to_s)
     end
+    session['game'] = game
+    session['guess_mode'] = 'both'
+    {
+      fen: game.positions.first.to_fen,
+      moves: moves,
+      ui_moves: moves.map { |move| move_translator.translate_move(move) },
+      white: game.tags['White'],
+      black: game.tags['Black'],
+      date: game.tags['Date'],
+      event: game.tags['Event'],
+      result: game.result
+    }
   end
 
   post '/set_guess_mode' do

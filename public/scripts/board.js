@@ -1,14 +1,13 @@
 class Board {
-  constructor() {
+  constructor(data) {
     this.board = null;
-    this.gameResult = null;
+    this.gameResult = data.gameResult;
     this.lastMoveElement = document.getElementById('last-move');
     this.moveInput = document.getElementById('move-input');
     this.setupMoveButtons();
     this.setupMoveInputListener();
     this.setupFlipBoardButton();
-    const gameId = window.location.pathname.split('/').pop();
-    this.loadGame(gameId);
+    this.onGameLoaded(data);
   }
 
   initializeBoard(fen) {
@@ -25,20 +24,12 @@ class Board {
     this.initializeButtonStates(false);
   }
 
-  loadGame(gameId) {
-    fetch(`/load_game/${gameId}`)
-    .then(response => response.json())
-    .then(data => {
-      this.onGameLoaded(data);
-    });
-  }
-
   onGameLoaded(data) {
     this.moves = data.moves;
     this.result = data.result;
-    this.uiMoves = data.ui_moves;
+    this.uiMoves = data.uiMoves;
     this.fen = data.fen;
-    this.gameResult = data.result;
+    this.gameResult = data.gameResult;
     this.initializeBoard(this.fen);
     this.initializeButtonStates(true);
     document.getElementById('white').textContent = data.white;

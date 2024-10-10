@@ -62,5 +62,15 @@
         %a{href: "/"} Other games
 
     %script{src:"../scripts/board.js"}
-    %script
-      document.addEventListener('DOMContentLoaded', () => { const board = new Board(); });
+    :javascript
+      document.addEventListener('DOMContentLoaded', () => {
+        const guesserState = {
+          uiMoves: #{ui_moves.to_json},
+          moves: #{moves.to_json},
+          fen: '#{fen}',
+          gameResult: '#{result}',
+          white: '#{white}',
+          black: '#{black}'
+        };
+        const board = new Board(guesserState);
+      });

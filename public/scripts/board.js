@@ -19,7 +19,6 @@ class Board {
       onDrop: this.onDrop.bind(this)
     });
     this.lastPosition = this.board.position();
-    this.currentMove = 1;
     this.hideGuessResult();
     this.initializeButtonStates(false);
   }
@@ -34,6 +33,10 @@ class Board {
     this.initializeButtonStates(true);
     document.getElementById('white').textContent = data.white;
     document.getElementById('black').textContent = data.black;
+    this.currentMove = 1;
+    if (data.currentMove && data.currentMove > 1) {
+      this.goToMove(data.currentMove);
+    }
     this.updateLastMoveDisplay();
   }
 
@@ -64,18 +67,17 @@ class Board {
   setupMoveInputListener() {
     this.moveInput.addEventListener('keypress', (e) => {
       if (e.key === 'Enter') {
-        this.goToMove();
+        const moveNumber = parseInt(this.moveInput.value, 10);
+        if (isNaN(moveNumber) || moveNumber < 1 || moveNumber > Math.ceil(this.moves.length / 2)) {
+          alert('Please enter a valid move number.');
+          return;
+        }
+        this.goToMove(moveNumber);
       }
     });
   }
 
-  goToMove() {
-    const moveNumber = parseInt(this.moveInput.value, 10);
-    if (isNaN(moveNumber) || moveNumber < 1 || moveNumber > Math.ceil(this.moves.length / 2)) {
-      alert('Please enter a valid move number.');
-      return;
-    }
-
+  goToMove(moveNumber) {
     const targetMove = moveNumber * 2 - 1; // Convert to 1-based index for White's move
 
     if (targetMove < this.currentMove) {

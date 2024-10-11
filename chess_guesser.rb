@@ -60,6 +60,9 @@ class ChessGuesser < Sinatra::Base
 
   get '/game/:id' do
     game_state = game_state(params[:id].to_i)
+    if params[:move]
+      game_state[:current_move] = params[:move].to_i
+    end
     haml :game, locals: game_state
   end
 
@@ -116,8 +119,10 @@ class ChessGuesser < Sinatra::Base
     game = games.first
     moves = game.moves.map(&:notation)
     move_translator = MoveTranslator.new
+    current_move = 1
     if game.starting_position
       move_translator.load_game_from_fen(game.starting_position.to_fen.to_s)
+      current_move = game.starting_position.fullmove
     end
     session['game'] = game
     session['guess_mode'] = 'both'
@@ -125,6 +130,7 @@ class ChessGuesser < Sinatra::Base
       fen: game.positions.first.to_fen,
       moves: moves,
       ui_moves: moves.map { |move| move_translator.translate_move(move) },
+      current_move: current_move,
       white: game.tags['White'],
       black: game.tags['Black'],
       date: game.tags['Date'],

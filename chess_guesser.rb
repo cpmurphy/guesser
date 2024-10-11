@@ -71,9 +71,7 @@ class ChessGuesser < Sinatra::Base
     if params[:move]
       game_state[:current_whole_move] = params[:move].to_i
     end
-    if params[:side]
-      game_state[:side_to_move] = params[:side]
-    end
+    game_state[:side_to_move] = params[:side]
     haml :game, locals: game_state
   end
 

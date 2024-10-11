@@ -8,6 +8,7 @@ class Board {
     this.setupMoveInputListener();
     this.setupFlipBoardButton();
     this.onGameLoaded(data);
+    this.setupTouchEvents();
   }
 
   initializeBoard(fen) {
@@ -39,7 +40,12 @@ class Board {
     if (data.currentWholeMove && data.currentWholeMove > this.startingWholeMove) {
       this.goToMoveIndex((data.currentWholeMove - this.startingWholeMove) * 2 + 1);
     }
+    this.resetTouchState();
     this.updateLastMoveDisplay();
+  }
+
+  resetTouchState() {
+    this.touchedSquare = null;
   }
 
   position(fen) {
@@ -131,6 +137,7 @@ class Board {
       this.displayGameResult();
     }
     this.updateLastMoveDisplay();
+    this.resetTouchState();
   }
 
   displayGameResult() {
@@ -157,6 +164,7 @@ class Board {
     this.reverseMove(this.uiMoves[this.currentMoveIndex]);
     this.updateButtonStates();
     this.updateLastMoveDisplay();
+    this.resetTouchState();
   }
 
   reverseMove(uiMove) {
@@ -177,6 +185,7 @@ class Board {
         this.board.position(position);
       }
     }
+    this.resetTouchState();
   }
 
   translatePiece(piece) {
@@ -217,6 +226,7 @@ class Board {
     });
 
     this.replayMoves(moveQueue);
+    this.resetTouchState();
   }
 
   replayMoves(moveQueue) {
@@ -243,6 +253,10 @@ class Board {
   }
 
   onDragStart(source, piece, position, orientation) {
+    return this.isPieceAvailableToMove(piece);
+  }
+
+  isPieceAvailableToMove(piece) {
     const currentGuessMode = this.guessMode();
     const pieceColor = piece.charAt(0);
     if (pieceColor === 'w' && this.currentMoveIndex % 2 == 1) {
@@ -337,6 +351,11 @@ class Board {
       }, 200);
     }
     this.updateButtonStates();
+    this.updateLastMoveDisplay();
+    this.resetTouchState();
+    if (this.gameOver()) {
+      this.displayGameResult();
+    }
   }
 
   isCastling(piece, source, target) {
@@ -432,6 +451,76 @@ class Board {
       const moveNotation = this.moves[lastMoveIndex];
       this.lastMoveElement.textContent = `${wholeMoveNumber}${isBlackMove ? '...' : '.'} ${moveNotation}`;
     }
+  }
+
+  setupTouchEvents() {
+    const boardEl = document.getElementById('board');
+    boardEl.addEventListener('touchend', this.onTouchEnd.bind(this));
+  }
+
+  onTouchEnd(event) {
+    const square = this.getSquareFromTouch(event);
+    const touchedPiece = this.board.position()[square];
+    if (!touchedPiece) {
+      if (!this.touchedSquare) {
+        // nothing to do
+        return;
+      }
+    } else if (this.touchedSquare && this.isPieceAvailableToMove(touchedPiece)) {
+      // attempt to capture own piece
+      this.touchedSquare = null;
+      return;
+    } else if (!this.touchedSquare && !this.isPieceAvailableToMove(touchedPiece)) {
+      // attempt to move opponent's piece
+      this.touchedSquare = null;
+      return;
+    }
+    if (!this.touchedSquare) {
+      this.touchedSquare = square;
+    } else if (this.touchedSquare && square && this.touchedSquare !== square) {
+      const source = this.touchedSquare;
+      const movedPiece = this.board.position()[source];
+      const target = square;
+      const oldPos = this.board.position();
+      const newPos = this.updatedPosition(oldPos, source, target);
+      const status = this.onDrop(source, target, movedPiece, newPos, oldPos);
+      if (status === 'snapback') {
+        this.touchedSquare = null;
+      } else {
+        this.board.move(source + '-' + target);
+      }
+    }
+  }
+
+  updatedPosition(oldPos, from, to) {
+    const newPos = {...oldPos};
+    newPos[to] = newPos[from];
+    delete newPos[from];
+    return newPos;
+  }
+
+  getSquareFromTouch(event) {
+    const boardEl = document.getElementById('board');
+    const rect = boardEl.getBoundingClientRect();
+    const touch = event.changedTouches[0];
+    const x = touch.clientX - rect.left;
+    const y = touch.clientY - rect.top;
+    const squareSize = rect.width / 8;
+
+    // Determine if the board is flipped
+    const isFlipped = this.board.orientation() === 'black';
+
+    let file, rank;
+
+    if (isFlipped) {
+      file = String.fromCharCode('h'.charCodeAt(0) - Math.floor(x / squareSize));
+      rank = 1 + Math.floor(y / squareSize);
+    } else {
+      file = String.fromCharCode('a'.charCodeAt(0) + Math.floor(x / squareSize));
+      rank = 8 - Math.floor(y / squareSize);
+    }
+
+    return `${file}${rank}`;
   }
 
 }

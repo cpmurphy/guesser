@@ -27,15 +27,17 @@ class Board {
     this.moves = data.moves;
     this.result = data.result;
     this.uiMoves = data.uiMoves;
+    this.startingWholeMove = data.startingWholeMove;
+    this.currentWholeMove = data.currentWholeMove;
     this.fen = data.fen;
     this.gameResult = data.gameResult;
     this.initializeBoard(this.fen);
     this.initializeButtonStates(true);
     document.getElementById('white').textContent = data.white;
     document.getElementById('black').textContent = data.black;
-    this.currentMove = 1;
-    if (data.currentMove && data.currentMove > 1) {
-      this.goToMove(data.currentMove);
+    this.currentMoveIndex = 0;
+    if (data.currentWholeMove && data.currentWholeMove > this.startingWholeMove) {
+      this.goToMoveIndex((data.currentWholeMove - this.startingWholeMove) * 2 + 1);
     }
     this.updateLastMoveDisplay();
   }
@@ -67,27 +69,22 @@ class Board {
   setupMoveInputListener() {
     this.moveInput.addEventListener('keypress', (e) => {
       if (e.key === 'Enter') {
-        const moveNumber = parseInt(this.moveInput.value, 10);
-        if (isNaN(moveNumber) || moveNumber < 1 || moveNumber > Math.ceil(this.moves.length / 2)) {
+        const wholeMoveNumber = parseInt(this.moveInput.value, 10);
+        if (isNaN(wholeMoveNumber) || wholeMoveNumber < this.startingWholeMove || wholeMoveNumber > Math.ceil(this.moves.length / 2) + (this.startingWholeMove - 1)) {
           alert('Please enter a valid move number.');
           return;
         }
-        this.goToMove(moveNumber);
+        this.goToMoveIndex((wholeMoveNumber - this.startingWholeMove) * 2 + 1);
       }
     });
   }
 
-  goToMove(moveNumber) {
-    const targetMove = moveNumber * 2 - 1; // Convert to 1-based index for White's move
-
-    if (targetMove < this.currentMove) {
-      while (this.currentMove > targetMove) {
-        this.moveBackward();
-      }
-    } else {
-      while (this.currentMove <= targetMove && this.currentMove <= this.moves.length) {
-        this.moveForward();
-      }
+  goToMoveIndex(targetMoveIndex) {
+    while (this.currentMoveIndex > targetMoveIndex) {
+      this.moveBackward();
+    }
+    while (this.currentMoveIndex < targetMoveIndex && this.currentMoveIndex < this.moves.length) {
+      this.moveForward();
     }
 
     this.updateLastMoveDisplay();
@@ -109,7 +106,7 @@ class Board {
 
   moveForward() {
     if (!this.gameOver()) {
-      const uiMove = this.uiMoves[this.currentMove - 1];
+      const uiMove = this.uiMoves[this.currentMoveIndex];
       if (!uiMove.remove && !uiMove.add) {
         uiMove.moves.forEach(m => this.board.move(m));
       } else {
@@ -127,7 +124,7 @@ class Board {
         }
         this.board.position(newPosition, true);
       }
-      this.currentMove++;
+      this.currentMoveIndex++;
     }
     this.updateButtonStates();
     if (this.gameOver()) {
@@ -156,8 +153,8 @@ class Board {
   }
 
   moveBackward() {
-    this.currentMove--;
-    this.reverseMove(this.uiMoves[this.currentMove - 1]);
+    this.currentMoveIndex--;
+    this.reverseMove(this.uiMoves[this.currentMoveIndex]);
     this.updateButtonStates();
     this.updateLastMoveDisplay();
   }
@@ -190,7 +187,7 @@ class Board {
   }
 
   pawnForCurrentMove() {
-    if ((this.currentMove - 1) % 2 == 0) {
+    if (this.currentMoveIndex % 2 == 0) {
       return "wP";
     } else {
       return "bP";
@@ -201,7 +198,7 @@ class Board {
     const moveQueue = [];
 
     data.forEach((move) => {
-      this.currentMove = move.move_number;
+      this.currentMoveIndex = move.move_number - 1;
       if (move.result === 'correct') {
         if (move.same_as_game) {
           this.updateGuessStatus('green', 'Correct!', 'This is what was played.', '');
@@ -248,10 +245,10 @@ class Board {
   onDragStart(source, piece, position, orientation) {
     const currentGuessMode = this.guessMode();
     const pieceColor = piece.charAt(0);
-    if (pieceColor === 'w' && this.currentMove % 2 == 0) {
+    if (pieceColor === 'w' && this.currentMoveIndex % 2 == 0) {
       return false;
     }
-    if (pieceColor === 'b' && this.currentMove % 2 == 1) {
+    if (pieceColor === 'b' && this.currentMoveIndex % 2 == 1) {
       return false;
     }
     return currentGuessMode === 'both' ||
@@ -260,7 +257,7 @@ class Board {
   }
 
   gameOver() {
-    return this.currentMove > this.moves.length;
+    return this.currentMoveIndex >= this.moves.length;
   }
 
   onDrop(source, target, piece, newPos, oldPos) {
@@ -279,7 +276,7 @@ class Board {
     }
 
     // Check if the move matches the current move exactly
-    const currentMove = this.uiMoves[this.currentMove - 1];
+    const currentMove = this.uiMoves[this.currentMoveIndex];
     if (currentMove && this.isExactMatch(source, target, currentMove)) {
       // Handle as correct guess without making a POST request
       this.handleCorrectGuess(currentMove);
@@ -293,8 +290,8 @@ class Board {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        current_move: this.currentMove,
-        game_move: this.uiMoves[this.currentMove - 1],
+        current_move: this.currentMoveIndex + 1,
+        game_move: this.uiMoves[this.currentMoveIndex],
         guessed_move: {
           source,
           target,
@@ -332,7 +329,7 @@ class Board {
 
   handleCorrectGuess(move) {
     this.updateGuessStatus('green', 'Correct!', 'This is what was played.', '');
-    this.currentMove++;
+    this.currentMoveIndex++;
     // autoplay the opponent's move unless guess mode is both
     if (this.guessMode() !== 'both') {
       setTimeout(() => {
@@ -377,10 +374,10 @@ class Board {
 
   updateButtonStates() {
     const buttons = [
-      { id: 'fastRewindBtn', disabled: this.currentMove <= 1 },
-      { id: 'backwardBtn', disabled: this.currentMove <= 1 },
-      { id: 'forwardBtn', disabled: this.currentMove > this.moves.length },
-      { id: 'fastForwardBtn', disabled: this.currentMove > this.moves.length }
+      { id: 'fastRewindBtn', disabled: this.currentMoveIndex <= 1 },
+      { id: 'backwardBtn', disabled: this.currentMoveIndex <= 0 },
+      { id: 'forwardBtn', disabled: this.currentMoveIndex >= this.moves.length },
+      { id: 'fastForwardBtn', disabled: this.currentMoveIndex >= this.moves.length }
     ];
 
     buttons.forEach(({ id, disabled }) => {
@@ -404,12 +401,12 @@ class Board {
   }
 
   fastForward() {
-    const numMoves = (this.moves.length + 1) - this.currentMove;
+    const numMoves = (this.moves.length + 1) - this.currentMoveIndex;
     this.sequentialMove(numMoves, this.moveForward.bind(this));
   }
 
   fastRewind() {
-    const numMoves = this.currentMove - 1;
+    const numMoves = this.currentMoveIndex - (this.startingWholeMove - 1) * 2;
     this.sequentialMove(numMoves, this.moveBackward.bind(this));
   }
 
@@ -426,14 +423,14 @@ class Board {
   }
 
   updateLastMoveDisplay() {
-    if (this.currentMove <= 1) {
+    if (this.currentMoveIndex <= 0) {
       this.lastMoveElement.textContent = '';
     } else {
-      const lastMoveIndex = this.currentMove - 2;
-      const moveNumber = Math.floor(lastMoveIndex / 2) + 1;
+      const lastMoveIndex = this.currentMoveIndex - 1;
+      const wholeMoveNumber = Math.floor(lastMoveIndex / 2) + this.startingWholeMove;
       const isBlackMove = lastMoveIndex % 2 === 1;
       const moveNotation = this.moves[lastMoveIndex];
-      this.lastMoveElement.textContent = `${moveNumber}${isBlackMove ? '...' : '.'} ${moveNotation}`;
+      this.lastMoveElement.textContent = `${wholeMoveNumber}${isBlackMove ? '...' : '.'} ${moveNotation}`;
     }
   }
 

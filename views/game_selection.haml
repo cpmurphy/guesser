@@ -5,54 +5,57 @@
     %meta{name:"viewport", content:"width=device-width, initial-scale=1.0"}
     %title Chess Guesser
 
-    %link{rel:"stylesheet", href:"/style.css"}
+    %link{rel:"stylesheet", href:"/styles/game_selection.css"}
 
   %body
     - unless table.empty?
       #game_selection_container
-        %table#game_selection_table
-          %thead
-          %tr
-            %th White
-            %th Black
-            %th Date
-            %th Result
-            %th Critical Moment
-            %th Action
-          %tbody
-            - table.each do |game|
+        .table-responsive
+          %table#game_selection_table
+            %thead
               %tr
-                %td= game[:white]
-                %td= game[:black]
-                %td= game[:date]
-                %td= game[:result]
-                %td= game[:critical_moment]
-                %td
-                  %a{href: "/game/#{game[:id]}"} Play
+                %th White
+                %th Black
+                %th Year
+                %th Result
+                %th Critical Moment
+                %th Action
+            %tbody
+              - table.each do |game|
+                %tr
+                  %td{"data-label" => "White"}= game[:white]
+                  %td{"data-label" => "Black"}= game[:black]
+                  %td{"data-label" => "Year"}= game[:date] ? game[:date][0..3] : ''
+                  %td{"data-label" => "Result"}= game[:result]
+                  %td{"data-label" => "Critical Moment"}= game[:critical_moment]
+                  %td
+                    %a{href: "/game/#{game[:id]}"} Play
     - unless builtin_pgns.empty?
       #builtin_selection_container
         %h3 Choose From Built-in Games
         %ul.game-list
           - builtin_pgns.each_with_index do |(file, description), index|
             %li
-              %a{href: "/builtin/#{index}"} #{description}
+              %a.btn{href: "/builtin/#{index}"} #{description}
 
-    %script{src:"../scripts/pgn_uploader.js"}
-    %script
-      document.addEventListener('DOMContentLoaded', () => { const uploader = new PgnUploader(); });
+    %form#pgn_upload_form.upload-form{action: "/upload_pgn", method: "post", enctype: "multipart/form-data"}
+      .form-group
+        %label
+          %input#upload_method_file{type: "radio", name: "upload_method", value: "file", checked: true}
+          Upload PGN file
+      .form-group
+        %label
+          %input#upload_method_paste{type: "radio", name: "upload_method", value: "paste"}
+          Paste PGN text
 
-    %form#pgn_upload_form{action: "/upload_pgn", method: "post", enctype: "multipart/form-data"}
-      %div
-        %input#upload_method_file{type: "radio", name: "upload_method", value: "file", checked: true}
-        %label{for: "upload_method_file"} Upload PGN file
-      %div
-        %input#upload_method_paste{type: "radio", name: "upload_method", value: "paste"}
-        %label{for: "upload_method_paste"} Paste PGN text
-
-      #file_upload_container
+      #file_upload_container.form-group
         %input#pgn_file_input{type: "file", name: "pgn_file", accept: ".pgn"}
 
-      #pgn_paste_container{style: "display: none;"}
+      #pgn_paste_container.form-group{style: "display: none;"}
         %textarea#pgn_text_input{name: "pgn_text", rows: "10", cols: "50", placeholder: "Paste your PGN here"}
 
-      %button#upload_pgn_btn{type: "submit"} Upload PGN
+      %button#upload_pgn_btn.btn{type: "submit"} Upload PGN
+
+    %script{src:"../scripts/pgn_uploader.js"}
+    :javascript
+      document.addEventListener('DOMContentLoaded', () => { const uploader = new PgnUploader(); });

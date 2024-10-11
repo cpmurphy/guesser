@@ -245,10 +245,10 @@ class Board {
   onDragStart(source, piece, position, orientation) {
     const currentGuessMode = this.guessMode();
     const pieceColor = piece.charAt(0);
-    if (pieceColor === 'w' && this.currentMoveIndex % 2 == 0) {
+    if (pieceColor === 'w' && this.currentMoveIndex % 2 == 1) {
       return false;
     }
-    if (pieceColor === 'b' && this.currentMoveIndex % 2 == 1) {
+    if (pieceColor === 'b' && this.currentMoveIndex % 2 == 0) {
       return false;
     }
     return currentGuessMode === 'both' ||

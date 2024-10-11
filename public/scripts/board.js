@@ -30,6 +30,7 @@ class Board {
     this.uiMoves = data.uiMoves;
     this.startingWholeMove = data.startingWholeMove;
     this.currentWholeMove = data.currentWholeMove;
+    this.sideToMove = data.sideToMove;
     this.fen = data.fen;
     this.gameResult = data.gameResult;
     this.initializeBoard(this.fen);
@@ -38,10 +39,15 @@ class Board {
     document.getElementById('black').textContent = data.black;
     this.currentMoveIndex = 0;
     if (data.currentWholeMove && data.currentWholeMove > this.startingWholeMove) {
-      this.goToMoveIndex((data.currentWholeMove - this.startingWholeMove) * 2 + 1);
+      const moveIncrement = this.sideToMove === 'white' ? 0 : 1;
+      this.goToMoveIndex((data.currentWholeMove - this.startingWholeMove) * 2 + moveIncrement);
     }
     this.resetTouchState();
     this.updateLastMoveDisplay();
+    this.updateGuessMode(this.sideToMove);
+    if (this.sideToMove === 'black') {
+      this.flipBoard();
+    }
   }
 
   resetTouchState() {
@@ -101,6 +107,12 @@ class Board {
   guessMode() {
     const selectedRadio = document.querySelector('input[name="guess_mode"]:checked');
     return selectedRadio ? selectedRadio.value : 'neither';
+  }
+
+  updateGuessMode(sideToMove) {
+    if (sideToMove) {
+      document.querySelector(`input[value="${sideToMove}"]`).checked = true;
+    }
   }
 
   initializeButtonStates(pgnLoaded) {

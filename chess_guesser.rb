@@ -45,16 +45,24 @@ class ChessGuesser < Sinatra::Base
         date: game['Date'],
         event: game['Event'],
         result: game['Result'],
-        critical_moment: game[:analysis] ? annotate_critical_moment(game[:analysis]['last_critical_moment']) : nil
+        critical_moment: game[:analysis] ? annotate_critical_moment(game[:analysis]['last_critical_moment']) : {}
       }
     end
   end
 
   def annotate_critical_moment(critical_moment)
     if critical_moment && critical_moment['move_number']
-      "#{critical_moment['move_number']}. #{critical_moment['side'] == 'white' ? '' : '...'} #{critical_moment['move']}"
+      losing_side = critical_moment['side']
+      winning_side = losing_side == 'white' ? 'black' : 'white'
+      critical_move_number = critical_moment['move_number']
+      move_before_win = winning_side == 'black' ? critical_move_number : critical_move_number + 1
+      {
+        move_number: move_before_win,
+        side: winning_side,
+        text: "#{critical_move_number}. #{losing_side == 'white' ? '' : '...'} #{critical_moment['move']}"
+      }
     else
-      nil
+      {}
     end
   end
 
@@ -62,6 +70,9 @@ class ChessGuesser < Sinatra::Base
     game_state = game_state(params[:id].to_i)
     if params[:move]
       game_state[:current_whole_move] = params[:move].to_i
+    end
+    if params[:side]
+      game_state[:side_to_move] = params[:side]
     end
     haml :game, locals: game_state
   end

@@ -27,7 +27,11 @@
                   %td{"data-label" => "Black"}= game[:black]
                   %td{"data-label" => "Year"}= game[:date] ? game[:date][0..3] : ''
                   %td{"data-label" => "Result"}= game[:result]
-                  %td{"data-label" => "Critical Moment"}= game[:critical_moment]
+                  %td{"data-label" => "Critical Moment"}
+                    - if game[:critical_moment] && !game[:critical_moment].empty?
+                      - moment = game[:critical_moment]
+                      %a{href: "/game/#{game[:id]}?move=#{moment[:move_number]}&side=#{moment[:side]}"}
+                        = moment[:text]
                   %td
                     %a{href: "/game/#{game[:id]}"} Play
     - unless builtin_pgns.empty?

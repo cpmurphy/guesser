@@ -1,0 +1,37 @@
+!!! 5
+%html{lang:"en"}
+  %head
+    %meta{charset:"UTF-8"}
+    %meta{name:"viewport", content:"width=device-width, initial-scale=1.0"}
+    %title Chess Guesser - Games
+
+    %link{rel:"stylesheet", href:"/styles/game_selection.css"}
+
+  %body
+    %h2 Games in this PGN file
+    .table-responsive
+      %table#game_selection_table
+        %thead
+          %tr
+            %th White
+            %th Black
+            %th Year
+            %th Result
+            %th Critical Moment
+            %th Action
+        %tbody
+          - summary.games.each_with_index do |game, index|
+            %tr
+              %td{"data-label" => "White"}= game['White']
+              %td{"data-label" => "Black"}= game['Black']
+              %td{"data-label" => "Year"}= game['Date'] ? game['Date'][0..3] : ''
+              %td{"data-label" => "Result"}= game['Result']
+              %td{"data-label" => "Critical Moment"}
+                - if game[:analysis] && game[:analysis]['last_critical_moment']
+                  - moment = annotate_critical_moment(game[:analysis]['last_critical_moment'])
+                  %a{href: "/#{path_prefix}/#{index}?move=#{moment[:move_number]}&side=#{moment[:side]}"}
+                    = moment[:text]
+              %td
+                %a{href: "/#{path_prefix}/#{index}"} Play
+
+    %a.btn{href: "/"} Back to Game Selection

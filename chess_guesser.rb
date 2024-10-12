@@ -20,19 +20,15 @@ class ChessGuesser < Sinatra::Base
   get '/' do
     builtin_pgns = gather_builtins
 
-    table = []
-    if session['summary']
-      table = build_table(session['summary'])
-    end
-
-    haml :game_selection, locals: { table: table, builtin_pgns: builtin_pgns }
+    haml :game_selection, locals: { builtin_pgns: builtin_pgns }
   end
 
   def gather_builtins
-    Dir.glob('data/builtins/*.pgn').map do |file|
+    Dir.glob('data/builtins/*.pgn').map.with_index do |file, index|
       basename = File.basename(file, '.pgn')
       description = basename.split('-').map(&:capitalize).join(' ')
-      [file, description]
+      game_count = PgnSummary.new(File.open(file, encoding: Encoding::ISO_8859_1)).load.size
+      [index, file, description, game_count]
     end
   end
 
@@ -66,8 +62,12 @@ class ChessGuesser < Sinatra::Base
     end
   end
 
-  get '/game/:id' do
-    game_state = game_state(params[:id].to_i)
+  get '/uploaded/games' do
+    haml :games, locals: { summary: session['summary'], path_prefix: 'uploaded/games' }
+  end
+
+  get '/uploaded/games/:id' do
+    game_state = uploaded_game_state(params[:id].to_i)
     if params[:move]
       game_state[:current_whole_move] = params[:move].to_i
     end
@@ -76,23 +76,29 @@ class ChessGuesser < Sinatra::Base
   end
 
   get '/builtin/:index' do
-    builtin_pgns = Dir.glob('data/builtins/*.pgn')
-    file_path = builtin_pgns[params[:index].to_i]
+    builtin_pgns = gather_builtins
+    file_path = builtin_pgns[params[:index].to_i][1]
     if File.exist?(file_path)
       summary = PgnSummary.new(File.open(file_path, encoding: Encoding::ISO_8859_1))
+      summary.load
       json_path = file_path.gsub('.pgn', '.json')
       if File.exist?(json_path)
-        summary.load
         summary.add_analysis(JSON.parse(File.read(json_path)))
       end
-    end
-    if summary
-      session['summary'] = summary
-      redirect '/'
+      haml :games, locals: { summary: summary, path_prefix: "builtin/#{params[:index].to_i}" }
     else
       status 404
       "File not found"
     end
+  end
+
+  get '/builtin/:builtin_index/:game_index' do
+    game_state = builtin_game_state(params[:builtin_index].to_i, params[:game_index].to_i)
+    if params[:move]
+      game_state[:current_whole_move] = params[:move].to_i
+    end
+    game_state[:side_to_move] = params[:side]
+    haml :game, locals: game_state
   end
 
   post '/upload_pgn' do
@@ -112,9 +118,9 @@ class ChessGuesser < Sinatra::Base
     if summary
       session['summary'] = summary
       if summary.load.length == 1
-        redirect "/game/#{0}"
+        redirect "/uploaded/games/0"
       else
-        redirect '/'
+        redirect '/uploaded/games'
       end
     else
       status 400
@@ -122,10 +128,22 @@ class ChessGuesser < Sinatra::Base
     end
   end
 
-  def game_state(game_id)
-    summary = session['summary']
-    games = PGN.parse(summary.game_at(game_id))
-    game = games.first
+  def builtin_game_state(builtin_index, game_index)
+    game = builtin_game(builtin_index, game_index)
+    build_game_state(game)
+  end
+
+  def uploaded_game_state(game_index)
+    game = uploaded_game(game_index)
+    build_game_state(game)
+  end
+
+  def uploaded_game(game_index)
+    pgn = session['summary'].game_at(game_index)
+    PGN.parse(pgn).first
+  end
+
+  def build_game_state(game)
     moves = game.moves.map(&:notation)
     move_translator = MoveTranslator.new
     starting_move = 1
@@ -133,8 +151,6 @@ class ChessGuesser < Sinatra::Base
       move_translator.load_game_from_fen(game.starting_position.to_fen.to_s)
       starting_move = game.starting_position.fullmove
     end
-    session['game'] = game
-    session['guess_mode'] = 'both'
     {
       fen: game.positions.first.to_fen,
       moves: moves,
@@ -147,6 +163,15 @@ class ChessGuesser < Sinatra::Base
       event: game.tags['Event'],
       result: game.result
     }
+  end
+
+  def builtin_game(builtin_index, game_index)
+    builtin_pgns = gather_builtins
+    file_path = builtin_pgns[builtin_index][1]
+    summary = PgnSummary.new(File.open(file_path, encoding: Encoding::ISO_8859_1))
+    summary.load
+    games = PGN.parse(summary.game_at(game_index))
+    games.first
   end
 
   post '/set_guess_mode' do
@@ -163,34 +188,31 @@ class ChessGuesser < Sinatra::Base
   post '/guess' do
     guess = JSON.parse(request.body.read)
     current_move = guess['current_move'].to_i - 1
-    game = session['game']
-    fen = game.positions[current_move].to_fen
-    game_move = game.moves[current_move].notation
-    guess_mode = session['guess_mode'] || 'both'
+    number_of_moves = guess['number_of_moves'].to_i
     guess_state = {}
 
-    if guess_mode == 'both' || guess_mode == active_color(current_move)
-      source = guess['guessed_move']['source']
-      target = guess['guessed_move']['target']
-      game_move_uci = guess['game_move']['moves'][0].sub('-', '')
-      guessed_move_uci = source + target
-      if @move_judge.good_move?(fen, guessed_move_uci, game_move_uci)
-        current_move = move_forward(current_move)
-        next_fen = game.positions[current_move].to_fen
-        guess_state = { result: 'correct', same_as_game: false, game_move: game_move }.merge(state_for_current_move(current_move))
-      else
-        puts "incorrect for #{guess.inspect}"
-        puts "correct is #{game.moves[current_move].inspect}"
-        guess_state = { result: 'incorrect' }.merge(state_for_current_move(current_move))
-      end
+    guessed_move = guess['guessed_move']
+    source = guessed_move['source']
+    target = guessed_move['target']
+    path = guess['path']
+    game = game_for_path(path)
+    old_fen = game.positions[current_move].to_fen
+    game_move = guess['game_move']['moves'][0]
+    game_move_uci = game_move.sub('-', '')
+    guessed_move_uci = source + target
+    if @move_judge.good_move?(old_fen, guessed_move_uci, game_move_uci)
+      current_move = move_forward(current_move, number_of_moves)
+      guess_state = { result: 'correct', same_as_game: false, game_move: game_move }.merge(state_for_current_move(game, current_move))
+    else
+      puts "incorrect for #{guess.inspect}"
+      puts "correct is #{game_move}"
+      guess_state = { result: 'incorrect' }.merge(state_for_current_move(game, current_move))
     end
     response = [guess_state]
-    if guess_mode != 'both' && guess_state[:result] != 'incorrect'
-      # Automatically play the move for the non-guessing side
-      if current_move < game.moves.size
-        current_move = move_forward(current_move)
-        response.push({ result: 'auto_move'}.merge(state_for_current_move(current_move)))
-      end
+    # Automatically play the move for the non-guessing side
+    if guess_state[:result] == 'correct' && current_move < number_of_moves
+      current_move = move_forward(current_move, number_of_moves)
+      response.push({ result: 'auto_move'}.merge(state_for_current_move(game, current_move)))
     end
     response.to_json
   end
@@ -203,20 +225,35 @@ class ChessGuesser < Sinatra::Base
     end
   end
 
-  def move_forward(current_move)
-    game = session['game']
-    if current_move < game.moves.size
+  def move_forward(current_move, number_of_moves)
+    if current_move < number_of_moves
       current_move += 1
     end
     current_move
   end
 
-  def state_for_current_move(current_move)
-    game = session['game']
+  def state_for_current_move(game, current_move)
+    number_of_moves = game.moves.length
     { fen: game.positions[current_move].to_fen,
       move_number: current_move + 1,
-      total_moves: game.moves.size
+      total_moves: number_of_moves
     }
+  end
+
+  def game_for_path(path)
+    game = if path.include?('builtin')
+      builtin_index, game_index = path.split('/').select { |part| part.match?(/^\d+$/) }.map(&:to_i)
+      builtin_game(builtin_index, game_index)
+    else
+      uploaded_index = path.split('/').last.to_i
+      uploaded_game(uploaded_index)
+    end
+  end
+
+  def build_fen(old_fen, current_move)
+    move_translator = MoveTranslator.new
+    move_translator.load_game_from_fen(old_fen)
+    move_translator.translate_move(game.moves[current_move].notation)
   end
 
   # start the server if ruby file executed directly

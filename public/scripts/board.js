@@ -316,8 +316,10 @@ class Board {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
+        path: window.location.pathname,
         current_move: this.currentMoveIndex + 1,
         game_move: this.uiMoves[this.currentMoveIndex],
+        number_of_moves: this.moves.length,
         guessed_move: {
           source,
           target,

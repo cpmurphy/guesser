@@ -8,41 +8,16 @@
     %link{rel:"stylesheet", href:"/styles/game_selection.css"}
 
   %body
-    - unless table.empty?
-      #game_selection_container
-        .table-responsive
-          %table#game_selection_table
-            %thead
-              %tr
-                %th White
-                %th Black
-                %th Year
-                %th Result
-                %th Critical Moment
-                %th Action
-            %tbody
-              - table.each do |game|
-                %tr
-                  %td{"data-label" => "White"}= game[:white]
-                  %td{"data-label" => "Black"}= game[:black]
-                  %td{"data-label" => "Year"}= game[:date] ? game[:date][0..3] : ''
-                  %td{"data-label" => "Result"}= game[:result]
-                  %td{"data-label" => "Critical Moment"}
-                    - if game[:critical_moment] && !game[:critical_moment].empty?
-                      - moment = game[:critical_moment]
-                      %a{href: "/game/#{game[:id]}?move=#{moment[:move_number]}&side=#{moment[:side]}"}
-                        = moment[:text]
-                  %td
-                    %a{href: "/game/#{game[:id]}"} Play
     - unless builtin_pgns.empty?
       #builtin_selection_container
         %h3 Choose From Built-in Games
         %ul.game-list
-          - builtin_pgns.each_with_index do |(file, description), index|
+          - builtin_pgns.each do |(index, file, description, game_count)|
             %li
-              %a.btn{href: "/builtin/#{index}"} #{description}
+              %a.btn{href: "/builtin/#{index}"} #{description} (#{game_count} games)
 
     %form#pgn_upload_form.upload-form{action: "/upload_pgn", method: "post", enctype: "multipart/form-data"}
+      %h3 Upload Your Own Games
       .form-group
         %label
           %input#upload_method_file{type: "radio", name: "upload_method", value: "file", checked: true}

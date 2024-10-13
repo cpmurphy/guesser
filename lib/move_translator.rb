@@ -1,5 +1,3 @@
-require 'debug'
-
 # The MoveTranslator class translates chess moves from Portable Game Notation (PGN)
 # to a more detailed representation that includes the source and destination squares,
 # as well as information about captures and promotions.

@@ -1,5 +1,4 @@
 require 'minitest/autorun'
-require 'debug'
 require_relative '../lib/move_judge'
 
 class MoveJudgeTest < Minitest::Test

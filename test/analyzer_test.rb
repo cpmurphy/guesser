@@ -1,7 +1,6 @@
 require 'minitest/autorun'
 require 'minitest/mock'
 require_relative '../lib/analyzer'
-require 'debug'
 
 class AnalyzerTest < Minitest::Test
   def setup

@@ -232,6 +232,8 @@ class Board {
         moveQueue.push({ fen: this.lastPosition });
       } else if (move.result === 'auto_move') {
         moveQueue.push({ fen: move.fen });
+        this.setLastMoveDisplay(this.currentMoveIndex, this.sideToMove === 'black', move.move);
+        this.updateButtonStates();
       } else {
         console.error('Unexpected move result:', move);
       }
@@ -407,7 +409,7 @@ class Board {
 
   updateButtonStates() {
     const buttons = [
-      { id: 'fastRewindBtn', disabled: this.currentMoveIndex <= 1 },
+      { id: 'fastRewindBtn', disabled: this.currentMoveIndex <= 0 },
       { id: 'backwardBtn', disabled: this.currentMoveIndex <= 0 },
       { id: 'forwardBtn', disabled: this.currentMoveIndex >= this.moves.length },
       { id: 'fastForwardBtn', disabled: this.currentMoveIndex >= this.moves.length }
@@ -460,11 +462,16 @@ class Board {
       this.lastMoveElement.textContent = '';
     } else {
       const lastMoveIndex = this.currentMoveIndex - 1;
-      const wholeMoveNumber = Math.floor(lastMoveIndex / 2) + this.startingWholeMove;
       const isBlackMove = lastMoveIndex % 2 === 1;
       const moveNotation = this.moves[lastMoveIndex];
-      this.lastMoveElement.textContent = `${wholeMoveNumber}${isBlackMove ? '...' : '.'} ${moveNotation}`;
+
+      this.setLastMoveDisplay(lastMoveIndex, isBlackMove, moveNotation);
     }
+  }
+
+  setLastMoveDisplay(moveIndex, isBlackMove, moveNotation) {
+    const wholeMoveNumber = Math.floor(moveIndex / 2) + this.startingWholeMove;
+    this.lastMoveElement.textContent = `${wholeMoveNumber}${isBlackMove ? '...' : '.'} ${moveNotation}`;
   }
 
   setupTouchEvents() {

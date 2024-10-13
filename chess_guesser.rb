@@ -197,8 +197,9 @@ class ChessGuesser < Sinatra::Base
     path = guess['path']
     game = game_for_path(path)
     old_fen = game.positions[current_move].to_fen
-    game_move = guess['game_move']['moves'][0]
-    game_move_uci = game_move.sub('-', '')
+    ui_game_move = guess['game_move']['moves'][0]
+    game_move_uci = ui_game_move.sub('-', '')
+    game_move = game.moves[current_move].notation
     guessed_move_uci = source + target
     if @move_judge.good_move?(old_fen, guessed_move_uci, game_move_uci)
       current_move = move_forward(current_move, number_of_moves)
@@ -235,6 +236,7 @@ class ChessGuesser < Sinatra::Base
   def state_for_current_move(game, current_move)
     number_of_moves = game.moves.length
     { fen: game.positions[current_move].to_fen,
+      move: current_move > 0 ? game.moves[current_move - 1].notation : nil,
       move_number: current_move + 1,
       total_moves: number_of_moves
     }

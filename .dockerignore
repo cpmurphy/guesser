@@ -1,0 +1,44 @@
+# Ignore version control system directories
+.git
+.gitignore
+
+# Ignore development and environment files
+Rakefile
+.env
+.env.*
+*.log
+*.sqlite
+
+# Ignore OS generated files
+.DS_Store
+Thumbs.db
+
+# Ignore editor specific files
+.vscode/
+*.swp
+*.swo
+
+# Ignore package manager directories
+node_modules/
+vendor/
+
+# Ignore build artifacts and temporary files
+/build
+/dist
+/tmp
+*.tmp
+*.bak
+
+# Ignore test and documentation
+/test
+/spec
+/coverage
+/doc
+*.md
+
+# Ignore Docker specific files (if not needed in the image)
+Dockerfile
+docker-compose.yml
+
+/sandbox
+/examples

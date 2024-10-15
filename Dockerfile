@@ -54,11 +54,11 @@ WORKDIR /app
 COPY --from=build "${BUNDLE_PATH}" "${BUNDLE_PATH}"
 COPY --from=build /app /app
 COPY --from=build /Stockfish/src/stockfish /app/bin
+RUN rm -rf Stockfish
 
 # Run and own only the runtime files as a non-root user for security
 RUN groupadd --system --gid 1000 appgroup && \
-    useradd appuser --uid 1000 --gid 1000 --create-home --shell /bin/bash && \
-    chown -R appuser:appgroup tmp
+    useradd appuser --uid 1000 --gid 1000 --create-home --shell /bin/bash
 USER 1000:1000
 
 # Entrypoint prepares the database.

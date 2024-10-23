@@ -2,6 +2,7 @@ require 'tempfile'
 require 'sinatra'
 require 'json'
 require 'pgn'
+require 'secure_headers'
 
 require_relative 'lib/analyzer'
 require_relative 'lib/move_judge'
@@ -11,6 +12,34 @@ require_relative 'lib/move_translator'
 class ChessGuesser < Sinatra::Base
   enable :sessions
   set :session_store, Rack::Session::Pool
+
+  use SecureHeaders::Middleware
+
+  # Configure SecureHeaders
+  SecureHeaders::Configuration.default do |config|
+    config.csp = {
+      default_src: %w('self'),
+      script_src: %w('self' 'unsafe-inline' 'unsafe-eval' https://code.jquery.com https://unpkg.com),
+      style_src: %w('self' 'unsafe-inline' https://unpkg.com),
+      img_src: %w('self' data:),
+      connect_src: %w('self'),
+      font_src: %w('self'),
+      object_src: %w('none'),
+      frame_src: %w('none'),
+      frame_ancestors: %w('none'),
+      form_action: %w('self'),
+      base_uri: %w('self'),
+      upgrade_insecure_requests: true
+    }
+
+    # You can add other security headers here
+    config.x_frame_options = "DENY"
+    config.x_content_type_options = "nosniff"
+    config.x_xss_protection = "1; mode=block"
+    config.x_download_options = "noopen"
+    config.x_permitted_cross_domain_policies = "none"
+    config.referrer_policy = %w(strict-origin-when-cross-origin)
+  end
 
   def initialize
     super

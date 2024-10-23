@@ -15,10 +15,13 @@ GEM
       reline (>= 0.4.2)
     mustermann (3.0.2)
       ruby2_keywords (~> 0.0.1)
+    nio4r (2.7.3)
     pgn2 (0.4.0)
       whittle
     psych (5.1.2)
       stringio
+    puma (6.4.3)
+      nio4r (~> 2.0)
     rack (3.1.7)
     rack-protection (4.0.0)
       base64 (>= 0.1.0)
@@ -33,6 +36,7 @@ GEM
     reline (0.5.9)
       io-console (~> 0.5)
     ruby2_keywords (0.0.5)
+    secure_headers (7.0.0)
     sinatra (4.0.0)
       mustermann (~> 3.0)
       rack (>= 3.0.0, < 4)
@@ -55,8 +59,10 @@ DEPENDENCIES
   debug (>= 1.0.0)
   haml
   pgn2
+  puma (>= 5.0)
   rack
   rackup
+  secure_headers
   sinatra
   stockfish
   webrick

@@ -2,6 +2,31 @@
 
 This Ruby program runs as a Rack application. It provides a web interface that allows you to load a PGN file and play through a game. You can choose to guess the next move, and if your move is at least as good as the move played in the game, you win.
 
+## How to Use
+
+1. **Select a Game**: On the home page, you can either:
+   - Choose from a list of built-in PGN files
+   - Upload your own PGN file
+   - Paste PGN text directly
+
+2. **Choose a Game**: If the PGN contains multiple games, select the specific game you want to play through.
+   - You can start at the beginning of the game
+   - You can also start at a critical moment (following the link)
+
+3. **Guess Mode**: Choose whether you want to guess moves for White, Black, or both sides.
+   - If you choose to start at a critical moment the winning side will be chosen for you
+
+4. **Play Through the Game**:
+   - You can use the navigation buttons to move forward and backward through the game.
+   - When it's your turn to guess (based on the currently chosen guess mode), make a move on the board.
+   - If your move is as good as or better than the move played in the actual game (as judged by the chess engine), you'll see a "Correct!" message.
+   - If your move isn't good enough, you'll see an "Incorrect" message, and you can try again.
+   - If you are only guessing one side, the moves for other side will be played automatically.
+
+5. **Navigate Moves**: You can jump to specific moves using the move input box or use the fast forward/rewind buttons to quickly navigate through the game.
+
+Enjoy playing through games and guessing the moves.  See how you do in famous chess games or any other PGN files you have.
+
 ## Installation
 
 ### Prerequisites
@@ -59,27 +84,45 @@ To start the Rack application locally:
 
 If you've built and run the Docker container as described above, the application will be available at `http://localhost` (port 80).
 
-## How to Use
+## Deployment to Production
 
-1. **Select a Game**: On the home page, you can either:
-   - Choose from a list of built-in PGN files
-   - Upload your own PGN file
-   - Paste PGN text directly
+To deploy Chess Guesser to a production environment, follow these steps:
 
-2. **Choose a Game**: If the PGN contains multiple games, select the specific game you want to play through.
-   - You can start at the beginning of the game
-   - You can also start at a critical moment (following the link)
+1. **Prepare the Production Server**:
+   - Ensure Docker is installed on your production server.
+   - Set up appropriate firewall rules to allow incoming traffic on ports 80 and 443.
 
-3. **Guess Mode**: Choose whether you want to guess moves for White, Black, or both sides.
-   - If you choose to start at a critical moment the winning side will be chosen for you
+2. **Configure Deployment Environment**:
+   - Create a `deploy_env.sh` file in the project root with the following content:
+     ```bash
+     export DEPLOY_USER=your_ssh_user
+     export DEPLOY_HOST=your_server_ip_or_domain
+     export DEPLOY_DIR=/path/to/deployment/directory
+     ```
+   - Replace the placeholders with your actual deployment details.
 
-4. **Play Through the Game**: 
-   - You can use the navigation buttons to move forward and backward through the game.
-   - When it's your turn to guess (based on the currently chosen guess mode), make a move on the board.
-   - If your move is as good as or better than the move played in the actual game (as judged by the chess engine), you'll see a "Correct!" message.
-   - If your move isn't good enough, you'll see an "Incorrect" message, and you can try again.
-   - If you are only guessing one side, the moves for other side will be played automatically.
+3. **Build and Deploy**:
+   - From your local development machine, run:
+     ```bash
+     ./bin/deploy.sh
+     ```
+   - This script will:
+     - Build the Docker image locally
+     - Save and compress the image
+     - Upload the compressed image to your production server
+     - Load the image on the server
+     - Stop any existing Chess Guesser container
+     - Start a new container with the updated image
 
-5. **Navigate Moves**: You can jump to specific moves using the move input box or use the fast forward/rewind buttons to quickly navigate through the game.
+4. **SSL Configuration (Optional)**:
+   - If you want to use HTTPS, you'll need to set up a reverse proxy (like Nginx) and configure SSL certificates.
 
-Enjoy playing through games and guessing the moves.  See how you do in famous chess games or any other PGN files you have.
+5. **Monitoring and Logs**:
+   - You can view the application logs using:
+     ```bash
+     docker logs chess_guesser
+     ```
+   - Consider setting up log rotation and monitoring for the Docker container.
+
+6. **Updating the Application**:
+   - To update the application, make your changes locally, commit them, and then run the `./bin/deploy.sh` script again.

@@ -6,45 +6,57 @@ require_relative '../lib/pgn_summary'
 require 'json'
 
 class CriticalMomentFinder
+  SERIOUS_MISTAKE_DROP = 71
+
   def initialize(game)
     @game = game
     @analyzer = Analyzer.new()
     @positions = generate_positions
   end
 
-  def analyze_for_last_critical_moment
+  def analyze_game
     winner = deduce_winner
-    return "The ending position was about equal. No critical moment found." if winner == :draw
+    return { result: "The ending position was about equal. No critical moment found." } if winner == :draw
 
+    scores, last_critical_moment = find_last_critical_moment(winner)
+    first_serious_mistake = find_first_serious_mistake(scores, winner)
+
+    {
+      scores: scores.inspect,
+      last_critical_moment: last_critical_moment,
+      first_serious_mistake: first_serious_mistake,
+      winner: winner,
+      total_moves: @game.moves.length
+    }
+  end
+
+  private
+
+  def find_last_critical_moment(winner)
     max_score_drop = 0
     last_score = nil
-
-    if winner == :black
-      loser_moves = :even
-    else
-      loser_moves = :odd
-    end
-
     scores = []
     move_index = (@positions.length - 1)
+    loser_moves = winner == :black ? :even : :odd
+    critical_index = move_index
+
     if move_index % 2 == 1 && loser_moves == :even || move_index % 2 == 0 && loser_moves == :odd
       move_index -= 1
     end
-    critical_index = move_index
 
     while move_index >= 0
-        analysis = @analyzer.evaluate_best_move(@positions[move_index])
-        current_score = analysis[:score]
-        scores << current_score
-        if last_score
-          diff = last_score - current_score
-          if diff > max_score_drop
-            max_score_drop = diff
-            critical_index = move_index + 2
-          end
-        end 
+      analysis = @analyzer.evaluate_best_move(@positions[move_index])
+      current_score = analysis[:score]
+      scores << current_score
+      if last_score
+        diff = last_score - current_score
+        if diff > max_score_drop
+          max_score_drop = diff
+          critical_index = move_index + 2
+        end
+      end 
 
-        break if current_score < 50
+      break if current_score < 50
 
       last_score = current_score
       move_index -= 2
@@ -52,16 +64,39 @@ class CriticalMomentFinder
 
     move_number = (critical_index / 2) + 1
     is_black_move = critical_index.odd?
-    move = @game.moves[critical_index]
 
-    { scores: scores.inspect,
-      last_critical_moment: {
-        move_number: move_number,
-        side: is_black_move ? 'black' : 'white',
-        move: move
-      },
-      winner: winner
-    }
+    [scores, {
+      move_number: move_number,
+      side: is_black_move ? 'black' : 'white',
+      move: @game.moves[critical_index].notation
+    }]
+  end
+
+  def find_first_serious_mistake(scores, winner)
+    first_mistake = nil
+    reverse_scores = scores.reverse
+    reverse_scores.each_with_index do |score, index|
+      next if index == 0 # Skip the first score as we need a previous score to compare
+
+      score_diff = score - reverse_scores[index - 1]
+      if score_diff >= SERIOUS_MISTAKE_DROP
+        move_index = @game.moves.length - (2 * (scores.length - index))
+        loser_moves = winner == :black ? :even : :odd
+        if move_index % 2 == 1 && loser_moves == :even || move_index % 2 == 0 && loser_moves == :odd
+          move_index += 1
+        end
+        move_number = (move_index / 2) + 1
+        first_mistake = {
+          score_after: score,
+          score_before: reverse_scores[index - 1],
+          move_number: move_number,
+          move: @game.moves[move_index].notation,
+          side: (winner == :white) ? 'black' : 'white'
+        }
+        break
+      end
+    end
+    first_mistake
   end
 
   def deduce_winner
@@ -79,16 +114,6 @@ class CriticalMomentFinder
     else
       is_black_to_move ? :white : :black
     end
-  end
-
-  private
-
-  def notation_for(move_index)
-    move_number = (move_index / 2) + 1
-    is_black_move = move_index.odd?
-    move = @game.moves[move_index]
-
-    "Move #{move_number}#{is_black_move ? '...' : '.'} #{move}"
   end
 
   def generate_positions
@@ -120,7 +145,7 @@ summary.load.each_with_index do |game, index|
   finder = CriticalMomentFinder.new(game)
   print({
     game: "#{game.tags['White']} vs #{game.tags['Black']}",
-    analysis: finder.analyze_for_last_critical_moment
+    analysis: finder.analyze_game
   }.to_json)
   puts ',' if index < summary.games.length - 1
 end

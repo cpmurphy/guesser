@@ -69,12 +69,13 @@ class ChessGuesser < Sinatra::Base
         date: game['Date'],
         event: game['Event'],
         result: game['Result'],
-        critical_moment: game[:analysis] ? annotate_critical_moment(game[:analysis]['last_critical_moment']) : {}
+        critical_moment: game[:analysis] ? notation_for_move(game[:analysis]['last_critical_moment']) : {},
+        serious_mistake: game[:analysis] ? notation_for_move(game[:analysis]['first_serious_mistake']) : {}
       }
     end
   end
 
-  def annotate_critical_moment(critical_moment)
+  def notation_for_move(critical_moment)
     if critical_moment && critical_moment['move_number']
       losing_side = critical_moment['side']
       winning_side = losing_side == 'white' ? 'black' : 'white'

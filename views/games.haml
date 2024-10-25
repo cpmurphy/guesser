@@ -17,6 +17,7 @@
             %th Black
             %th Year
             %th Result
+            %th Serious Mistake
             %th Critical Moment
             %th Action
         %tbody
@@ -26,9 +27,14 @@
               %td{"data-label" => "Black"}= game['Black']
               %td{"data-label" => "Year"}= game['Date'] ? game['Date'][0..3] : ''
               %td{"data-label" => "Result"}= game['Result']
+              %td{"data-label" => "Serious Mistake"}
+                - if game[:analysis] && game[:analysis]['first_serious_mistake']
+                  - moment = notation_for_move(game[:analysis]['first_serious_mistake'])
+                  %a{href: "/#{path_prefix}/#{index}?move=#{moment[:move_number]}&side=#{moment[:side]}"}
+                    = moment[:text]
               %td{"data-label" => "Critical Moment"}
                 - if game[:analysis] && game[:analysis]['last_critical_moment']
-                  - moment = annotate_critical_moment(game[:analysis]['last_critical_moment'])
+                  - moment = notation_for_move(game[:analysis]['last_critical_moment'])
                   %a{href: "/#{path_prefix}/#{index}?move=#{moment[:move_number]}&side=#{moment[:side]}"}
                     = moment[:text]
               %td

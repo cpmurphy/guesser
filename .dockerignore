@@ -43,3 +43,7 @@ docker-compose.yml
 /sandbox
 /examples
 deploy_env.sh
+
+# ignore the files we build for Docker
+*.tar
+*.tar.bz2

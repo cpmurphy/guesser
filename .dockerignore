@@ -42,3 +42,4 @@ docker-compose.yml
 
 /sandbox
 /examples
+deploy_env.sh

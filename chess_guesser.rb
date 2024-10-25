@@ -19,8 +19,8 @@ class ChessGuesser < Sinatra::Base
   SecureHeaders::Configuration.default do |config|
     config.csp = {
       default_src: %w('self'),
-      script_src: %w('self' 'unsafe-inline' 'unsafe-eval' https://code.jquery.com https://unpkg.com),
-      style_src: %w('self' 'unsafe-inline' https://unpkg.com),
+      script_src: %w('self' 'unsafe-inline' 'unsafe-eval'),
+      style_src: %w('self' 'unsafe-inline'),
       img_src: %w('self' data:),
       connect_src: %w('self'),
       font_src: %w('self'),
@@ -31,7 +31,6 @@ class ChessGuesser < Sinatra::Base
       base_uri: %w('self'),
       upgrade_insecure_requests: true
     }
-
     # You can add other security headers here
     config.x_frame_options = "DENY"
     config.x_content_type_options = "nosniff"

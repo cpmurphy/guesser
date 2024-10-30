@@ -9,6 +9,11 @@ class Board {
     this.setupFlipBoardButton();
     this.onGameLoaded(data);
     this.setupTouchEvents();
+    this.setupExportFenButton();
+    this.castlingRightsHistory = [];
+    this.castlingRights = '-';
+    this.enPassant = '-';
+    this.halfmoveClock = '0';
   }
 
   initializeBoard(fen) {
@@ -20,6 +25,9 @@ class Board {
       onDrop: this.onDrop.bind(this)
     });
     this.lastPosition = this.board.position();
+    this.castlingRights = fen.split(' ')[2];
+    this.enPassant = fen.split(' ')[3];
+    this.halfmoveClock = fen.split(' ')[4];
     this.hideGuessResult();
     this.initializeButtonStates(false);
   }
@@ -173,10 +181,17 @@ class Board {
 
   moveBackward() {
     this.currentMoveIndex--;
+    this.restoreCastlingRightsFromHistory();
     this.reverseMove(this.uiMoves[this.currentMoveIndex]);
     this.updateButtonStates();
     this.updateLastMoveDisplay();
     this.resetTouchState();
+  }
+
+  restoreCastlingRightsFromHistory() {
+    if (this.castlingRightsHistory[this.currentMoveIndex]) {
+      this.castlingRights = this.castlingRightsHistory[this.currentMoveIndex];
+    }
   }
 
   reverseMove(uiMove) {
@@ -299,7 +314,8 @@ class Board {
     // Check for castling
     if (piece === 'wK' || piece === 'bK') {
       if (this.isCastling(piece, source, target)) {
-        this.performCastling(target, newPos);
+        this.updateCastlingRightsHistory();
+        this.performCastling(piece, target, newPos);
       }
     }
 
@@ -342,6 +358,10 @@ class Board {
       });
   }
 
+  updateCastlingRightsHistory() {
+    this.castlingRightsHistory[this.currentMoveIndex] = this.castlingRights;
+  }
+
   isExactMatch(source, target, currentMove) {
     return currentMove.moves.some(move => move === `${source}-${target}`);
   }
@@ -382,21 +402,29 @@ class Board {
     return kingside || queenside;
   }
 
-  performCastling(target, newPos) {
+  performCastling(piece, target, newPos) {
     let rookSource, rookTarget;
 
-    if (target === 'g1') {
-      rookSource = 'h1';
-      rookTarget = 'f1';
-    } else if (target === 'c1') {
-      rookSource = 'a1';
-      rookTarget = 'd1';
-    } else if (target === 'g8') {
-      rookSource = 'h8';
-      rookTarget = 'f8';
-    } else if (target === 'c8') {
-      rookSource = 'a8';
-      rookTarget = 'd8';
+    if (piece === 'wK') {
+      if (target === 'g1') {
+        this.castlingRights = this.castlingRights.replace('K', '');
+        rookSource = 'h1';
+        rookTarget = 'f1';
+      } else if (target === 'c1') {
+        this.castlingRights = this.castlingRights.replace('Q', '');
+        rookSource = 'a1';
+        rookTarget = 'd1';
+      }
+    } else if (piece === 'bK') {
+      if (target === 'g8') {
+        this.castlingRights = this.castlingRights.replace('k', '');
+        rookSource = 'h8';
+        rookTarget = 'f8';
+      } else if (target === 'c8') {
+        this.castlingRights = this.castlingRights.replace('q', '');
+        rookSource = 'a8';
+        rookTarget = 'd8';
+      }
     }
 
     // Move the rook
@@ -542,6 +570,58 @@ class Board {
     }
 
     return `${file}${rank}`;
+  }
+
+  setupExportFenButton() {
+    const exportBtn = document.getElementById('exportFenBtn');
+    exportBtn.addEventListener('click', (e) => {
+      e.preventDefault();
+      const fen = this.generateCompleteFen();
+      navigator.clipboard.writeText(fen).then(() => {
+        let messageDiv = document.getElementById('copy-message');
+        if (!messageDiv) {
+          messageDiv = document.createElement('div');
+          messageDiv.id = 'copy-message';
+          messageDiv.style.position = 'fixed';
+          messageDiv.style.padding = '10px';
+          messageDiv.style.backgroundColor = '#4CAF50';
+          messageDiv.style.color = 'white';
+          messageDiv.style.borderRadius = '5px';
+          messageDiv.style.zIndex = '1000';
+          document.body.appendChild(messageDiv);
+        }
+        
+        // Remove any existing fade-out class and display the element
+        messageDiv.classList.remove('fade-out');
+        messageDiv.style.display = 'block';
+        
+        // Position the message
+        const btnRect = exportBtn.getBoundingClientRect();
+        messageDiv.style.top = `${btnRect.bottom + 5}px`;
+        messageDiv.style.left = `${btnRect.left}px`;
+        
+        // Show the message
+        messageDiv.textContent = 'FEN copied!';
+        
+        // Start fade out after 1.5 seconds
+        setTimeout(() => {
+          messageDiv.classList.add('fade-out');
+          // Hide the element after the animation completes
+          setTimeout(() => {
+            messageDiv.style.display = 'none';
+          }, 300); // matches animation duration
+        }, 1500);
+      });
+    });
+  }
+
+  generateCompleteFen() {
+    const piecePlacement = this.board.fen();
+    const activeColor = this.currentMoveIndex % 2 === 0 ? 'w' : 'b';
+    // Calculate the full move number
+    const fullmoveNumber = Math.floor(this.currentMoveIndex / 2) + this.startingWholeMove;
+    
+    return `${piecePlacement} ${activeColor} ${this.castlingRights} ${this.enPassant} ${this.halfmoveClock} ${fullmoveNumber}`;
   }
 
 }

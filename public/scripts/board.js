@@ -244,18 +244,24 @@ class Board {
           );
         } else {
           const evalDiff = this.compareEvaluations(move.guess_eval.score, move.game_eval.score);
-          const evalComment = this.getEvaluationComment(move.game_move, move.guess_eval.score, evalDiff);
+          const evalComment = this.getEvaluationComment(move.result, move.game_move, move.guess_eval.score, evalDiff);
+          var headline;
+          if (move.guess_eval.score > 100 && evalDiff > -30) {
+            headline = 'Good move!';
+          } else {
+            headline = 'Good guess!';
+          }
 
           this.updateGuessStatus(
             'green',
-            'Good move!',
+            headline,
             evalComment
           );
           moveQueue.push({ fen: this.lastPosition }, { fen: move.fen });
         }
       } else if (move.result === 'incorrect') {
         const evalDiff = this.compareEvaluations(move.guess_eval.score, move.game_eval.score);
-        const evalComment = this.getEvaluationComment(move.game_move, move.guess_eval.score, evalDiff);
+        const evalComment = this.getEvaluationComment(move.result, move.game_move, move.guess_eval.score, evalDiff);
         this.updateGuessStatus(
           'red',
           'Incorrect!',
@@ -658,20 +664,21 @@ class Board {
     return guessEval - gameEval;
   }
 
-  getEvaluationComment(gameMove, guessEval, evalDiff) {
+  getEvaluationComment(guessResult, gameMove, guessEval, evalDiff) {
     var comment = '';
+    const guessCorrect = guessResult == 'correct';
     if (evalDiff > 50) {
         comment = `Your move is even better than the game move (${gameMove})!`;
     } else if (evalDiff > 10) {
         comment = `Your move is slightly better than the game move (${gameMove}).`;
     } else if (evalDiff < -100) {
-        comment = `The game move was much better.`;
+        comment = `The game move ${guessCorrect ? `(${gameMove})` : ''} was much better.`;
     } else if (evalDiff < -50) {
-        comment = `The game move was significantly better.`;
+        comment = `The game move ${guessCorrect ? `(${gameMove})` : ''} was significantly better.`;
     } else if (evalDiff < -10) {
-        comment = `The game move was slightly better.`;
+        comment = `The game move ${guessCorrect ? `(${gameMove})` : ''} was slightly better.`;
     } else {
-        comment = `Your move is about as good as the game move (${gameMove}).`;
+        comment = `Your move is about as good as the game move ${guessCorrect ? `(${gameMove})` : ''}.`;
     }
     if (evalDiff < -10) {
       if (evalDiff > -50 && guessEval > 50) {

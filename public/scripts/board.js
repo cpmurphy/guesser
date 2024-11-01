@@ -673,7 +673,7 @@ class Board {
     } else {
         comment = "Your move is about as good as the game move.";
     }
-    if (evalDiff < 0) {
+    if (evalDiff < -10) {
       if (evalDiff > -50 && guessEval > 50) {
         comment += " Your move was still good.";
       } else if (guessEval > 50) {

@@ -244,7 +244,7 @@ class Board {
           );
         } else {
           const evalDiff = this.compareEvaluations(move.guess_eval.score, move.game_eval.score);
-          const evalComment = this.getEvaluationComment(move.guess_eval.score, evalDiff);
+          const evalComment = this.getEvaluationComment(move.game_move, move.guess_eval.score, evalDiff);
 
           this.updateGuessStatus(
             'green',
@@ -255,7 +255,7 @@ class Board {
         }
       } else if (move.result === 'incorrect') {
         const evalDiff = this.compareEvaluations(move.guess_eval.score, move.game_eval.score);
-        const evalComment = this.getEvaluationComment(move.guess_eval.score, evalDiff);
+        const evalComment = this.getEvaluationComment(move.game_move, move.guess_eval.score, evalDiff);
         this.updateGuessStatus(
           'red',
           'Incorrect!',
@@ -658,20 +658,20 @@ class Board {
     return guessEval - gameEval;
   }
 
-  getEvaluationComment(guessEval, evalDiff) {
+  getEvaluationComment(gameMove, guessEval, evalDiff) {
     var comment = '';
     if (evalDiff > 50) {
-        comment = "Your move is even better than the game move!";
+        comment = `Your move is even better than the game move (${gameMove})!`;
     } else if (evalDiff > 10) {
-        comment = "Your move is slightly better than the game move.";
+        comment = `Your move is slightly better than the game move (${gameMove}).`;
     } else if (evalDiff < -100) {
-        comment = "The game move was much better.";
+        comment = `The game move was much better.`;
     } else if (evalDiff < -50) {
-        comment = "The game move was significantly better.";
+        comment = `The game move was significantly better.`;
     } else if (evalDiff < -10) {
-        comment = "The game move was slightly better.";
+        comment = `The game move was slightly better.`;
     } else {
-        comment = "Your move is about as good as the game move.";
+        comment = `Your move is about as good as the game move (${gameMove}).`;
     }
     if (evalDiff < -10) {
       if (evalDiff > -50 && guessEval > 50) {

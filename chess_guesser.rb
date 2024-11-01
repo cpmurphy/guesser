@@ -246,6 +246,8 @@ class ChessGuesser < Sinatra::Base
     else
       guess_state = {
         result: 'incorrect',
+        same_as_game: false,
+        game_move: game_move,
         best_eval: judgment[:best_eval],
         guess_eval: judgment[:guess_eval],
         game_eval: judgment[:game_eval]

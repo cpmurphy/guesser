@@ -230,14 +230,28 @@ class ChessGuesser < Sinatra::Base
     game_move_uci = ui_game_move.sub('-', '')
     game_move = game.moves[current_move].notation
     guessed_move_uci = source + target
-    if @move_judge.good_move?(old_fen, guessed_move_uci, game_move_uci)
+
+
+    judgment = @move_judge.compare_moves(old_fen, guessed_move_uci, game_move_uci)
+    if judgment[:good_move]
       current_move = move_forward(current_move, number_of_moves)
-      guess_state = { result: 'correct', same_as_game: false, game_move: game_move }.merge(state_for_current_move(game, current_move))
+      guess_state = {
+        result: 'correct',
+        same_as_game: guessed_move_uci == game_move_uci,
+        game_move: game_move,
+        best_eval: judgment[:best_eval],
+        guess_eval: judgment[:guess_eval],
+        game_eval: judgment[:game_eval]
+      }.merge(state_for_current_move(game, current_move))
     else
-      puts "incorrect for #{guess.inspect}"
-      puts "correct is #{game_move}"
-      guess_state = { result: 'incorrect' }.merge(state_for_current_move(game, current_move))
+      guess_state = {
+        result: 'incorrect',
+        best_eval: judgment[:best_eval],
+        guess_eval: judgment[:guess_eval],
+        game_eval: judgment[:game_eval]
+      }.merge(state_for_current_move(game, current_move))
     end
+
     response = [guess_state]
     # Automatically play the move for the non-guessing side
     if guess_state[:result] == 'correct' && current_move < number_of_moves

@@ -5,22 +5,30 @@ class MoveJudge
     @analyzer = analyzer
   end
 
-  def good_move?(fen, guessed_move, actual_move)
-    guess_eval = 0 - @analyzer.evaluate_move(fen, guessed_move)[:score]
-    return true if guess_eval > 500
+  def compare_moves(old_fen, guessed_move_uci, game_move_uci)
+    best_eval = @analyzer.evaluate_best_move(old_fen)
+    guess_eval = @analyzer.evaluate_move(old_fen, guessed_move_uci)
+    game_eval = @analyzer.evaluate_move(old_fen, game_move_uci)
+    guess_score = 0 - guess_eval[:score]
+    good_move = true if guess_score > 500
 
-    actual_eval = 0 - @analyzer.evaluate_move(fen, actual_move)[:score]
-    return true if guess_eval > actual_eval
+    game_score = 0 - game_eval[:score]
+    good_move = true if guess_score > game_score
 
-    best_eval = @analyzer.evaluate_best_move(fen)[:score]
-    if best_eval > 200
-      return true if guess_eval >= best_eval * 0.75
-    elsif best_eval > 100 && best_eval <= 200
-      return true if guess_eval >= best_eval * 0.90
-    elsif best_eval <= 100
-      return true if (best_eval - guess_eval).abs <= 30
+    best_score = best_eval[:score]
+    if best_score > 200
+      good_move = guess_score >= best_score * 0.75
+    elsif best_score > 100 && best_score <= 200
+      good_move = guess_score >= best_score * 0.90
+    elsif best_score <= 100
+      good_move = (best_score - guess_score).abs <= 30
     end
 
-    false
+    { good_move: good_move,
+      best_eval: best_eval.merge(score: best_score),
+      guess_eval: guess_eval.merge(score: guess_score),
+      game_eval: game_eval.merge(score: game_score)
+    }
   end
+
 end

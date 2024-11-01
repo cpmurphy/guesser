@@ -237,20 +237,35 @@ class Board {
       this.currentMoveIndex = move.move_number - 1;
       if (move.result === 'correct') {
         if (move.same_as_game) {
-          this.updateGuessStatus('green', 'Correct!', 'This is what was played.', '');
+          this.updateGuessStatus(
+            'green',
+            'Correct!',
+            'This is what was played.'
+          );
         } else {
-          this.updateGuessStatus('green', 'Good!', 'Your move is engine approved!', 'In the game ' + move.game_move + ' was played.');
+          const evalDiff = this.compareEvaluations(move.guess_eval.score, move.game_eval.score);
+          const evalComment = this.getEvaluationComment(move.guess_eval.score, evalDiff);
+
+          this.updateGuessStatus(
+            'green',
+            'Good move!',
+            evalComment
+          );
           moveQueue.push({ fen: this.lastPosition }, { fen: move.fen });
         }
       } else if (move.result === 'incorrect') {
-        this.updateGuessStatus('red', 'Incorrect!', '', '');
+        const evalDiff = this.compareEvaluations(move.guess_eval.score, move.game_eval.score);
+        const evalComment = this.getEvaluationComment(move.guess_eval.score, evalDiff);
+        this.updateGuessStatus(
+          'red',
+          'Incorrect!',
+          evalComment
+        );
         moveQueue.push({ fen: this.lastPosition });
       } else if (move.result === 'auto_move') {
         moveQueue.push({ fen: move.fen });
         this.setLastMoveDisplay(this.currentMoveIndex, this.sideToMove === 'black', move.move);
         this.updateButtonStates();
-      } else {
-        console.error('Unexpected move result:', move);
       }
     });
 
@@ -366,7 +381,7 @@ class Board {
     return currentMove.moves.some(move => move === `${source}-${target}`);
   }
 
-  updateGuessStatus(headlineColor, headlineText, commentText, subcommentText) {
+  updateGuessStatus(headlineColor, headlineText, commentText) {
     const guessResult = document.getElementById('guess_result');
     const guessComment = document.getElementById('guess_comment');
     const guessSubcomment = document.getElementById('guess_subcomment');
@@ -374,11 +389,10 @@ class Board {
     guessResult.style.color = headlineColor;
     guessResult.textContent = headlineText;
     guessComment.textContent = commentText;
-    guessSubcomment.textContent = subcommentText;
   }
 
   handleCorrectGuess(move) {
-    this.updateGuessStatus('green', 'Correct!', 'This is what was played.', '');
+    this.updateGuessStatus('green', 'Correct!', 'This is what was played.');
     this.currentMoveIndex++;
     // autoplay the opponent's move unless guess mode is both
     if (this.guessMode() !== 'both') {
@@ -590,19 +604,19 @@ class Board {
           messageDiv.style.zIndex = '1000';
           document.body.appendChild(messageDiv);
         }
-        
+
         // Remove any existing fade-out class and display the element
         messageDiv.classList.remove('fade-out');
         messageDiv.style.display = 'block';
-        
+
         // Position the message
         const btnRect = exportBtn.getBoundingClientRect();
         messageDiv.style.top = `${btnRect.bottom + 5}px`;
         messageDiv.style.left = `${btnRect.left}px`;
-        
+
         // Show the message
         messageDiv.textContent = 'FEN copied!';
-        
+
         // Start fade out after 1.5 seconds
         setTimeout(() => {
           messageDiv.classList.add('fade-out');
@@ -620,8 +634,53 @@ class Board {
     const activeColor = this.currentMoveIndex % 2 === 0 ? 'w' : 'b';
     // Calculate the full move number
     const fullmoveNumber = Math.floor(this.currentMoveIndex / 2) + this.startingWholeMove;
-    
+
     return `${piecePlacement} ${activeColor} ${this.castlingRights} ${this.enPassant} ${this.halfmoveClock} ${fullmoveNumber}`;
+  }
+
+  formatEvaluation(evaluation) {
+    if (!evaluation) return '';
+
+    const formatScore = (score) => {
+        if (typeof score === 'number') {
+            return score > 0 ? `+${(score/100).toFixed(2)}` : `${(score/100).toFixed(2)}`;
+        }
+        return score;
+    };
+
+    const e = formatScore(evaluation);
+
+    return `Evaluation: ${e}`;
+  }
+
+  compareEvaluations(guessEval, gameEval) {
+    if (!guessEval || !gameEval) return 0;
+    return guessEval - gameEval;
+  }
+
+  getEvaluationComment(guessEval, evalDiff) {
+    var comment = '';
+    if (evalDiff > 50) {
+        comment = "Your move is even better than the game move!";
+    } else if (evalDiff > 10) {
+        comment = "Your move is slightly better than the game move.";
+    } else if (evalDiff < -100) {
+        comment = "The game move was much better.";
+    } else if (evalDiff < -50) {
+        comment = "The game move was significantly better.";
+    } else if (evalDiff < -10) {
+        comment = "The game move was slightly better.";
+    } else {
+        comment = "Your move is about as good as the game move.";
+    }
+    if (evalDiff < 0) {
+      if (evalDiff > -50 && guessEval > 50) {
+        comment += " Your move was still good.";
+      } else if (guessEval > 50) {
+        comment += " Your move was still okay.";
+      }
+    }
+    return comment;
   }
 
 }

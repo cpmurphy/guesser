@@ -36,18 +36,22 @@ class Analyzer
   def parse_analysis(analysis)
     analysis.split("\n").inject([]) do |moves, line|
       if line.start_with?("info")
-        match = line.match(/multipv (\d+) score cp (-?\d+) .* pv (\w+)/)
+        match = line.match(/multipv (\d+) score cp (-?\d+) .* pv (\w+)((\s(\w+))*)/)
         if match
-          # store both the move and the centipawn score
           moves[match[1].to_i - 1] = { score: match[2].to_i, move: match[3] }
+          if match[4]
+            moves[match[1].to_i - 1][:variation] = match[4].split.map(&:strip)
+          end
         else
-          match = line.match(/multipv (\d+) score mate (-?\d+) .* pv (\w+)/)
+          match = line.match(/multipv (\d+) score mate (-?\d+) .* pv (\w+)((\s(\w+))*)/)
           if match
-            move_number = match[1].to_i
             mate_score = match[2].to_i
             base = mate_score < 0 ? -1000 : 1000
             # store both the move and the mate score (1000 - mate score)
-            moves[move_number - 1] = { score: base - mate_score, move: match[3] }
+            moves[match[1].to_i - 1] = { score: base - mate_score, move: match[3] }
+            if match[4]
+              moves[match[1].to_i - 1][:variation] = match[4].split.map(&:strip)
+            end
           else
             match = line.match(/info depth 0 score mate 0/)
             if match

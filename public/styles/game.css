@@ -170,3 +170,8 @@ input#move-input {
   from { opacity: 1; }
   to { opacity: 0; }
 }
+
+#guess_comment {
+    margin-top: 10px;
+    font-style: italic;
+}

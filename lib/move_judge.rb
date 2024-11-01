@@ -10,18 +10,20 @@ class MoveJudge
     guess_eval = @analyzer.evaluate_move(old_fen, guessed_move_uci)
     game_eval = @analyzer.evaluate_move(old_fen, game_move_uci)
     guess_score = 0 - guess_eval[:score]
-    good_move = true if guess_score > 500
+    good_move = guess_score > 500
 
     game_score = 0 - game_eval[:score]
-    good_move = true if guess_score > game_score
+    good_move ||= guess_score > game_score
 
     best_score = best_eval[:score]
-    if best_score > 200
-      good_move = guess_score >= best_score * 0.75
-    elsif best_score > 100 && best_score <= 200
-      good_move = guess_score >= best_score * 0.90
-    elsif best_score <= 100
-      good_move = (best_score - guess_score).abs <= 30
+    if !good_move
+      if best_score > 200
+        good_move = guess_score >= best_score * 0.75
+      elsif best_score > 100 && best_score <= 200
+        good_move = guess_score >= best_score * 0.90
+      elsif best_score <= 100
+        good_move = (best_score - guess_score).abs <= 30
+      end
     end
 
     { good_move: good_move,

@@ -86,6 +86,22 @@ class MoveJudgeTest < Minitest::Test
     mock_analyzer.verify
   end
 
+  def test_good_move_not_within_30_cp_of_best_move_when_over_100
+    mock_analyzer = Minitest::Mock.new
+    mock_analyzer.expect :evaluate_best_move, { score: 484 }, [@fen]
+    mock_analyzer.expect :evaluate_move, { score: -331 }, [@fen, 'a2a3']  # Guess move
+    mock_analyzer.expect :evaluate_move, { score: -87 }, [@fen, 'b1c3']  # Game move
+
+    judge = MoveJudge.new(mock_analyzer)
+    result = judge.compare_moves(@fen, 'a2a3', 'b1c3')
+
+    assert result[:good_move]
+    assert_equal 331, result[:guess_eval][:score]
+    assert_equal 87, result[:game_eval][:score]
+    assert_equal 484, result[:best_eval][:score]
+    mock_analyzer.verify
+  end
+
   def test_not_good_move
     mock_analyzer = Minitest::Mock.new
     mock_analyzer.expect :evaluate_best_move, { score: 32 }, [@fen]

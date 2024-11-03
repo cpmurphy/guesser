@@ -677,14 +677,16 @@ class Board {
         comment = `The game move ${guessCorrect ? `(${gameMove})` : ''} was significantly better.`;
     } else if (evalDiff < -10) {
         comment = `The game move ${guessCorrect ? `(${gameMove})` : ''} was slightly better.`;
-    } else {
+    } else if (guessResult == 'correct') {
         comment = `Your move is about as good as the game move ${guessCorrect ? `(${gameMove})` : ''}.`;
+    } else {
+      comment = `Your move was not as good as the game move.`;
     }
     if (evalDiff < -10) {
       if (evalDiff > -50 && guessEval > 50) {
         comment += " Your move was still good.";
       } else if (guessEval > 50) {
-        comment += " Your move was still okay.";
+        comment += " Your move still leaves you with a reasonable position.";
       }
     }
     return comment;

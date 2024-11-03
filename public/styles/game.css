@@ -175,3 +175,23 @@ input#move-input {
     margin-top: 10px;
     font-style: italic;
 }
+
+#promotion-dialog {
+  box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+  border-radius: 4px;
+}
+
+.promotion-choice {
+  display: block;
+  width: 40px;
+  height: 40px;
+  margin: 5px;
+  font-size: 20px;
+  cursor: pointer;
+  border: 1px solid #ccc;
+  background: white;
+}
+
+.promotion-choice:hover {
+  background: #f0f0f0;
+}

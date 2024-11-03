@@ -224,6 +224,17 @@ class ChessGuesser < Sinatra::Base
 
   post '/guess' do
     guess = JSON.parse(request.body.read)
+    guessed_move = guess['guessed_move']
+    source = guessed_move['source']
+    target = guessed_move['target']
+    
+    # Check if this is a pawn promotion move
+    if needs_promotion?(source, target, guessed_move['piece'])
+      unless guessed_move['promotion']
+        return { result: 'needs_promotion', source: source, target: target }.to_json
+      end
+    end
+
     current_move = guess['current_move'].to_i - 1
     number_of_moves = guess['number_of_moves'].to_i
     guess_state = {}
@@ -309,6 +320,14 @@ class ChessGuesser < Sinatra::Base
     move_translator = MoveTranslator.new
     move_translator.load_game_from_fen(old_fen)
     move_translator.translate_move(game.moves[current_move].notation)
+  end
+
+  def needs_promotion?(source, target, piece)
+    # Check if it's a pawn move to the last rank
+    return false unless piece.end_with?('P')
+    source_rank = source[1].to_i
+    target_rank = target[1].to_i
+    (source_rank == 7 && target_rank == 8) || (source_rank == 2 && target_rank == 1)
   end
 
   # start the server if ruby file executed directly

@@ -40,6 +40,14 @@ class ChessGuesser < Sinatra::Base
     config.referrer_policy = %w(strict-origin-when-cross-origin)
   end
 
+  before do
+    if request.post?
+      if request.content_length.to_i > 1024*1024  # 1MB limit
+        halt 413, { error: 'Request entity too large' }.to_json
+      end
+    end
+  end
+
   def initialize
     super
     @move_judge = MoveJudge.new

@@ -442,6 +442,14 @@ class Board {
   }
 
   makeMove(source, target, promotion, newPos, oldPos) {
+    // Check if the move matches the current move exactly
+    const currentMove = this.uiMoves[this.currentMoveIndex];
+    if (currentMove && this.isExactMatch(source, target, currentMove)) {
+      // Handle as correct guess without making a POST request
+      this.handleCorrectGuess(currentMove);
+      return;
+    }
+
     fetch('/guess', {
       method: 'POST',
       headers: {
@@ -482,6 +490,13 @@ class Board {
   }
 
   isExactMatch(source, target, currentMove) {
+    // For a promotion move, we need to match both the move and the promotion piece
+    if (currentMove.add) {
+      const promotionPiece = this.board.position()[target].charAt(1).toLowerCase();
+      return currentMove.moves.some(move => move === `${source}-${target}`) &&
+             currentMove.add[0].toLowerCase() === promotionPiece;
+    }
+    // For non-promotion moves, just match the move
     return currentMove.moves.some(move => move === `${source}-${target}`);
   }
 

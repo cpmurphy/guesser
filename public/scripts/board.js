@@ -1,5 +1,8 @@
+import ChessRules from './chess_rules.js';
+
 export default class Board {
   constructor(data) {
+    this.chessRules = new ChessRules();
     this.board = null;
     this.gameResult = data.gameResult;
     this.lastMoveElement = document.getElementById('last-move');
@@ -341,6 +344,11 @@ export default class Board {
 
   onDrop(source, target, piece, newPos, oldPos) {
     if (source === target || this.gameOver()) {
+      return 'snapback';
+    }
+
+    // Check if the move is legal
+    if (!this.chessRules.isLegalMove(source, target, piece, this.board.position(), this.enPassant)) {
       return 'snapback';
     }
 

@@ -56,9 +56,10 @@
       #actions
         %a{href: "/"} Other games
 
-    %script{src:"/scripts/board.js"}
+    %script{type: "module", src:"/scripts/board.js"}
     :javascript
-      document.addEventListener('DOMContentLoaded', () => {
+      document.addEventListener('DOMContentLoaded', async () => {
+        const { default: Board } = await import('/scripts/board.js');
         const guesserState = {
           uiMoves: #{ui_moves.to_json},
           moves: #{moves.to_json},

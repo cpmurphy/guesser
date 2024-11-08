@@ -7,7 +7,15 @@ Rake::TestTask.new do |t|
   t.verbose = true
 end
 
-task default: :test
+desc 'Run UI tests'
+task :ui_test do
+  sh "npm run test_once"
+end
+
+desc 'Run all the tests'
+task :test_all => [:test, :ui_test]
+
+task default: :test_all
 
 # New tasks for Docker
 

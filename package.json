@@ -1,0 +1,11 @@
+{
+  "type": "module",
+  "devDependencies": {
+    "@vitest/browser": "^1.6.0",
+    "vitest": "^1.6.0"
+  },
+  "scripts": {
+    "test": "vitest",
+    "test_once": "vitest run"
+  }
+}

@@ -1,4 +1,4 @@
-class Board {
+export default class Board {
   constructor(data) {
     this.board = null;
     this.gameResult = data.gameResult;
@@ -38,7 +38,8 @@ class Board {
     this.uiMoves = data.uiMoves;
     this.startingWholeMove = data.startingWholeMove;
     this.currentWholeMove = data.currentWholeMove;
-    this.sideWithFirstMove = data.sideToMove;
+    this.sideWithFirstMove = this.extractSideFromFen(data.fen);
+    this.sideToMove = data.sideToMove;
     this.fen = data.fen;
     this.gameResult = data.gameResult;
     this.initializeBoard(this.fen);
@@ -46,9 +47,11 @@ class Board {
     document.getElementById('white').textContent = data.white;
     document.getElementById('black').textContent = data.black;
     this.currentMoveIndex = 0;
+    this.startingMoveIndex = 0;
     if (data.currentWholeMove && data.currentWholeMove > this.startingWholeMove) {
-      const moveIncrement = this.isWhiteToMove(this.currentMoveIndex) ? 0 : 1;
-      this.goToMoveIndex((data.currentWholeMove - this.startingWholeMove) * 2 + moveIncrement);
+      const moveIncrement = this.sideToMove === 'white' ? 0 : 1;
+      const moveIndex = (data.currentWholeMove - this.startingWholeMove) * 2 + moveIncrement;
+      this.goToMoveIndex(moveIndex);
     }
     this.resetTouchState();
     this.updateLastMoveDisplay();
@@ -56,6 +59,13 @@ class Board {
     if (!this.isWhiteToMove(this.currentMoveIndex)) {
       this.flipBoard();
     }
+  }
+
+  extractSideFromFen(fen) {
+    if (fen) {
+      return fen.split(' ')[1].toLowerCase() == 'w' ? 'white' : 'black';
+    }
+    return 'white';
   }
 
   isWhiteToMove(moveIndex) {
@@ -314,10 +324,10 @@ class Board {
   isPieceAvailableToMove(piece) {
     const currentGuessMode = this.guessMode();
     const pieceColor = piece.charAt(0);
-    if (pieceColor === 'w' && this.currentMoveIndex % 2 == 1) {
+    if (pieceColor === 'w' && !this.isWhiteToMove(this.currentMoveIndex)) {
       return false;
     }
-    if (pieceColor === 'b' && this.currentMoveIndex % 2 == 0) {
+    if (pieceColor === 'b' && this.isWhiteToMove(this.currentMoveIndex)) {
       return false;
     }
     return currentGuessMode === 'both' ||
@@ -512,7 +522,7 @@ class Board {
   }
 
   fastRewind() {
-    const numMoves = this.currentMoveIndex - (this.startingWholeMove - 1) * 2;
+    const numMoves = this.currentMoveIndex;
     this.sequentialMove(numMoves, this.moveBackward.bind(this));
   }
 
@@ -540,8 +550,9 @@ class Board {
   }
 
   setLastMoveDisplay(moveIndex, moveNotation) {
-    const wholeMoveNumber = Math.floor(moveIndex / 2) + this.startingWholeMove;
-    this.lastMoveElement.textContent = `${wholeMoveNumber}. ${this.isWhiteToMove(moveIndex) ? '' : '...'} ${moveNotation}`;
+    const moveOffset = this.sideWithFirstMove == 'black' ? moveIndex + 1 : moveIndex;
+    const wholeMoveNumber = Math.floor(moveOffset / 2) + this.startingWholeMove;
+    this.lastMoveElement.textContent = `${wholeMoveNumber}${this.isWhiteToMove(moveIndex) ? '.' : '...'} ${moveNotation}`;
   }
 
   setupTouchEvents() {

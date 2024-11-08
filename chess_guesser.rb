@@ -108,7 +108,9 @@ class ChessGuesser < Sinatra::Base
     if params[:move]
       game_state[:current_whole_move] = params[:move].to_i
     end
-    game_state[:side_to_move] = params[:side]
+    if params[:side]
+      game_state[:side_to_move] = params[:side]
+    end
     haml :game, locals: game_state
   end
 
@@ -134,7 +136,9 @@ class ChessGuesser < Sinatra::Base
     if params[:move]
       game_state[:current_whole_move] = params[:move].to_i
     end
-    game_state[:side_to_move] = params[:side]
+    if params[:side]
+      game_state[:side_to_move] = params[:side]
+    end
     haml :game, locals: game_state
   end
 
@@ -183,6 +187,7 @@ class ChessGuesser < Sinatra::Base
   def build_game_state(game)
     moves = game.moves.map(&:notation)
     move_translator = MoveTranslator.new
+    side_with_first_move = game.starting_position ? game.starting_position.player : 'white'
     starting_move = 1
     if game.starting_position
       move_translator.load_game_from_fen(game.starting_position.to_fen.to_s)
@@ -194,6 +199,7 @@ class ChessGuesser < Sinatra::Base
       ui_moves: moves.map { |move| move_translator.translate_move(move) },
       starting_whole_move: starting_move,
       current_whole_move: starting_move,
+      side_to_move: side_with_first_move,
       white: game.tags['White'],
       black: game.tags['Black'],
       date: game.tags['Date'],

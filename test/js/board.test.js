@@ -184,4 +184,51 @@ describe('Board', () => {
     });
   });
 
+  describe('initializeGuessMode', () => {
+    beforeEach(() => {
+      document.body.innerHTML += `
+        <input type="radio" name="guess_mode" value="white">
+        <input type="radio" name="guess_mode" value="black">
+        <input type="radio" name="guess_mode" value="both">
+      `;
+    });
+
+    it('sets correct guess mode when starting mid-game with black to move', () => {
+      const data = createGameData({
+        currentWholeMove: 15,
+        sideToMove: 'black',
+        fen: 'r1bk3r/pppp2bp/2n5/4p2q/2BP1pNP/2P5/PP4P1/2BQ2KR b - - 0 15'
+      });
+      
+      const board = new Board(data);
+      const blackRadio = document.querySelector('input[name="guess_mode"][value="black"]');
+      expect(blackRadio.checked).toBe(true);
+    });
+
+    it('sets correct guess mode when starting mid-game with white to move', () => {
+      const data = createGameData({
+        currentWholeMove: 15,
+        sideToMove: 'white',
+        fen: 'r1bk3r/pppp2bp/2n5/4p2q/2BP1pNP/2P5/PP4P1/2BQ2KR w - - 0 15'
+      });
+      
+      const board = new Board(data);
+      const whiteRadio = document.querySelector('input[name="guess_mode"][value="white"]');
+      expect(whiteRadio.checked).toBe(true);
+    });
+
+    it('does not change guess mode when starting from move 1', () => {
+      const whiteRadio = document.querySelector('input[name="guess_mode"][value="white"]');
+      whiteRadio.checked = true;
+
+      const data = createGameData({
+        currentWholeMove: 1,
+        sideToMove: 'white'
+      });
+      
+      const board = new Board(data);
+      expect(whiteRadio.checked).toBe(true);
+    });
+  });
+
 });

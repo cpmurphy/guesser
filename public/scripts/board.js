@@ -36,6 +36,9 @@ export default class Board {
   }
 
   onGameLoaded(data) {
+    this.initializeBoard(data.fen);
+    this.initializeButtonStates(data.moves.length > 0);
+    this.initializeGuessMode(data.currentWholeMove, data.sideToMove);
     this.moves = data.moves;
     this.result = data.result;
     this.uiMoves = data.uiMoves;
@@ -45,8 +48,6 @@ export default class Board {
     this.sideToMove = data.sideToMove;
     this.fen = data.fen;
     this.gameResult = data.gameResult;
-    this.initializeBoard(this.fen);
-    this.initializeButtonStates(true);
     document.getElementById('white').textContent = data.white;
     document.getElementById('black').textContent = data.black;
     this.currentMoveIndex = 0;
@@ -794,6 +795,16 @@ export default class Board {
     guessResult.style.color = headlineColor;
     guessResult.textContent = headlineText;
     guessComment.textContent = commentText;
+  }
+
+  initializeGuessMode(currentWholeMove, sideToMove) {
+    if (currentWholeMove !== 1) {
+      const guessMode = sideToMove === 'white' ? 'white' : 'black';
+      const radioButton = document.querySelector(`input[name="guess_mode"][value="${guessMode}"]`);
+      if (radioButton) {
+        radioButton.checked = true;
+      }
+    }
   }
 
 }

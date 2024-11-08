@@ -329,10 +329,8 @@ class Board {
       return 'snapback';
     }
 
-    // Store the old position before making any changes
     this.lastPosition = oldPos;
 
-    // Check for pawn promotion
     if (this.needsPromotion(source, target, piece)) {
       this.showPromotionDialog(source, target, piece, newPos, oldPos);
       return;
@@ -346,147 +344,38 @@ class Board {
       }
     }
 
-    // Check if the move matches the current move exactly
+    this.submitGuess(source, target, null, newPos, oldPos);
+  }
+
+  submitGuess(source, target, promotion, newPos, oldPos) {
     const currentMove = this.uiMoves[this.currentMoveIndex];
     if (currentMove && this.isExactMatch(source, target, currentMove)) {
-      // Handle as correct guess without making a POST request
       this.handleCorrectGuess(currentMove);
       return;
     }
 
-    // If not an exact match, proceed with the POST request
-    fetch('/guess', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        path: window.location.pathname,
-        current_move: this.currentMoveIndex + 1,
-        game_move: this.uiMoves[this.currentMoveIndex],
-        number_of_moves: this.moves.length,
-        guessed_move: {
-          source,
-          target,
-          piece,
-          newPos: Chessboard.objToFen(newPos),
-          oldPos: Chessboard.objToFen(oldPos)
-        }
-      })
-    })
-      .then(response => response.json())
-      .then(data => {
-        if (data.result === 'auto_move') {
-          this.board.position(data.fen);
-          this.updateButtonStates();
-        } else {
-          this.handleGuessResult(data);
-        }
-      });
-  }
-
-  needsPromotion(source, target, piece) {
-    if (!piece.endsWith('P')) return false;
-    const targetRank = target[1];
-    return (piece.startsWith('w') && targetRank === '8') || 
-           (piece.startsWith('b') && targetRank === '1');
-  }
-
-  showPromotionDialog(source, target, piece, newPos, oldPos) {
-    const color = piece.charAt(0);
-    const promotionPieces = ['Q', 'R', 'B', 'N'];
-    
-    const dialog = document.createElement('div');
-    dialog.id = 'promotion-dialog';
-    dialog.style.position = 'fixed';
-    dialog.style.backgroundColor = 'white';
-    dialog.style.border = '1px solid black';
-    dialog.style.padding = '10px';
-    dialog.style.zIndex = 1000;
-    
-    promotionPieces.forEach(pieceType => {
-      const button = document.createElement('button');
-      button.className = 'promotion-choice';
-      button.textContent = pieceType;
-      button.onclick = () => {
-        const promotedPiece = color + pieceType;
-        newPos[target] = promotedPiece;
-        this.board.position(newPos);
-        
-        this.makeMove(source, target, promotedPiece, newPos, oldPos);
-        document.body.removeChild(dialog);
-      };
-      dialog.appendChild(button);
-    });
-    
-    // Position the dialog near the target square
-    const boardEl = document.getElementById('board');
-    const boardRect = boardEl.getBoundingClientRect();
-    const squareSize = boardRect.width / 8;
-    
-    // Determine if the board is flipped
-    const isFlipped = this.board.orientation() === 'black';
-    
-    // Calculate file and rank based on board orientation
-    const file = target.charCodeAt(0) - 'a'.charCodeAt(0);
-    const rank = target.charCodeAt(1) - '1'.charCodeAt(0);
-    
-    // Adjust coordinates based on orientation
-    const x = isFlipped ? (7 - file) : file;
-    const y = isFlipped ? rank : (7 - rank);
-    
-    dialog.style.left = `${boardRect.left + x * squareSize}px`;
-    dialog.style.top = `${boardRect.top + y * squareSize}px`;
-    
-    document.body.appendChild(dialog);
-  }
-
-  makeMove(source, target, promotion, newPos, oldPos) {
-    // Check if the move matches the current move exactly
-    const currentMove = this.uiMoves[this.currentMoveIndex];
-    if (currentMove && this.isExactMatch(source, target, currentMove)) {
-      // Handle as correct guess without making a POST request
-      this.handleCorrectGuess(currentMove);
-      return;
-    }
+    const guessData = {
+      path: window.location.pathname,
+      current_move: this.currentMoveIndex + 1,
+      game_move: this.uiMoves[this.currentMoveIndex],
+      number_of_moves: this.moves.length,
+      guessed_move: {
+        source,
+        target,
+        piece: promotion || this.board.position()[source],
+        promotion: promotion ? promotion.charAt(1) : undefined,
+        newPos: Chessboard.objToFen(newPos),
+        oldPos: Chessboard.objToFen(oldPos)
+      }
+    };
 
     fetch('/guess', {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        path: window.location.pathname,
-        current_move: this.currentMoveIndex + 1,
-        game_move: this.uiMoves[this.currentMoveIndex],
-        number_of_moves: this.moves.length,
-        guessed_move: {
-          source,
-          target,
-          piece: promotion || this.board.position()[source],
-          promotion: promotion ? promotion.charAt(1) : undefined,
-          newPos: Chessboard.objToFen(newPos),
-          oldPos: Chessboard.objToFen(oldPos)
-        }
-      })
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(guessData)
     })
     .then(response => response.json())
-    .then(data => {
-      if (data.result === 'needs_promotion') {
-        // Dialog is already showing, do nothing
-        return;
-      }
-      if (data.result === 'auto_move') {
-        this.board.position(data.fen);
-        this.updateButtonStates();
-      } else {
-        this.handleGuessResult(data);
-      }
-    });
-  }
-
-  updateCastlingRightsHistory() {
-    this.castlingRightsHistory[this.currentMoveIndex] = this.castlingRights;
+    .then(this.handleGuessResponse.bind(this));
   }
 
   isExactMatch(source, target, currentMove) {
@@ -500,31 +389,43 @@ class Board {
     return currentMove.moves.some(move => move === `${source}-${target}`);
   }
 
-  updateGuessStatus(headlineColor, headlineText, commentText) {
-    const guessResult = document.getElementById('guess_result');
-    const guessComment = document.getElementById('guess_comment');
-    const guessSubcomment = document.getElementById('guess_subcomment');
-
-    guessResult.style.color = headlineColor;
-    guessResult.textContent = headlineText;
-    guessComment.textContent = commentText;
+  handleGuessResponse(data) {
+    if (data.result === 'needs_promotion') {
+      return; // Dialog is already showing
+    }
+    if (data.result === 'auto_move') {
+      this.board.position(data.fen);
+      this.updateButtonStates();
+    } else {
+      this.handleGuessResult(data);
+    }
   }
 
-  handleCorrectGuess(move) {
-    this.updateGuessStatus('green', 'Correct!', 'This is what was played.');
-    this.currentMoveIndex++;
-    // autoplay the opponent's move unless guess mode is both
-    if (this.guessMode() !== 'both') {
-      setTimeout(() => {
-        this.moveForward();
-      }, 200);
-    }
-    this.updateButtonStates();
-    this.updateLastMoveDisplay();
-    this.resetTouchState();
-    if (this.gameOver()) {
-      this.displayGameResult();
-    }
+  showPromotionDialog(source, target, piece, newPos, oldPos) {
+    const dialog = this.createPromotionDialog();
+    const color = piece.charAt(0);
+
+    ['Q', 'R', 'B', 'N'].forEach(pieceType => {
+      const button = this.createPromotionButton(pieceType, () => {
+        const promotedPiece = color + pieceType;
+        newPos[target] = promotedPiece;
+        this.board.position(newPos);
+
+        this.submitGuess(source, target, promotedPiece, newPos, oldPos);
+        document.body.removeChild(dialog);
+      });
+      dialog.appendChild(button);
+    });
+
+    this.positionPromotionDialog(dialog, target);
+    document.body.appendChild(dialog);
+  }
+
+  needsPromotion(source, target, piece) {
+    if (!piece.endsWith('P')) return false;
+    const targetRank = target[1];
+    return (piece.startsWith('w') && targetRank === '8') ||
+           (piece.startsWith('b') && targetRank === '1');
   }
 
   isCastling(piece, source, target) {
@@ -533,6 +434,10 @@ class Board {
     const queenside = (piece === 'wK' && source === 'e1' && target === 'c1') ||
       (piece === 'bK' && source === 'e8' && target === 'c8');
     return kingside || queenside;
+  }
+
+  updateCastlingRightsHistory() {
+    this.castlingRightsHistory[this.currentMoveIndex] = this.castlingRights;
   }
 
   performCastling(piece, target, newPos) {
@@ -803,6 +708,69 @@ class Board {
       }
     }
     return comment;
+  }
+
+  // Helper methods for promotion dialog
+  createPromotionDialog() {
+    const dialog = document.createElement('div');
+    dialog.id = 'promotion-dialog';
+    dialog.style.position = 'fixed';
+    dialog.style.backgroundColor = 'white';
+    dialog.style.border = '1px solid black';
+    dialog.style.padding = '10px';
+    dialog.style.zIndex = 1000;
+    return dialog;
+  }
+
+  createPromotionButton(pieceType, onClick) {
+    const button = document.createElement('button');
+    button.className = 'promotion-choice';
+    button.textContent = pieceType;
+    button.onclick = onClick;
+    return button;
+  }
+
+  positionPromotionDialog(dialog, target) {
+    const boardEl = document.getElementById('board');
+    const boardRect = boardEl.getBoundingClientRect();
+    const squareSize = boardRect.width / 8;
+
+    const isFlipped = this.board.orientation() === 'black';
+    const file = target.charCodeAt(0) - 'a'.charCodeAt(0);
+    const rank = target.charCodeAt(1) - '1'.charCodeAt(0);
+
+    const x = isFlipped ? (7 - file) : file;
+    const y = isFlipped ? rank : (7 - rank);
+
+    dialog.style.left = `${boardRect.left + x * squareSize}px`;
+    dialog.style.top = `${boardRect.top + y * squareSize}px`;
+  }
+
+  handleCorrectGuess(move) {
+    this.updateGuessStatus('green', 'Correct!', 'This is what was played.');
+    this.currentMoveIndex++;
+    // autoplay the opponent's move unless guess mode is both
+    if (this.guessMode() !== 'both') {
+      setTimeout(() => {
+        this.moveForward();
+      }, 200);
+    }
+    this.updateButtonStates();
+    this.updateLastMoveDisplay();
+    this.resetTouchState();
+    if (this.gameOver()) {
+      this.displayGameResult();
+    }
+  }
+
+  updateGuessStatus(headlineColor, headlineText, commentText) {
+    const guessResult = document.getElementById('guess_result');
+    const guessComment = document.getElementById('guess_comment');
+    const guessSubcomment = document.getElementById('guess_subcomment');
+
+    guessResult.style.color = headlineColor;
+    guessResult.textContent = headlineText;
+    guessComment.textContent = commentText;
   }
 
 }

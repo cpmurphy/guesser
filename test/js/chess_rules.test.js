@@ -161,5 +161,57 @@ describe('ChessRules', () => {
 
       expect(rules.isLegalMove('e1', 'g1', 'wK', position, '-')).toBe(false);
     });
+
+    it('prevents castling while in check', () => {
+      const position = {
+        'e1': 'wK',
+        'h1': 'wR',
+        'e8': 'bR'  // Black rook giving check
+      };
+
+      expect(rules.isLegalMove('e1', 'g1', 'wK', position, '-', 'KQkq')).toBe(false);
+    });
+
+    it('prevents castling through check', () => {
+      const position = {
+        'e1': 'wK',
+        'h1': 'wR',
+        'e8': 'bR',  // Black rook controlling f1
+        'h8': 'bK'
+      };
+
+      expect(rules.isLegalMove('e1', 'g1', 'wK', position, '-', 'KQkq')).toBe(false);
+    });
+
+    it('prevents castling when castling rights are lost', () => {
+      const position = {
+        'e1': 'wK',
+        'h1': 'wR'
+      };
+
+      // No castling rights
+      expect(rules.isLegalMove('e1', 'g1', 'wK', position, '-', '')).toBe(false);
+
+      // Only queenside castling rights
+      expect(rules.isLegalMove('e1', 'g1', 'wK', position, '-', 'Q')).toBe(false);
+    });
+
+    it('allows normal king moves even after losing castling rights', () => {
+      const position = {
+        'e1': 'wK'
+      };
+
+      // Should be able to move one square even without castling rights
+      expect(rules.isLegalMove('e1', 'e2', 'wK', position, '-', '')).toBe(true);
+    });
+
+    it('prevents moving into check', () => {
+      const position = {
+        'f1': 'wK',
+        'e8': 'bR'  // Black rook controlling e-file
+      };
+
+      expect(rules.isLegalMove('f1', 'e2', 'wK', position, '-', 'KQkq')).toBe(false);
+    });
   });
 });

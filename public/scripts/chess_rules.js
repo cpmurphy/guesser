@@ -1,7 +1,7 @@
 export default class ChessRules {
   constructor() {}
 
-  isLegalMove(source, target, piece, position, enPassant) {
+  isLegalMove(source, target, piece, position, enPassant, castlingRights = 'KQkq', skipCheckValidation = false) {
     const pieceType = piece.charAt(1).toLowerCase();
     const isWhite = piece.charAt(0) === 'w';
     const sourceRank = parseInt(source.charAt(1));
@@ -11,7 +11,16 @@ export default class ChessRules {
     const fileDiff = Math.abs(targetFile.charCodeAt(0) - sourceFile.charCodeAt(0));
     const rankDiff = Math.abs(targetRank - sourceRank);
 
-    // Basic piece movement rules
+    // Only check for check if not skipping validation
+    if (!skipCheckValidation && this.isInCheck(isWhite, position)) {
+      const testPosition = { ...position };
+      delete testPosition[source];
+      testPosition[target] = piece;
+      if (this.isInCheck(isWhite, testPosition)) {
+        return false;
+      }
+    }
+
     switch (pieceType) {
       case 'p': // Pawn
         return this.isLegalPawnMove(source, target, isWhite, fileDiff, rankDiff, position, enPassant);
@@ -24,7 +33,7 @@ export default class ChessRules {
       case 'q': // Queen
         return this.isLegalQueenMove(source, target, fileDiff, rankDiff, position);
       case 'k': // King
-        return this.isLegalKingMove(fileDiff, rankDiff, source, piece, position);
+        return this.isLegalKingMove(fileDiff, rankDiff, source, target, piece, position, castlingRights, skipCheckValidation);
       default:
         return false;
     }
@@ -82,35 +91,103 @@ export default class ChessRules {
            ((fileDiff === 0 || rankDiff === 0) && this.isStraightPathClear(source, target, position));
   }
 
-  isLegalKingMove(fileDiff, rankDiff, source, piece, position) {
+  isLegalKingMove(fileDiff, rankDiff, source, target, piece, position, castlingRights, skipCheckValidation = false) {
+    const isWhite = piece === 'wK';
+
     // Normal king moves (one square in any direction)
     if (fileDiff <= 1 && rankDiff <= 1) {
-      return true;
+      // Skip check validation if requested
+      if (skipCheckValidation) {
+        return true;
+      }
+      // Check if the target square is under attack
+      const testPosition = { ...position };
+      delete testPosition[source];
+      testPosition[target] = piece;
+      return !this.isSquareUnderAttack(target, isWhite, testPosition);
+    }
+
+    // Skip castling validation if we're just checking for attacks
+    if (skipCheckValidation) {
+      return false;
     }
 
     // Castling
     if (rankDiff === 0 && fileDiff === 2) {
-      const isWhite = piece === 'wK';
       const rank = isWhite ? '1' : '8';
-      
-      // Kingside castling
-      if (source === `e${rank}` && 
-          !position[`f${rank}`] && 
-          !position[`g${rank}`] && 
-          position[`h${rank}`] === (isWhite ? 'wR' : 'bR')) {
-        return true;
+
+      // Cannot castle while in check
+      if (this.isInCheck(isWhite, position)) {
+        return false;
       }
-      
+
+      // Kingside castling
+      if (target === `g${rank}` &&
+          this.canCastleKingside(isWhite, position, castlingRights)) {
+        // Check if squares between king and rook are under attack
+        return !this.isSquareUnderAttack(`f${rank}`, isWhite, position) &&
+               !this.isSquareUnderAttack(`g${rank}`, isWhite, position);
+      }
+
       // Queenside castling
-      if (source === `e${rank}` && 
-          !position[`d${rank}`] && 
-          !position[`c${rank}`] && 
-          !position[`b${rank}`] && 
-          position[`a${rank}`] === (isWhite ? 'wR' : 'bR')) {
+      if (target === `c${rank}` &&
+          this.canCastleQueenside(isWhite, position, castlingRights)) {
+        // Check if squares between king and rook are under attack
+        return !this.isSquareUnderAttack(`d${rank}`, isWhite, position) &&
+               !this.isSquareUnderAttack(`c${rank}`, isWhite, position);
+      }
+    }
+
+    return false;
+  }
+
+  canCastleKingside(isWhite, position, castlingRights) {
+    const rank = isWhite ? '1' : '8';
+    const rights = isWhite ? 'K' : 'k';
+
+    return castlingRights.includes(rights) &&
+           !position[`f${rank}`] &&
+           !position[`g${rank}`] &&
+           position[`h${rank}`] === (isWhite ? 'wR' : 'bR');
+  }
+
+  canCastleQueenside(isWhite, position, castlingRights) {
+    const rank = isWhite ? '1' : '8';
+    const rights = isWhite ? 'Q' : 'q';
+
+    return castlingRights.includes(rights) &&
+           !position[`d${rank}`] &&
+           !position[`c${rank}`] &&
+           !position[`b${rank}`] &&
+           position[`a${rank}`] === (isWhite ? 'wR' : 'bR');
+  }
+
+  isInCheck(isWhite, position) {
+    // Find the king
+    const king = isWhite ? 'wK' : 'bK';
+    let kingSquare = null;
+    for (const [square, piece] of Object.entries(position)) {
+      if (piece === king) {
+        kingSquare = square;
+        break;
+      }
+    }
+
+    return kingSquare && this.isSquareUnderAttack(kingSquare, isWhite, position);
+  }
+
+  isSquareUnderAttack(square, isWhite, position) {
+    for (const [src, piece] of Object.entries(position)) {
+      // Skip pieces of the same color
+      if ((isWhite && piece[0] === 'w') || (!isWhite && piece[0] === 'b')) {
+        continue;
+      }
+
+      // Pass skipCheckValidation=true to avoid infinite recursion
+      if (this.isLegalMove(src, square, piece, position, '-', '', true)) {
         return true;
       }
     }
-    
     return false;
   }
 

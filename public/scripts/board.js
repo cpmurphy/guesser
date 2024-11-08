@@ -38,7 +38,7 @@ class Board {
     this.uiMoves = data.uiMoves;
     this.startingWholeMove = data.startingWholeMove;
     this.currentWholeMove = data.currentWholeMove;
-    this.sideToMove = data.sideToMove;
+    this.sideWithFirstMove = data.sideToMove;
     this.fen = data.fen;
     this.gameResult = data.gameResult;
     this.initializeBoard(this.fen);
@@ -47,15 +47,20 @@ class Board {
     document.getElementById('black').textContent = data.black;
     this.currentMoveIndex = 0;
     if (data.currentWholeMove && data.currentWholeMove > this.startingWholeMove) {
-      const moveIncrement = this.sideToMove === 'white' ? 0 : 1;
+      const moveIncrement = this.isWhiteToMove(this.currentMoveIndex) ? 0 : 1;
       this.goToMoveIndex((data.currentWholeMove - this.startingWholeMove) * 2 + moveIncrement);
     }
     this.resetTouchState();
     this.updateLastMoveDisplay();
-    this.updateGuessMode(this.sideToMove);
-    if (this.sideToMove === 'black') {
+    this.updateGuessMode();
+    if (!this.isWhiteToMove(this.currentMoveIndex)) {
       this.flipBoard();
     }
+  }
+
+  isWhiteToMove(moveIndex) {
+    const isFirstMoveWhite = this.sideWithFirstMove === 'white';
+    return (moveIndex % 2 === 0) === isFirstMoveWhite;
   }
 
   resetTouchState() {
@@ -270,7 +275,7 @@ class Board {
         moveQueue.push({ fen: this.lastPosition });
       } else if (move.result === 'auto_move') {
         moveQueue.push({ fen: move.fen });
-        this.setLastMoveDisplay(this.currentMoveIndex, this.sideToMove === 'black', move.move);
+        this.setLastMoveDisplay(move.move_number, move.move);
         this.updateButtonStates();
       }
     });
@@ -344,10 +349,10 @@ class Board {
       }
     }
 
-    this.submitGuess(source, target, null, newPos, oldPos);
+    this.submitGuess(source, target, piece, null, newPos, oldPos);
   }
 
-  submitGuess(source, target, promotion, newPos, oldPos) {
+  submitGuess(source, target, piece, promotedPiece, newPos, oldPos) {
     const currentMove = this.uiMoves[this.currentMoveIndex];
     if (currentMove && this.isExactMatch(source, target, currentMove)) {
       this.handleCorrectGuess(currentMove);
@@ -362,8 +367,8 @@ class Board {
       guessed_move: {
         source,
         target,
-        piece: promotion || this.board.position()[source],
-        promotion: promotion ? promotion.charAt(1) : undefined,
+        piece: piece,
+        promotion: promotedPiece ? promotedPiece.charAt(1) : undefined,
         newPos: Chessboard.objToFen(newPos),
         oldPos: Chessboard.objToFen(oldPos)
       }
@@ -411,7 +416,7 @@ class Board {
         newPos[target] = promotedPiece;
         this.board.position(newPos);
 
-        this.submitGuess(source, target, promotedPiece, newPos, oldPos);
+        this.submitGuess(source, target, piece, promotedPiece, newPos, oldPos);
         document.body.removeChild(dialog);
       });
       dialog.appendChild(button);
@@ -528,16 +533,15 @@ class Board {
       this.lastMoveElement.textContent = '';
     } else {
       const lastMoveIndex = this.currentMoveIndex - 1;
-      const isBlackMove = lastMoveIndex % 2 === 1;
       const moveNotation = this.moves[lastMoveIndex];
 
-      this.setLastMoveDisplay(lastMoveIndex, isBlackMove, moveNotation);
+      this.setLastMoveDisplay(lastMoveIndex, moveNotation);
     }
   }
 
-  setLastMoveDisplay(moveIndex, isBlackMove, moveNotation) {
+  setLastMoveDisplay(moveIndex, moveNotation) {
     const wholeMoveNumber = Math.floor(moveIndex / 2) + this.startingWholeMove;
-    this.lastMoveElement.textContent = `${wholeMoveNumber}${isBlackMove ? '...' : '.'} ${moveNotation}`;
+    this.lastMoveElement.textContent = `${wholeMoveNumber}. ${this.isWhiteToMove(moveIndex) ? '' : '...'} ${moveNotation}`;
   }
 
   setupTouchEvents() {

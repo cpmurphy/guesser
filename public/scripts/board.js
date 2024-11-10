@@ -288,9 +288,15 @@ export default class Board {
         );
         moveQueue.push({ fen: this.lastPosition });
       } else if (move.result === 'auto_move') {
-        moveQueue.push({ fen: move.fen });
-        this.setLastMoveDisplay(move.move_number, move.move);
-        this.updateButtonStates();
+        if (this.guessMode() == 'both') {
+          this.currentMoveIndex--; // Ignore the auto move
+          this.setLastMoveDisplay(this.currentMoveIndex, this.moves[this.currentMoveIndex - 1]);
+          this.updateButtonStates();
+        } else {
+          moveQueue.push({ fen: move.fen });
+          this.setLastMoveDisplay(move.move_number, move.move);
+          this.updateButtonStates();
+        }
       }
     });
 

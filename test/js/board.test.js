@@ -199,7 +199,7 @@ describe('Board', () => {
         sideToMove: 'black',
         fen: 'r1bk3r/pppp2bp/2n5/4p2q/2BP1pNP/2P5/PP4P1/2BQ2KR b - - 0 15'
       });
-      
+
       const board = new Board(data);
       const blackRadio = document.querySelector('input[name="guess_mode"][value="black"]');
       expect(blackRadio.checked).toBe(true);
@@ -211,7 +211,7 @@ describe('Board', () => {
         sideToMove: 'white',
         fen: 'r1bk3r/pppp2bp/2n5/4p2q/2BP1pNP/2P5/PP4P1/2BQ2KR w - - 0 15'
       });
-      
+
       const board = new Board(data);
       const whiteRadio = document.querySelector('input[name="guess_mode"][value="white"]');
       expect(whiteRadio.checked).toBe(true);
@@ -225,9 +225,288 @@ describe('Board', () => {
         currentWholeMove: 1,
         sideToMove: 'white'
       });
-      
+
       const board = new Board(data);
       expect(whiteRadio.checked).toBe(true);
+    });
+  });
+
+  describe('handleCorrectGuess', () => {
+    beforeEach(() => {
+      document.body.innerHTML += `
+        <input type="radio" name="guess_mode" value="white">
+        <input type="radio" name="guess_mode" value="black">
+        <input type="radio" name="guess_mode" value="both">
+      `;
+
+      // Mock setTimeout
+      vi.useFakeTimers();
+    });
+
+    afterEach(() => {
+      vi.useRealTimers();
+    });
+
+    it('auto-plays opponent move when guessing as white only', () => {
+      const data = createGameData({
+        moves: ['e4', 'e5', 'Nf3'],
+        uiMoves: [
+          {"moves":["e2-e4"]},
+          {"moves":["e7-e5"]},
+          {"moves":["g1-f3"]}
+        ]
+      });
+
+      const board = new Board(data);
+      document.querySelector('input[value="white"]').checked = true;
+
+      // Spy on moveForward
+      const moveForwardSpy = vi.spyOn(board, 'moveForward');
+
+      board.handleCorrectGuess(data.uiMoves[0]);
+      vi.runAllTimers();
+
+      expect(moveForwardSpy).toHaveBeenCalled();
+      expect(board.currentMoveIndex).toBe(2); // Should have moved forward twice
+    });
+
+    it('auto-plays opponent move when guessing as black only', () => {
+      const data = createGameData({
+        moves: ['e4', 'e5', 'Nf3'],
+        uiMoves: [
+          {"moves":["e2-e4"]},
+          {"moves":["e7-e5"]},
+          {"moves":["g1-f3"]},
+          {"moves":["b8-c6"]}
+        ],
+        sideToMove: 'black'
+      });
+
+      const board = new Board(data);
+      document.querySelector('input[value="black"]').checked = true;
+
+      const moveForwardSpy = vi.spyOn(board, 'moveForward');
+
+      board.moveForward(); // play White's move first
+      board.handleCorrectGuess(data.uiMoves[1]);
+      vi.runAllTimers();
+
+      expect(moveForwardSpy).toHaveBeenCalled();
+      expect(board.currentMoveIndex).toBe(3); // Should have moved forward twice
+    });
+
+    it('does not auto-play opponent move when guessing both sides', () => {
+      const data = createGameData({
+        moves: ['e4', 'e5', 'Nf3'],
+        uiMoves: [
+          {"moves":["e2-e4"]},
+          {"moves":["e7-e5"]},
+          {"moves":["g1-f3"]}
+        ]
+      });
+
+      const board = new Board(data);
+      document.querySelector('input[value="both"]').checked = true;
+
+      const moveForwardSpy = vi.spyOn(board, 'moveForward');
+
+      board.handleCorrectGuess(data.uiMoves[0]);
+      vi.runAllTimers();
+
+      expect(moveForwardSpy).not.toHaveBeenCalled();
+      expect(board.currentMoveIndex).toBe(1); // Should have moved forward only once
+    });
+  });
+
+  describe('handleGuessResult', () => {
+    beforeEach(() => {
+      document.body.innerHTML += `
+        <input type="radio" name="guess_mode" value="white">
+        <input type="radio" name="guess_mode" value="black">
+        <input type="radio" name="guess_mode" value="both">
+      `;
+
+      vi.useFakeTimers();
+    });
+
+    afterEach(() => {
+      vi.useRealTimers();
+    });
+
+    it('auto-plays opponent move when guessing as white only', () => {
+      const data = createGameData({
+        moves: ['e4', 'e5', 'Nf3'],
+        uiMoves: [
+          {"moves":["e2-e4"]},
+          {"moves":["e7-e5"]},
+          {"moves":["g1-f3"]}
+        ]
+      });
+
+      const board = new Board(data);
+      document.querySelector('input[value="white"]').checked = true;
+
+      const replayMovesSpy = vi.spyOn(board, 'replayMoves');
+
+      board.handleGuessResult([{
+        "result": "correct",
+        "same_as_game": false,
+        "game_move": data.uiMoves[0],
+        "best_eval": {
+          "score": 26,
+          "move": "e2e4",
+          "variation": [ "c7c5", "c2c3" ]
+        },
+        "game_eval": {
+          "best_eval": {
+            "score": 26,
+            "move": "e2e4",
+            "variation": [ "c7c5", "c2c3" ]
+          }
+        },
+        "guess_eval": {
+          "score": 29,
+          "move": "c7c5",
+          "variation": [ "c2c3", "b8c6" ]
+        }
+      },
+      {
+        "result": "auto_move",
+        "fen": "rnbqkbnr/pppppp1p/6p1/8/2P5/8/PP1PPPPP/RNBQKBNR w KQkq - 0 2",
+        "move": "g6",
+        "move_number": 3,
+        "total_moves": 96
+      }
+      ]);
+      vi.runAllTimers();
+
+      // replayMoves is called 4 times:
+      // 1. to reset the board to the position before the guess
+      // 2. to play the actual game move
+      // 3. once to play the opponent's responding move
+      // 4. one additional internal recursive call from inside replayMoves to handle the delay between moves
+      expect(replayMovesSpy).toHaveBeenCalledTimes(4);
+      expect(board.currentMoveIndex).toBe(2); // Should have moved forward twice
+    });
+
+    it('auto-plays opponent move when guessing as black only', () => {
+      const data = createGameData({
+        moves: ['e4', 'e5', 'Nf3'],
+        uiMoves: [
+          {"moves":["e2-e4"]},
+          {"moves":["e7-e5"]},
+          {"moves":["g1-f3"]}
+        ],
+        sideToMove: 'black'
+      });
+
+      const board = new Board(data);
+      document.querySelector('input[value="black"]').checked = true;
+      board.moveForward(); // Play white's first move
+
+      const replayMovesSpy = vi.spyOn(board, 'replayMoves');
+
+      board.handleGuessResult([
+        {
+          "result": "correct",
+          "same_as_game": false,
+          "game_move": "e5",
+          "best_eval": {
+            "score": -27,
+            "move": "e7e5",
+            "variation": [ "g1f3", "b8c6" ]
+          },
+          "guess_eval": {
+            "score": -46,
+            "move": "d2d4",
+            "variation": [ "d7d5", "e4e5" ]
+          },
+          "game_eval": {
+            "score": -25,
+            "move": "g1f3",
+            "variation": [ "b8c6", "f1b5" ]
+          },
+          "fen": "rnbqkbnr/pppp1ppp/8/4p3/4P3/8/PPPP1PPP/RNBQKBNR w KQkq e6 0 2",
+          "move": "e5",
+          "move_number": 3,
+          "total_moves": 53
+        },
+        {
+          "result": "auto_move",
+          "fen": "rnbqkbnr/pppp1ppp/8/4p3/4P3/5N2/PPPP1PPP/RNBQKB1R b KQkq - 1 2",
+          "move": "Nf3",
+          "move_number": 4,
+          "total_moves": 53
+        }
+      ]);
+      vi.runAllTimers();
+
+      // replayMoves is called 4 times:
+      // 1. to reset the board to the position before the guess
+      // 2. to play the actual game move
+      // 3. once to play the opponent's responding move
+      // 4. one additional internal recursive call from inside replayMoves to handle the delay between moves
+      expect(replayMovesSpy).toHaveBeenCalledTimes(4);
+      expect(board.currentMoveIndex).toBe(3); // Should have moved forward twice
+    });
+
+    it('does not auto-play opponent move when guessing both sides', () => {
+      const data = createGameData({
+        moves: ['e4', 'e5', 'Nf3'],
+        uiMoves: [
+          {"moves":["e2-e4"]},
+          {"moves":["e7-e5"]},
+          {"moves":["g1-f3"]}
+        ]
+      });
+
+      const board = new Board(data);
+      document.querySelector('input[value="both"]').checked = true;
+
+      const replayMovesSpy = vi.spyOn(board, 'replayMoves');
+
+      board.moveForward(); // Play white's first move
+      board.handleGuessResult([
+        {
+          "result": "correct",
+          "same_as_game": false,
+          "game_move": "e5",
+          "best_eval": {
+            "score": -24,
+            "move": "e7e5",
+            "variation": [ "g1f3", "b8c6" ]
+          },
+          "guess_eval": {
+            "score": -50,
+            "move": "d2d4",
+            "variation": [ "d7d5", "e4e5" ]
+          },
+          "game_eval": {
+            "score": -24,
+            "move": "g1f3",
+            "variation": [ "b8c6", "f1b5" ]
+          },
+          "fen": "rnbqkbnr/pppp1ppp/8/4p3/4P3/8/PPPP1PPP/RNBQKBNR w KQkq e6 0 2",
+          "move": "e5",
+          "move_number": 3,
+          "total_moves": 53
+        },
+        {
+          "result": "auto_move",
+          "fen": "rnbqkbnr/pppp1ppp/8/4p3/4P3/5N2/PPPP1PPP/RNBQKB1R b KQkq - 1 2",
+          "move": "Nf3",
+          "move_number": 4,
+          "total_moves": 53
+        }
+      ]);
+      vi.runAllTimers();
+
+      // replayMoves is called 3 times:
+      // 1. to reset the board to the position before the guess
+      // 2. to play the actual game move
+      // 3. one internal recursive call from inside replayMoves to handle the delay between moves
+      expect(replayMovesSpy).toHaveBeenCalledTimes(3);
+      expect(board.currentMoveIndex).toBe(2); // Should have moved forward only one move
     });
   });
 

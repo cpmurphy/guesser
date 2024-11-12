@@ -12,11 +12,11 @@ SCRIPT_DIR=$(dirname "$0")
 rake docker_build
 
 rm -f chess_guesser.tar
+rm -f chess_guesser.tar.bz2
 
 # save the docker image to a tar file
 docker save -o chess_guesser.tar chess_guesser
 
-rm -f chess_guesser.tar.bz2
 bzip2 chess_guesser.tar
 
 # upload the tar file to the server

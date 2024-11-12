@@ -233,7 +233,7 @@ class ChessGuesser < Sinatra::Base
     guessed_move = guess['guessed_move']
     source = guessed_move['source']
     target = guessed_move['target']
-    
+
     # Check if this is a pawn promotion move
     if needs_promotion?(source, target, guessed_move['piece'])
       unless guessed_move['promotion']

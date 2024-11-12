@@ -54,7 +54,7 @@ class CriticalMomentFinder
           max_score_drop = diff
           critical_index = move_index + 2
         end
-      end 
+      end
 
       break if current_score < 50
 

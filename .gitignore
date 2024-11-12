@@ -4,5 +4,20 @@ deploy_env.sh
 *.tar
 *.tar.bz2
 
+# ignore Rake temp files
+.rake_tasks~
+
 # ignore JS dependencies
 node_modules/
+
+# too big to include
+data/builtins/500-master-games.pgn
+data/builtins/500-master-games.json
+sandbox/
+
+# throwaway scripts
+bin/first_mistake_finder.rb
+bin/fix_crit.rb
+
+# other stuff
+examples/

@@ -1,7 +1,12 @@
 export default class ChessRules {
-  constructor() {}
+  constructor(fenString, enPassant, castlingRights = 'KQkq') {
+    this.fenString = fenString;
+    this.enPassant = enPassant;
+    this.castlingRights = castlingRights;
+  }
 
-  isLegalMove(source, target, piece, position, enPassant, castlingRights = 'KQkq', skipCheckValidation = false) {
+  isLegalMove(source, target, piece, skipCheckValidation = false) {
+    const position = ChessRules.fenToObj(this.fenString);
     const pieceType = piece.charAt(1).toLowerCase();
     const isWhite = piece.charAt(0) === 'w';
     const sourceRank = parseInt(source.charAt(1));
@@ -23,7 +28,7 @@ export default class ChessRules {
 
     switch (pieceType) {
       case 'p': // Pawn
-        return this.isLegalPawnMove(source, target, isWhite, fileDiff, rankDiff, position, enPassant);
+        return this.isLegalPawnMove(source, target, isWhite, fileDiff, rankDiff, position, this.enPassant);
       case 'n': // Knight
         return this.isLegalKnightMove(fileDiff, rankDiff);
       case 'b': // Bishop
@@ -33,10 +38,71 @@ export default class ChessRules {
       case 'q': // Queen
         return this.isLegalQueenMove(source, target, fileDiff, rankDiff, position);
       case 'k': // King
-        return this.isLegalKingMove(fileDiff, rankDiff, source, target, piece, position, castlingRights, skipCheckValidation);
+        return this.isLegalKingMove(fileDiff, rankDiff, source, target, piece, position, this.castlingRights, skipCheckValidation);
       default:
         return false;
     }
+  }
+
+  static fenToObj(fen) {
+    const position = {};
+    const [piecePlacement] = fen.split(' ');
+    let row = 7;
+    let col = 0;
+    
+    for (const char of piecePlacement) {
+      if (char === '/') {
+        row--;
+        col = 0;
+      } else if (/\d/.test(char)) {
+        col += parseInt(char, 10);
+      } else {
+        const square = String.fromCharCode('a'.charCodeAt(0) + col) + (row + 1);
+        const color = char === char.toUpperCase() ? 'w' : 'b';
+        const piece = color + char.toLowerCase();
+        position[square] = piece;
+        col++;
+      }
+    }
+    
+    return position;
+  }
+
+  static objToFen(position) {
+    let fen = '';
+    for (let rank = 8; rank >= 1; rank--) {
+      let emptySquares = 0;
+      
+      for (let file = 'a'; file <= 'h'; file = String.fromCharCode(file.charCodeAt(0) + 1)) {
+        const square = file + rank;
+        const piece = position[square];
+        
+        if (piece) {
+          // If we had empty squares before this piece, add the count
+          if (emptySquares > 0) {
+            fen += emptySquares;
+            emptySquares = 0;
+          }
+          // Convert piece notation (e.g., 'wP' to 'P' for white pieces, 'p' for black)
+          const pieceChar = piece[1].toUpperCase();
+          fen += piece[0] === 'w' ? pieceChar : pieceChar.toLowerCase();
+        } else {
+          emptySquares++;
+        }
+      }
+      
+      // Add any remaining empty squares at the end of the rank
+      if (emptySquares > 0) {
+        fen += emptySquares;
+      }
+      
+      // Add rank separator (except for the last rank)
+      if (rank > 1) {
+        fen += '/';
+      }
+    }
+    
+    return fen;
   }
 
   isLegalPawnMove(source, target, isWhite, fileDiff, rankDiff, position, enPassant) {
@@ -92,7 +158,7 @@ export default class ChessRules {
   }
 
   isLegalKingMove(fileDiff, rankDiff, source, target, piece, position, castlingRights, skipCheckValidation = false) {
-    const isWhite = piece === 'wK';
+    const isWhite = piece === 'wk';
 
     // Normal king moves (one square in any direction)
     if (fileDiff <= 1 && rankDiff <= 1) {
@@ -148,7 +214,7 @@ export default class ChessRules {
     return castlingRights.includes(rights) &&
            !position[`f${rank}`] &&
            !position[`g${rank}`] &&
-           position[`h${rank}`] === (isWhite ? 'wR' : 'bR');
+           position[`h${rank}`] === (isWhite ? 'wr' : 'br');
   }
 
   canCastleQueenside(isWhite, position, castlingRights) {
@@ -159,12 +225,12 @@ export default class ChessRules {
            !position[`d${rank}`] &&
            !position[`c${rank}`] &&
            !position[`b${rank}`] &&
-           position[`a${rank}`] === (isWhite ? 'wR' : 'bR');
+           position[`a${rank}`] === (isWhite ? 'wr' : 'br');
   }
 
   isInCheck(isWhite, position) {
     // Find the king
-    const king = isWhite ? 'wK' : 'bK';
+    const king = isWhite ? 'wk' : 'bk';
     let kingSquare = null;
     for (const [square, piece] of Object.entries(position)) {
       if (piece === king) {
@@ -184,7 +250,7 @@ export default class ChessRules {
       }
 
       // Pass skipCheckValidation=true to avoid infinite recursion
-      if (this.isLegalMove(src, square, piece, position, '-', '', true)) {
+      if (this.isLegalMove(src, square, piece, true)) {
         return true;
       }
     }

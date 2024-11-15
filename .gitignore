@@ -10,6 +10,10 @@ deploy_env.sh
 # ignore JS dependencies
 node_modules/
 
+# ignore 3rd party files that get copied during build
+public/3rdparty-assets/
+public/scripts/3rdparty/
+
 # too big to include
 data/builtins/500-master-games.pgn
 data/builtins/500-master-games.json
@@ -21,3 +25,4 @@ bin/fix_crit.rb
 
 # other stuff
 examples/
+.vscode/

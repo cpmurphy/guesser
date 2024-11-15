@@ -1,8 +1,9 @@
-import ChessRules from './chess_rules.js';
+
+import {Chessboard, INPUT_EVENT_TYPE, COLOR} from "./3rdparty/Chessboard.js"
+import ChessRules from "./chess_rules.js";
 
 export default class Board {
   constructor(data) {
-    this.chessRules = new ChessRules();
     this.board = null;
     this.gameResult = data.gameResult;
     this.lastMoveElement = document.getElementById('last-move');
@@ -11,23 +12,29 @@ export default class Board {
     this.setupMoveInputListener();
     this.setupFlipBoardButton();
     this.onGameLoaded(data);
-    this.setupTouchEvents();
     this.setupExportFenButton();
     this.castlingRightsHistory = [];
-    this.castlingRights = '-';
+    this.castlingRights = 'kqKQ';
     this.enPassant = '-';
     this.halfmoveClock = '0';
   }
 
   initializeBoard(fen) {
-    this.board = Chessboard('board', {
-      pieceTheme: '/img/chesspieces/wikipedia/{piece}.png',
+    this.board = new Chessboard(document.getElementById("board"), {
       position: fen,
-      draggable: true,
-      onDragStart: this.onDragStart.bind(this),
-      onDrop: this.onDrop.bind(this)
+      assetsUrl: "../../3rdparty-assets/cm-chessboard/"
     });
-    this.lastPosition = this.board.position();
+  // Enable move input with our handlers
+  this.board.enableMoveInput((event) => {
+    switch (event.type) {
+      case INPUT_EVENT_TYPE.moveInputStarted:
+        return this.onMoveStart(event.square);
+      case INPUT_EVENT_TYPE.validateMoveInput:
+        return this.onMove(event.squareFrom, event.squareTo);
+    }
+  });
+
+    this.lastPosition = this.board.getPosition();
     this.castlingRights = fen.split(' ')[2];
     this.enPassant = fen.split(' ')[3];
     this.halfmoveClock = fen.split(' ')[4];
@@ -57,12 +64,77 @@ export default class Board {
       const moveIndex = (data.currentWholeMove - this.startingWholeMove) * 2 + moveIncrement;
       this.goToMoveIndex(moveIndex);
     }
-    this.resetTouchState();
     this.updateLastMoveDisplay();
     this.updateGuessMode();
     if (!this.isWhiteToMove(this.currentMoveIndex)) {
       this.flipBoard();
     }
+  }
+
+
+  // Replace old onDragStart with new onMoveStart
+  onMoveStart(square) {
+    const piece = this.board.getPiece(square);
+
+    if (!piece) {
+      return false;
+    }
+
+    const isWhitePiece = piece.charAt(0) === 'w';
+    const isWhiteToMove = this.isWhiteToMove(this.currentMoveIndex);
+
+    // Only allow moving pieces if:
+    // 1. It's the correct color's turn
+    // 2. We're in the right guess mode
+    // 3. We're not at game end
+    if (this.gameOver() ||
+      isWhiteToMove !== isWhitePiece ||
+      !this.isCorrectGuessMode(isWhitePiece)) {
+      return false;
+    }
+
+    return true;
+  }
+
+  isCorrectGuessMode(isWhitePiece) {
+    return this.guessMode() === 'both' ||
+      (this.guessMode() === 'white' && isWhitePiece) ||
+      (this.guessMode() === 'black' && !isWhitePiece);
+  }
+
+  onMove(from, to) {
+    const piece = this.board.getPiece(from);
+    const position = this.board.getPosition();
+
+    if (!piece) {
+      return false;
+    }
+
+    const chessRules = new ChessRules(this.board.getPosition(), this.enPassant, this.castlingRights);
+    if (!chessRules.isLegalMove(from, to, piece)) {
+      return false;
+    }
+    this.lastPosition = position;
+
+    // If this is a pawn reaching the back rank, show promotion dialog
+    if (this.isPawnPromotion(from, to, piece)) {
+      this.showPromotionDialog(from, to, piece);
+      return false; // Don't complete the move yet
+    }
+    // Check for castling
+    if (piece === 'wk' || piece === 'bk') {
+      if (this.isCastling(piece, from, to)) {
+        this.updateCastlingRightsHistory();
+        this.performCastling(piece, to, position);
+      }
+    }
+
+    // Update castling rights for regular moves
+    this.updateCastlingRights(piece, from);
+
+    // Handle the move
+    this.submitGuess(from, to, piece, null, position);
+    return true;
   }
 
   extractSideFromFen(fen) {
@@ -77,12 +149,8 @@ export default class Board {
     return (moveIndex % 2 === 0) === isFirstMoveWhite;
   }
 
-  resetTouchState() {
-    this.touchedSquare = null;
-  }
-
   position(fen) {
-    this.board.position(fen);
+    this.board.setPosition(fen);
   }
 
   setupMoveButtons() {
@@ -153,21 +221,18 @@ export default class Board {
     if (!this.gameOver()) {
       const uiMove = this.uiMoves[this.currentMoveIndex];
       if (!uiMove.remove && !uiMove.add) {
-        uiMove.moves.forEach(m => this.board.move(m));
+        uiMove.moves.forEach(m => this.board.movePiece(...m.split('-'), true));
       } else {
-        const newPosition = this.board.position();
         uiMove.moves.forEach(m => {
           const [from, to] = m.split('-');
-          newPosition[to] = newPosition[from];
-          delete newPosition[from];
+          this.board.movePiece(from, to, true);
         });
         if (uiMove.remove && uiMove.remove[1] != uiMove.moves[0].substring(3, 5)) {
-          delete newPosition[uiMove.remove[1]];
+          this.board.setPiece(uiMove.remove[1], null);
         }
         if (uiMove.add) {
-          newPosition[uiMove.add[1]] = this.translatePiece(uiMove.add[0]);
+          this.board.setPiece(uiMove.add[1], this.translatePiece(uiMove.add[0]));
         }
-        this.board.position(newPosition, true);
       }
       this.currentMoveIndex++;
     }
@@ -176,7 +241,6 @@ export default class Board {
       this.displayGameResult();
     }
     this.updateLastMoveDisplay();
-    this.resetTouchState();
   }
 
   displayGameResult() {
@@ -204,7 +268,6 @@ export default class Board {
     this.reverseMove(this.uiMoves[this.currentMoveIndex]);
     this.updateButtonStates();
     this.updateLastMoveDisplay();
-    this.resetTouchState();
   }
 
   restoreCastlingRightsFromHistory() {
@@ -217,35 +280,30 @@ export default class Board {
     if (uiMove.moves && Array.isArray(uiMove.moves)) {
       if (uiMove.add) {
         // reverse the addition of the piece
-        const position = this.board.position();
-        position[uiMove.add[1]] = this.pawnForCurrentMove();
-        this.board.position(position);
+        this.board.setPiece(uiMove.add[1], this.pawnForCurrentMove());
       }
-      uiMove.moves.forEach(m => this.board.move(m.split('-').reverse().join('-')));
+      uiMove.moves.forEach(m => this.board.movePiece(...m.split('-').reverse(), true));
       if (uiMove.remove || uiMove.add) {
-        const position = this.board.position();
         if (uiMove.remove) {
           // reverse the removal of the piece
-          position[uiMove.remove[1]] = this.translatePiece(uiMove.remove[0]);
+          this.board.setPiece(uiMove.remove[1], this.translatePiece(uiMove.remove[0]));
         }
-        this.board.position(position);
       }
     }
-    this.resetTouchState();
   }
 
   translatePiece(piece) {
     if (piece.match(/^[rnbqkp]$/)) {
-      return "b" + piece.toUpperCase();
+      return "b" + piece.toLowerCase();
     }
-    return "w" + piece;
+    return "w" + piece.toLowerCase();
   }
 
   pawnForCurrentMove() {
     if (this.currentMoveIndex % 2 == 0) {
-      return "wP";
+      return "wp";
     } else {
-      return "bP";
+      return "bp";
     }
   }
 
@@ -301,14 +359,14 @@ export default class Board {
     });
 
     this.replayMoves(moveQueue);
-    this.resetTouchState();
+    this.board.set
   }
 
   replayMoves(moveQueue) {
     if (moveQueue.length === 0) return;
 
     const move = moveQueue.shift();
-    this.board.position(move.fen);
+    this.board.setPosition(move.fen);
 
     setTimeout(() => {
       this.replayMoves(moveQueue);
@@ -325,10 +383,6 @@ export default class Board {
     if (guessResult) guessResult.textContent = '';
     if (guessComment) guessComment.textContent = '';
     if (guessSubcomment) guessSubcomment.textContent = '';
-  }
-
-  onDragStart(source, piece, position, orientation) {
-    return this.isPieceAvailableToMove(piece);
   }
 
   isPieceAvailableToMove(piece) {
@@ -349,35 +403,7 @@ export default class Board {
     return this.currentMoveIndex >= this.moves.length;
   }
 
-  onDrop(source, target, piece, newPos, oldPos) {
-    if (source === target || this.gameOver()) {
-      return 'snapback';
-    }
-
-    // Check if the move is legal
-    if (!this.chessRules.isLegalMove(source, target, piece, this.board.position(), this.enPassant)) {
-      return 'snapback';
-    }
-
-    this.lastPosition = oldPos;
-
-    if (this.needsPromotion(source, target, piece)) {
-      this.showPromotionDialog(source, target, piece, newPos, oldPos);
-      return;
-    }
-
-    // Check for castling
-    if (piece === 'wK' || piece === 'bK') {
-      if (this.isCastling(piece, source, target)) {
-        this.updateCastlingRightsHistory();
-        this.performCastling(piece, target, newPos);
-      }
-    }
-
-    this.submitGuess(source, target, piece, null, newPos, oldPos);
-  }
-
-  submitGuess(source, target, piece, promotedPiece, newPos, oldPos) {
+  submitGuess(source, target, piece, promotedPiece, oldPosition) {
     const currentMove = this.uiMoves[this.currentMoveIndex];
     if (currentMove && this.isExactMatch(source, target, currentMove)) {
       this.handleCorrectGuess(currentMove);
@@ -394,8 +420,8 @@ export default class Board {
         target,
         piece: piece,
         promotion: promotedPiece ? promotedPiece.charAt(1) : undefined,
-        newPos: Chessboard.objToFen(newPos),
-        oldPos: Chessboard.objToFen(oldPos)
+        newPos: "" + this.board.getPosition(),
+        oldPos: "" + oldPosition
       }
     };
 
@@ -411,7 +437,7 @@ export default class Board {
   isExactMatch(source, target, currentMove) {
     // For a promotion move, we need to match both the move and the promotion piece
     if (currentMove.add) {
-      const promotionPiece = this.board.position()[target].charAt(1).toLowerCase();
+      const promotionPiece = this.board.getPosition()[target].charAt(1).toLowerCase();
       return currentMove.moves.some(move => move === `${source}-${target}`) &&
              currentMove.add[0].toLowerCase() === promotionPiece;
     }
@@ -424,7 +450,7 @@ export default class Board {
       return; // Dialog is already showing
     }
     if (data.result === 'auto_move') {
-      this.board.position(data.fen);
+      this.board.setPosition(data.fen);
       this.updateButtonStates();
     } else {
       this.handleGuessResult(data);
@@ -439,7 +465,7 @@ export default class Board {
       const button = this.createPromotionButton(pieceType, () => {
         const promotedPiece = color + pieceType;
         newPos[target] = promotedPiece;
-        this.board.position(newPos);
+        this.board.setPosition(newPos);
 
         this.submitGuess(source, target, piece, promotedPiece, newPos, oldPos);
         document.body.removeChild(dialog);
@@ -451,18 +477,18 @@ export default class Board {
     document.body.appendChild(dialog);
   }
 
-  needsPromotion(source, target, piece) {
-    if (!piece.endsWith('P')) return false;
-    const targetRank = target[1];
+  isPawnPromotion(from, to, piece) {
+    if (!piece.endsWith('p')) return false;
+    const targetRank = to[1];
     return (piece.startsWith('w') && targetRank === '8') ||
            (piece.startsWith('b') && targetRank === '1');
   }
 
   isCastling(piece, source, target) {
-    const kingside = (piece === 'wK' && source === 'e1' && target === 'g1') ||
-      (piece === 'bK' && source === 'e8' && target === 'g8');
-    const queenside = (piece === 'wK' && source === 'e1' && target === 'c1') ||
-      (piece === 'bK' && source === 'e8' && target === 'c8');
+    const kingside = (piece === 'wk' && source === 'e1' && target === 'g1') ||
+      (piece === 'bk' && source === 'e8' && target === 'g8');
+    const queenside = (piece === 'wk' && source === 'e1' && target === 'c1') ||
+      (piece === 'bk' && source === 'e8' && target === 'c8');
     return kingside || queenside;
   }
 
@@ -473,7 +499,7 @@ export default class Board {
   performCastling(piece, target, newPos) {
     let rookSource, rookTarget;
 
-    if (piece === 'wK') {
+    if (piece === 'wk') {
       if (target === 'g1') {
         this.castlingRights = this.castlingRights.replace('K', '');
         rookSource = 'h1';
@@ -483,7 +509,7 @@ export default class Board {
         rookSource = 'a1';
         rookTarget = 'd1';
       }
-    } else if (piece === 'bK') {
+    } else if (piece === 'bk') {
       if (target === 'g8') {
         this.castlingRights = this.castlingRights.replace('k', '');
         rookSource = 'h8';
@@ -495,12 +521,7 @@ export default class Board {
       }
     }
 
-    // Move the rook
-    newPos[rookTarget] = newPos[rookSource];
-    delete newPos[rookSource];
-
-    // Update the board with the new position including the moved rook
-    this.board.position(newPos, false);
+    this.board.movePiece(rookSource, rookTarget, true);
   }
 
   updateButtonStates() {
@@ -528,7 +549,11 @@ export default class Board {
   }
 
   flipBoard() {
-    this.board.flip();
+    if (this.board.getOrientation() === COLOR.white) {
+      this.board.setOrientation(COLOR.black);
+    } else {
+      this.board.setOrientation(COLOR.white);
+    }
   }
 
   fastForward() {
@@ -570,74 +595,11 @@ export default class Board {
     this.lastMoveElement.textContent = `${wholeMoveNumber}${this.isWhiteToMove(moveIndex) ? '.' : '...'} ${moveNotation}`;
   }
 
-  setupTouchEvents() {
-    const boardEl = document.getElementById('board');
-    boardEl.addEventListener('touchend', this.onTouchEnd.bind(this));
-  }
-
-  onTouchEnd(event) {
-    const square = this.getSquareFromTouch(event);
-    const touchedPiece = this.board.position()[square];
-    if (!touchedPiece) {
-      if (!this.touchedSquare) {
-        // nothing to do
-        return;
-      }
-    } else if (this.touchedSquare && this.isPieceAvailableToMove(touchedPiece)) {
-      // attempt to capture own piece
-      this.touchedSquare = null;
-      return;
-    } else if (!this.touchedSquare && !this.isPieceAvailableToMove(touchedPiece)) {
-      // attempt to move opponent's piece
-      this.touchedSquare = null;
-      return;
-    }
-    if (!this.touchedSquare) {
-      this.touchedSquare = square;
-    } else if (this.touchedSquare && square && this.touchedSquare !== square) {
-      const source = this.touchedSquare;
-      const movedPiece = this.board.position()[source];
-      const target = square;
-      const oldPos = this.board.position();
-      const newPos = this.updatedPosition(oldPos, source, target);
-      const status = this.onDrop(source, target, movedPiece, newPos, oldPos);
-      if (status === 'snapback') {
-        this.touchedSquare = null;
-      } else {
-        this.board.move(source + '-' + target);
-      }
-    }
-  }
-
   updatedPosition(oldPos, from, to) {
     const newPos = {...oldPos};
     newPos[to] = newPos[from];
     delete newPos[from];
     return newPos;
-  }
-
-  getSquareFromTouch(event) {
-    const boardEl = document.getElementById('board');
-    const rect = boardEl.getBoundingClientRect();
-    const touch = event.changedTouches[0];
-    const x = touch.clientX - rect.left;
-    const y = touch.clientY - rect.top;
-    const squareSize = rect.width / 8;
-
-    // Determine if the board is flipped
-    const isFlipped = this.board.orientation() === 'black';
-
-    let file, rank;
-
-    if (isFlipped) {
-      file = String.fromCharCode('h'.charCodeAt(0) - Math.floor(x / squareSize));
-      rank = 1 + Math.floor(y / squareSize);
-    } else {
-      file = String.fromCharCode('a'.charCodeAt(0) + Math.floor(x / squareSize));
-      rank = 8 - Math.floor(y / squareSize);
-    }
-
-    return `${file}${rank}`;
   }
 
   setupExportFenButton() {
@@ -787,7 +749,6 @@ export default class Board {
     }
     this.updateButtonStates();
     this.updateLastMoveDisplay();
-    this.resetTouchState();
     if (this.gameOver()) {
       this.displayGameResult();
     }
@@ -810,6 +771,38 @@ export default class Board {
       if (radioButton) {
         radioButton.checked = true;
       }
+    }
+  }
+
+  // Add this method to handle castling rights updates
+  updateCastlingRights(piece, from) {
+    if (piece === 'wk') {
+      // Remove both white castling rights when king moves
+      this.castlingRights = this.castlingRights.replace(/[KQ]/g, '');
+    } else if (piece === 'bk') {
+      // Remove both black castling rights when king moves
+      this.castlingRights = this.castlingRights.replace(/[kq]/g, '');
+    } else if (piece === 'wr') {
+      if (from === 'h1') {
+        // Remove kingside castling right
+        this.castlingRights = this.castlingRights.replace('K', '');
+      } else if (from === 'a1') {
+        // Remove queenside castling right
+        this.castlingRights = this.castlingRights.replace('Q', '');
+      }
+    } else if (piece === 'br') {
+      if (from === 'h8') {
+        // Remove kingside castling right
+        this.castlingRights = this.castlingRights.replace('k', '');
+      } else if (from === 'a8') {
+        // Remove queenside castling right
+        this.castlingRights = this.castlingRights.replace('q', '');
+      }
+    }
+    
+    // If no castling rights remain, set to '-'
+    if (this.castlingRights === '') {
+      this.castlingRights = '-';
     }
   }
 

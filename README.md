@@ -126,3 +126,10 @@ To deploy Chess Guesser to a production environment, follow these steps:
 
 6. **Updating the Application**:
    - To update the application, make your changes locally, commit them, and then run the `./bin/deploy.sh` script again.
+
+# Licenses
+
+- code: [MIT](LICENSE)
+- chessboard implementation (cm-chessboard): also [MIT](doc/cm-chessboard-LICENSE)
+License for the Staunty SVG-pieces ( chessboard-sprite-staunty.svg): [CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/)
+License for the Wikimedia SVG-pieces ( chessboard-sprite.svg): [CC BY-SA 3.0](https://creativecommons.org/licenses/by-sa/3.0/)

@@ -1,30 +1,5 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import Board from '../../public/scripts/board.js';
-
-// Mock Chessboard.js
-global.Chessboard = function(elementId, config) {
-  // Return an instance of our mock chess board
-  return {
-    elementId,
-    config,
-    position: function(fen, useAnimation) {
-      return {};
-    },
-    move: function(move) {},
-    flip: function() {},
-    orientation: function() {
-      return 'white';
-    },
-    fen: function() {
-      return 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR';
-    }
-  };
-};
-
-// Add the static method
-global.Chessboard.objToFen = function(obj) {
-  return 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR';
-};
 
 // Helper to create a minimal data object that Board needs
 function createGameData(options = {}) {

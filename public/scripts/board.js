@@ -646,7 +646,7 @@ export default class Board {
   }
 
   generateCompleteFen() {
-    const piecePlacement = this.board.fen();
+    const piecePlacement = this.board.getPosition();
     const activeColor = this.currentMoveIndex % 2 === 0 ? 'w' : 'b';
     // Calculate the full move number
     const fullmoveNumber = Math.floor(this.currentMoveIndex / 2) + this.startingWholeMove;

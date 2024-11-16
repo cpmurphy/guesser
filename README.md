@@ -33,6 +33,8 @@ Enjoy playing through games and guessing the moves.  See how you do in famous ch
 
 - Ruby (version 3.2.3 or higher recommended)
 - Bundler gem
+- Rake (the ruby build tool)
+- npm (the Node package manager)
 - Docker (optional, for containerized deployment)
 
 ### Local Setup
@@ -54,12 +56,12 @@ Enjoy playing through games and guessing the moves.  See how you do in famous ch
 
 1. Build the Docker image:
    ```
-   docker build -t chess-guesser .
+   rake docker_build
    ```
 
 2. Run the Docker container:
    ```
-   docker run -d -p 80:3000 --name chess-guesser chess-guesser
+   rake docker_run
    ```
 
 ## Running the Application

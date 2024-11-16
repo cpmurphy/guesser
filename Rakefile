@@ -15,12 +15,22 @@ end
 desc 'Run all the tests'
 task :test_all => [:test, :ui_test]
 
-task default: :test_all
+desc 'Copy 3rd party dependencies'
+task :copy_deps do
+  puts "Copying 3rd party dependencies..."
+  sh "npm run copy-all"
+end
 
-# New tasks for Docker
+task default: [:copy_deps, :test_all]
+
+task :clean do
+  for dir in %w(./public/scripts/3rdparty ./public/3rdparty-assets)
+    sh "rm -r #{dir}/*"
+  end
+end
 
 desc 'Build Docker image'
-task :docker_build do
+task docker_build: [:copy_deps] do
   puts "Building Docker image..."
   sh "docker build -t chess_guesser ."
 end

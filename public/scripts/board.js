@@ -115,13 +115,11 @@ export default class Board {
     }
     this.lastPosition = position;
 
-    // If this is a pawn reaching the back rank, show promotion dialog
     if (this.isPawnPromotion(from, to, piece)) {
       this.showPromotionDialog(from, to, piece);
       return false; // Don't complete the move yet
     }
 
-    // Check for castling
     if (piece === 'wk' || piece === 'bk') {
       if (this.isCastling(piece, from, to)) {
         this.updateCastlingRightsHistory();
@@ -129,13 +127,10 @@ export default class Board {
       }
     }
 
-    // Update castling rights for regular moves
     this.updateCastlingRights(piece, from);
 
-    // Update en passant square
     this.updateEnPassantSquare(piece, from, to);
 
-    // Handle the move
     this.submitGuess(from, to, piece, null, position);
     return true;
   }
@@ -265,7 +260,6 @@ export default class Board {
       guessResult.appendChild(resultSpan);
     }
 
-    // Set the content and style of the result span
     resultSpan.textContent = this.gameResult || 'Game Over';
     resultSpan.style.color = 'blue';
   }
@@ -287,13 +281,11 @@ export default class Board {
 
   restoreEnPassantFromMove(uiMove) {
     const targetSquare = uiMove.moves[0].substring(3, 5);
-    // Check if this was an en passant capture
     if (uiMove.remove && uiMove.remove[0].toLowerCase() === 'p' && 
         uiMove.remove[1] !== targetSquare) {
       // This was an en passant capture - set en passant square to the capture square
       this.enPassant = targetSquare;
     } else {
-      // For all other moves, no en passant was possible
       this.enPassant = '-';
     }
   }
@@ -828,9 +820,7 @@ export default class Board {
     }
   }
 
-  // Add this new method
   updateEnPassantSquare(piece, from, to) {
-    // Check if it's a pawn moving two squares
     if (piece.endsWith('p')) {
       const fromRank = parseInt(from[1]);
       const toRank = parseInt(to[1]);

@@ -1,5 +1,6 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import Board from '../../public/scripts/board.js';
+import { Chessboard } from './__mocks__/cm-chessboard.js';
 
 // Helper to create a minimal data object that Board needs
 function createGameData(options = {}) {
@@ -18,6 +19,7 @@ function createGameData(options = {}) {
 
 describe('Board', () => {
   let board;
+  let chessboard = new Chessboard('element', {});
 
   beforeEach(() => {
     // Mock DOM elements that Board expects
@@ -47,7 +49,7 @@ describe('Board', () => {
         moves: ['e4', 'e5', 'Nf3'],
         uiMoves: [{"moves":["e2-e4"]},{"moves":["e7-e5"]},{"moves":["g1-f3"]}]
       });
-      board = new Board(data);
+      board = new Board(data, chessboard);
 
       expect(board.currentMoveIndex).toBe(0);
       expect(board.isWhiteToMove(board.currentMoveIndex)).toBe(true);
@@ -65,7 +67,7 @@ describe('Board', () => {
         moves: ['e4', 'e5', 'Nf3', 'Nc6'],
         uiMoves: [{"moves":["e2-e4"]},{"moves":["e7-e5"]},{"moves":["g1-f3"]},{"moves":["b8-c6"]}]
       });
-      board = new Board(data);
+      board = new Board(data, chessboard);
 
       expect(board.currentMoveIndex).toBe(3);
       expect(board.isWhiteToMove(board.currentMoveIndex)).toBe(false);
@@ -82,7 +84,7 @@ describe('Board', () => {
         sideToMove: 'black',
         fen: 'r1bqkbnr/pppp1ppp/2n5/4p3/2B1P3/5N2/PPPP1PPP/RNBQK2R b KQkq - 3 3',
       });
-      board = new Board(data);
+      board = new Board(data, chessboard);
 
       expect(board.currentMoveIndex).toBe(0);
       expect(board.isWhiteToMove(board.currentMoveIndex)).toBe(false);
@@ -101,7 +103,7 @@ describe('Board', () => {
         moves: ['e4', 'e5', 'Nf3'],
         uiMoves: [{"moves":["e2-e4"]},{"moves":["e7-e5"]},{"moves":["g1-f3"]}]
       });
-      board = new Board(data);
+      board = new Board(data, chessboard);
 
       board.moveForward();
       board.updateLastMoveDisplay();
@@ -125,7 +127,7 @@ describe('Board', () => {
         sideToMove: 'black',
         fen: 'r1bk3r/pppp2bp/2n5/4p2q/2BP1pNP/2P5/PP4P1/2BQ2KR b - - 0 15',
       });
-      board = new Board(data);
+      board = new Board(data, chessboard);
 
       board.moveForward();
       board.updateLastMoveDisplay();
@@ -148,7 +150,7 @@ describe('Board', () => {
         moves: ['e4', 'e5', 'Nf3', 'Nc6'],
         uiMoves: [{"moves":["e2-e4"]},{"moves":["e7-e5"]},{"moves":["g1-f3"]},{"moves":["b8-c6"]}]
       });
-      board = new Board(data);
+      board = new Board(data, chessboard);
 
       expect(board.currentMoveIndex).toBe(3);
       board.moveBackward();
@@ -175,7 +177,7 @@ describe('Board', () => {
         fen: 'r1bk3r/pppp2bp/2n5/4p2q/2BP1pNP/2P5/PP4P1/2BQ2KR b - - 0 15'
       });
 
-      const board = new Board(data);
+      const board = new Board(data, chessboard);
       const blackRadio = document.querySelector('input[name="guess_mode"][value="black"]');
       expect(blackRadio.checked).toBe(true);
     });
@@ -187,7 +189,7 @@ describe('Board', () => {
         fen: 'r1bk3r/pppp2bp/2n5/4p2q/2BP1pNP/2P5/PP4P1/2BQ2KR w - - 0 15'
       });
 
-      const board = new Board(data);
+      const board = new Board(data, chessboard);
       const whiteRadio = document.querySelector('input[name="guess_mode"][value="white"]');
       expect(whiteRadio.checked).toBe(true);
     });
@@ -201,7 +203,7 @@ describe('Board', () => {
         sideToMove: 'white'
       });
 
-      const board = new Board(data);
+      const board = new Board(data, chessboard);
       expect(whiteRadio.checked).toBe(true);
     });
   });
@@ -232,7 +234,7 @@ describe('Board', () => {
         ]
       });
 
-      const board = new Board(data);
+      const board = new Board(data, chessboard);
       document.querySelector('input[value="white"]').checked = true;
 
       // Spy on moveForward
@@ -257,7 +259,7 @@ describe('Board', () => {
         sideToMove: 'black'
       });
 
-      const board = new Board(data);
+      const board = new Board(data, chessboard);
       document.querySelector('input[value="black"]').checked = true;
 
       const moveForwardSpy = vi.spyOn(board, 'moveForward');
@@ -280,7 +282,7 @@ describe('Board', () => {
         ]
       });
 
-      const board = new Board(data);
+      const board = new Board(data, chessboard);
       document.querySelector('input[value="both"]').checked = true;
 
       const moveForwardSpy = vi.spyOn(board, 'moveForward');
@@ -318,7 +320,7 @@ describe('Board', () => {
         ]
       });
 
-      const board = new Board(data);
+      const board = new Board(data, chessboard);
       document.querySelector('input[value="white"]').checked = true;
 
       const replayMovesSpy = vi.spyOn(board, 'replayMoves');
@@ -375,7 +377,7 @@ describe('Board', () => {
         sideToMove: 'black'
       });
 
-      const board = new Board(data);
+      const board = new Board(data, chessboard);
       document.querySelector('input[value="black"]').checked = true;
       board.moveForward(); // Play white's first move
 
@@ -435,7 +437,7 @@ describe('Board', () => {
         ]
       });
 
-      const board = new Board(data);
+      const board = new Board(data, chessboard);
       document.querySelector('input[value="both"]').checked = true;
 
       const replayMovesSpy = vi.spyOn(board, 'replayMoves');

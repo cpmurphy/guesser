@@ -5,6 +5,7 @@
     %meta{name:"viewport", content:"width=device-width, initial-scale=1.0"}
     %title Chess Guesser
     %link{rel:"stylesheet", href:"/3rdparty-assets/cm-chessboard/chessboard.css"}
+    %link{rel:"stylesheet", href:"/3rdparty-assets/cm-chessboard/extensions/markers/markers.css"}
     %link{rel:"stylesheet", href:"/styles/game.css"}
 
   %body
@@ -57,6 +58,8 @@
     %script{type: "module", src:"/scripts/board.js"}
     :javascript
       document.addEventListener('DOMContentLoaded', async () => {
+        const { Chessboard, INPUT_EVENT_TYPE, COLOR } = await import('/scripts/3rdparty/Chessboard.js');
+        const { Markers, MARKER_TYPE } = await import('/scripts/3rdparty/extensions/markers/Markers.js');
         const { default: Board } = await import('/scripts/board.js');
         const guesserState = {
           uiMoves: #{ui_moves.to_json},
@@ -69,5 +72,24 @@
           white: '#{white}',
           black: '#{black}'
         };
-        const board = new Board(guesserState);
+        const chessboard = new Chessboard(document.getElementById("board"), {
+          position: guesserState.fen,
+          assetsUrl: "/3rdparty-assets/cm-chessboard/",
+          extensions: [{
+            class: Markers,
+            autoMarkers: MARKER_TYPE.dot,
+            sprite: "/3rdparty-assets/cm-chessboard/extensions/markers/markers.svg"
+          }]
+        });
+
+        const board = new Board(guesserState, chessboard);
+        const { onMoveStart, onMoveCompleted } = board.setupMoveHandlers();
+        chessboard.enableMoveInput((event) => {
+          switch (event.type) {
+            case INPUT_EVENT_TYPE.moveInputStarted:
+              return onMoveStart(event.square);
+            case INPUT_EVENT_TYPE.validateMoveInput:
+              return onMoveCompleted(event.squareFrom, event.squareTo);
+          }
+        });
       });

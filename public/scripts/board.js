@@ -1,38 +1,40 @@
-import {Chessboard, INPUT_EVENT_TYPE, COLOR} from "./3rdparty/Chessboard.js"
 import ChessRules from "./chess_rules.js";
+import { COLOR, PIECE } from "./board_definitions.js";
 
 export default class Board {
-  constructor(data) {
-    this.board = null;
+  constructor(data, chessboard) {
     this.gameResult = data.gameResult;
     this.lastMoveElement = document.getElementById('last-move');
     this.moveInput = document.getElementById('move-input');
-    this.setupMoveButtons();
-    this.setupMoveInputListener();
-    this.setupFlipBoardButton();
-    this.onGameLoaded(data);
-    this.setupExportFenButton();
+    this.board = chessboard;
     this.castlingRightsHistory = [];
     this.castlingRights = 'kqKQ';
     this.enPassant = '-';
     this.halfmoveClock = '0';
+    this.setupUserInterface();
+    this.onGameLoaded(data);
   }
 
-  initializeBoard(fen) {
-    this.board = new Chessboard(document.getElementById("board"), {
-      position: fen,
-      assetsUrl: "../../3rdparty-assets/cm-chessboard/"
-    });
-  // Enable move input with our handlers
-  this.board.enableMoveInput((event) => {
-    switch (event.type) {
-      case INPUT_EVENT_TYPE.moveInputStarted:
-        return this.onMoveStart(event.square);
-      case INPUT_EVENT_TYPE.validateMoveInput:
-        return this.onMove(event.squareFrom, event.squareTo);
-    }
-  });
+  setupUserInterface() {
+    this.setupMoveButtons();
+    this.setupMoveInputListener();
+    this.setupFlipBoardButton();
+    this.setupMoveHandlers();
+    this.setupExportFenButton();
+  }
 
+  setupMoveHandlers() {
+    return {
+      onMoveStart: (square) => {
+        return this.onMoveStart(square);
+      },
+      onMoveCompleted: (from, to) => {
+        return this.onMoveCompleted(from, to);
+      }
+    }
+  }
+
+  initializeGameState(fen) {
     this.lastPosition = this.board.getPosition();
     this.castlingRights = fen.split(' ')[2];
     this.enPassant = fen.split(' ')[3];
@@ -42,7 +44,7 @@ export default class Board {
   }
 
   onGameLoaded(data) {
-    this.initializeBoard(data.fen);
+    this.initializeGameState(data.fen);
     this.initializeButtonStates(data.moves.length > 0);
     this.initializeGuessMode(data.currentWholeMove, data.sideToMove);
     this.moves = data.moves;
@@ -101,7 +103,7 @@ export default class Board {
       (this.guessMode() === 'black' && !isWhitePiece);
   }
 
-  onMove(from, to) {
+  onMoveCompleted(from, to) {
     const piece = this.board.getPiece(from);
     const position = this.board.getPosition();
 
@@ -120,7 +122,7 @@ export default class Board {
       return false; // Don't complete the move yet
     }
 
-    if (piece === 'wk' || piece === 'bk') {
+    if (piece === PIECE.wk || piece === PIECE.bk) {
       if (this.isCastling(piece, from, to)) {
         this.updateCastlingRightsHistory();
         this.performCastling(piece, to, position);
@@ -315,9 +317,9 @@ export default class Board {
 
   pawnForCurrentMove() {
     if (this.currentMoveIndex % 2 == 0) {
-      return "wp";
+      return PIECE.wp;
     } else {
-      return "bp";
+      return PIECE.bp;
     }
   }
 
@@ -499,10 +501,10 @@ export default class Board {
   }
 
   isCastling(piece, source, target) {
-    const kingside = (piece === 'wk' && source === 'e1' && target === 'g1') ||
-      (piece === 'bk' && source === 'e8' && target === 'g8');
-    const queenside = (piece === 'wk' && source === 'e1' && target === 'c1') ||
-      (piece === 'bk' && source === 'e8' && target === 'c8');
+    const kingside = (piece === PIECE.wk && source === 'e1' && target === 'g1') ||
+      (piece === PIECE.bk && source === 'e8' && target === 'g8');
+    const queenside = (piece === PIECE.wk && source === 'e1' && target === 'c1') ||
+      (piece === PIECE.bk && source === 'e8' && target === 'c8');
     return kingside || queenside;
   }
 
@@ -513,7 +515,7 @@ export default class Board {
   performCastling(piece, target, newPos) {
     let rookSource, rookTarget;
 
-    if (piece === 'wk') {
+    if (piece === PIECE.wk) {
       if (target === 'g1') {
         this.castlingRights = this.castlingRights.replace('K', '');
         rookSource = 'h1';
@@ -523,7 +525,7 @@ export default class Board {
         rookSource = 'a1';
         rookTarget = 'd1';
       }
-    } else if (piece === 'bk') {
+    } else if (piece === PIECE.bk) {
       if (target === 'g8') {
         this.castlingRights = this.castlingRights.replace('k', '');
         rookSource = 'h8';
@@ -790,13 +792,13 @@ export default class Board {
 
   // Add this method to handle castling rights updates
   updateCastlingRights(piece, from) {
-    if (piece === 'wk') {
+    if (piece === PIECE.wk) {
       // Remove both white castling rights when king moves
       this.castlingRights = this.castlingRights.replace(/[KQ]/g, '');
-    } else if (piece === 'bk') {
+    } else if (piece === PIECE.bk) {
       // Remove both black castling rights when king moves
       this.castlingRights = this.castlingRights.replace(/[kq]/g, '');
-    } else if (piece === 'wr') {
+    } else if (piece === PIECE.wr) {
       if (from === 'h1') {
         // Remove kingside castling right
         this.castlingRights = this.castlingRights.replace('K', '');
@@ -804,7 +806,7 @@ export default class Board {
         // Remove queenside castling right
         this.castlingRights = this.castlingRights.replace('Q', '');
       }
-    } else if (piece === 'br') {
+    } else if (piece === PIECE.br) {
       if (from === 'h8') {
         // Remove kingside castling right
         this.castlingRights = this.castlingRights.replace('k', '');

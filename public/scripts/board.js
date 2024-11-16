@@ -1,4 +1,3 @@
-
 import {Chessboard, INPUT_EVENT_TYPE, COLOR} from "./3rdparty/Chessboard.js"
 import ChessRules from "./chess_rules.js";
 
@@ -121,6 +120,7 @@ export default class Board {
       this.showPromotionDialog(from, to, piece);
       return false; // Don't complete the move yet
     }
+
     // Check for castling
     if (piece === 'wk' || piece === 'bk') {
       if (this.isCastling(piece, from, to)) {
@@ -131,6 +131,9 @@ export default class Board {
 
     // Update castling rights for regular moves
     this.updateCastlingRights(piece, from);
+
+    // Update en passant square
+    this.updateEnPassantSquare(piece, from, to);
 
     // Handle the move
     this.submitGuess(from, to, piece, null, position);
@@ -221,11 +224,16 @@ export default class Board {
     if (!this.gameOver()) {
       const uiMove = this.uiMoves[this.currentMoveIndex];
       if (!uiMove.remove && !uiMove.add) {
-        uiMove.moves.forEach(m => this.board.movePiece(...m.split('-'), true));
+        uiMove.moves.forEach(m => {
+          const [from, to] = m.split('-');
+          this.board.movePiece(from, to, true);
+          this.updateEnPassantSquare(this.board.getPiece(to), from, to);
+        });
       } else {
         uiMove.moves.forEach(m => {
           const [from, to] = m.split('-');
           this.board.movePiece(from, to, true);
+          this.updateEnPassantSquare(this.board.getPiece(to), from, to);
         });
         if (uiMove.remove && uiMove.remove[1] != uiMove.moves[0].substring(3, 5)) {
           this.board.setPiece(uiMove.remove[1], null);
@@ -265,6 +273,7 @@ export default class Board {
   moveBackward() {
     this.currentMoveIndex--;
     this.restoreCastlingRightsFromHistory();
+    this.restoreEnPassantFromMove(this.uiMoves[this.currentMoveIndex]);
     this.reverseMove(this.uiMoves[this.currentMoveIndex]);
     this.updateButtonStates();
     this.updateLastMoveDisplay();
@@ -273,6 +282,19 @@ export default class Board {
   restoreCastlingRightsFromHistory() {
     if (this.castlingRightsHistory[this.currentMoveIndex]) {
       this.castlingRights = this.castlingRightsHistory[this.currentMoveIndex];
+    }
+  }
+
+  restoreEnPassantFromMove(uiMove) {
+    const targetSquare = uiMove.moves[0].substring(3, 5);
+    // Check if this was an en passant capture
+    if (uiMove.remove && uiMove.remove[0].toLowerCase() === 'p' && 
+        uiMove.remove[1] !== targetSquare) {
+      // This was an en passant capture - set en passant square to the capture square
+      this.enPassant = targetSquare;
+    } else {
+      // For all other moves, no en passant was possible
+      this.enPassant = '-';
     }
   }
 
@@ -799,10 +821,29 @@ export default class Board {
         this.castlingRights = this.castlingRights.replace('q', '');
       }
     }
-    
+
     // If no castling rights remain, set to '-'
     if (this.castlingRights === '') {
       this.castlingRights = '-';
+    }
+  }
+
+  // Add this new method
+  updateEnPassantSquare(piece, from, to) {
+    // Check if it's a pawn moving two squares
+    if (piece.endsWith('p')) {
+      const fromRank = parseInt(from[1]);
+      const toRank = parseInt(to[1]);
+      if (Math.abs(toRank - fromRank) === 2) {
+        // Set the en passant square to the square the pawn passed through
+        const file = from[0];
+        const middleRank = (fromRank + toRank) / 2;
+        this.enPassant = file + middleRank;
+      } else {
+        this.enPassant = '-';
+      }
+    } else {
+      this.enPassant = '-';
     }
   }
 

@@ -45,9 +45,10 @@ Enjoy playing through games and guessing the moves.  See how you do in famous ch
    cd guesser
    ```
 
-2. Install dependencies:
+2. Install Ruby and npm dependencies:
    ```
    bundle install
+   rake copy_deps    # This will install npm packages and copy required files
    ```
 
 3. Ensure you have Stockfish installed and update the `engine_path` in `bin/engine.rb` if necessary.

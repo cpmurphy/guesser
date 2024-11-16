@@ -117,4 +117,20 @@ class MoveJudgeTest < Minitest::Test
     assert_equal 32, result[:best_eval][:score]
     mock_analyzer.verify
   end
+
+  def test_not_good_promotion
+    mock_analyzer = Minitest::Mock.new
+    mock_analyzer.expect :evaluate_best_move, { score: 32 }, [@fen]
+    mock_analyzer.expect :evaluate_move, { score: 10 }, [@fen, 'e7e8n']  # Guess move
+    mock_analyzer.expect :evaluate_move, { score: -32 }, [@fen, 'e7e8q']  # Game move
+
+    judge = MoveJudge.new(mock_analyzer)
+    result = judge.compare_moves(@fen, 'e7e8n', 'e7e8q')
+
+    refute result[:good_move]
+    assert_equal(-10, result[:guess_eval][:score])
+    assert_equal 32, result[:game_eval][:score]
+    assert_equal 32, result[:best_eval][:score]
+    mock_analyzer.verify
+  end
 end

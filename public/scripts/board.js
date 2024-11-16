@@ -405,7 +405,7 @@ export default class Board {
 
   submitGuess(source, target, piece, promotedPiece, oldPosition) {
     const currentMove = this.uiMoves[this.currentMoveIndex];
-    if (currentMove && this.isExactMatch(source, target, currentMove)) {
+    if (currentMove && this.isExactMatch(source, target, promotedPiece, currentMove)) {
       this.handleCorrectGuess(currentMove);
       return;
     }
@@ -434,12 +434,12 @@ export default class Board {
     .then(this.handleGuessResponse.bind(this));
   }
 
-  isExactMatch(source, target, currentMove) {
+  isExactMatch(source, target, promotedPiece, currentMove) {
     // For a promotion move, we need to match both the move and the promotion piece
     if (currentMove.add) {
-      const promotionPiece = this.board.getPosition()[target].charAt(1).toLowerCase();
+      const movePromotedPiece = currentMove.add[0].toLowerCase();
       return currentMove.moves.some(move => move === `${source}-${target}`) &&
-             currentMove.add[0].toLowerCase() === promotionPiece;
+             currentMove.add[0].toLowerCase() === promotedPiece[1];
     }
     // For non-promotion moves, just match the move
     return currentMove.moves.some(move => move === `${source}-${target}`);
@@ -463,9 +463,9 @@ export default class Board {
 
     ['Q', 'R', 'B', 'N'].forEach(pieceType => {
       const button = this.createPromotionButton(pieceType, () => {
-        const promotedPiece = color + pieceType;
-        newPos[target] = promotedPiece;
-        this.board.setPosition(newPos);
+        const promotedPiece = color + pieceType.toLowerCase();
+        this.board.setPiece(target, promotedPiece);
+        this.board.setPiece(source, null);
 
         this.submitGuess(source, target, piece, promotedPiece, newPos, oldPos);
         document.body.removeChild(dialog);
@@ -727,7 +727,7 @@ export default class Board {
     const boardRect = boardEl.getBoundingClientRect();
     const squareSize = boardRect.width / 8;
 
-    const isFlipped = this.board.orientation() === 'black';
+    const isFlipped = this.board.getOrientation() === COLOR.black;
     const file = target.charCodeAt(0) - 'a'.charCodeAt(0);
     const rank = target.charCodeAt(1) - '1'.charCodeAt(0);
 

@@ -233,10 +233,11 @@ class ChessGuesser < Sinatra::Base
     guessed_move = guess['guessed_move']
     source = guessed_move['source']
     target = guessed_move['target']
+    guessed_promotion = guessed_move['promotion']
 
     # Check if this is a pawn promotion move
     if needs_promotion?(source, target, guessed_move['piece'])
-      unless guessed_move['promotion']
+      unless guessed_promotion
         return { result: 'needs_promotion', source: source, target: target }.to_json
       end
     end
@@ -254,8 +255,10 @@ class ChessGuesser < Sinatra::Base
     ui_game_move = guess['game_move']['moves'][0]
     game_move_uci = ui_game_move.sub('-', '')
     game_move = game.moves[current_move].notation
-    guessed_move_uci = source + target
-
+    if game_move.include?('=')
+      game_move_uci += game_move.split('=').last.downcase
+    end
+    guessed_move_uci = source + target + (guessed_promotion ? guessed_promotion : '')
 
     judgment = @move_judge.compare_moves(old_fen, guessed_move_uci, game_move_uci)
     if judgment[:good_move]

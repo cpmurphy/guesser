@@ -271,5 +271,12 @@ describe('ChessRules', () => {
 
       expect(rules.isLegalMove('f1', 'e2', 'wk')).toBe(false);
     });
+
+    it ('allows the king to move out of check', () => {
+      const fen = '8/pppk1p2/8/2P3p1/P1P5/2K1n1P1/3R4/1r6 b KQ - 0 33';
+      const rules = new ChessRules(fen, 'KQkq');
+
+      expect(rules.isLegalMove('d7', 'c6', 'bk')).toBe(true);
+    });
   });
 });

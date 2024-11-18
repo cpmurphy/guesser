@@ -126,14 +126,41 @@ export default class ChessRules {
         !position[`${sourceFile}${sourceRank + direction}`]) {
       return true;
     }
+    if (this.isLegalPawnCapture(source, target, isWhite, fileDiff, rankDiff, position, enPassant)) {
+      return true;
+    }
 
-    // Capture (including en passant)
+    return false;
+  }
+
+  isLegalPawnCapture(source, target, isWhite, fileDiff, rankDiff, position, enPassant) {
+    const sourceRank = parseInt(source.charAt(1));
+    const targetRank = parseInt(target.charAt(1));
+    const direction = isWhite ? 1 : -1;
+
     if (fileDiff === 1 && rankDiff === 1 &&
         (targetRank - sourceRank) === direction &&
         (position[target] || target === enPassant)) {
       return true;
     }
 
+    return false;
+  }
+
+  isLegalCapture(source, target, piece, position, enPassant) {
+    const fileDiff = Math.abs(target.charCodeAt(0) - source.charCodeAt(0));
+    const rankDiff = Math.abs(parseInt(target.charAt(1)) - parseInt(source.charAt(1)));
+    if (piece.charAt(1) === 'n') {
+      return this.isLegalKnightMove(fileDiff, rankDiff);
+    } else if (piece.charAt(1) === 'b') {
+      return this.isLegalBishopMove(source, target, fileDiff, rankDiff, position);
+    } else if (piece.charAt(1) === 'r') {
+      return this.isLegalRookMove(source, target, fileDiff, rankDiff, position);
+    } else if (piece.charAt(1) === 'q') {
+      return this.isLegalQueenMove(source, target, fileDiff, rankDiff, position);
+    } else if (piece.charAt(1) === 'p') {
+      return this.isLegalPawnCapture(source, target, fileDiff, rankDiff, position, enPassant);
+    }
     return false;
   }
 
@@ -250,7 +277,7 @@ export default class ChessRules {
       }
 
       // Pass skipCheckValidation=true to avoid infinite recursion
-      if (this.isLegalMove(src, square, piece, true)) {
+      if (this.isLegalCapture(src, square, piece, position)) {
         return true;
       }
     }

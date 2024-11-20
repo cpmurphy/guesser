@@ -63,13 +63,14 @@ export default class Board {
     if (data.currentWholeMove && data.currentWholeMove > this.startingWholeMove) {
       const moveIncrement = this.sideToMove === 'white' ? 0 : 1;
       const moveIndex = (data.currentWholeMove - this.startingWholeMove) * 2 + moveIncrement;
+      if (!this.isWhiteToMove(moveIndex)) {
+        this.flipBoard();
+      }
       this.goToMoveIndex(moveIndex);
     }
     this.updateLastMoveDisplay();
     this.updateGuessMode();
-    if (!this.isWhiteToMove(this.currentMoveIndex)) {
-      this.flipBoard();
-    }
+
   }
 
 

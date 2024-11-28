@@ -1,5 +1,6 @@
 import ChessRules from "./chess_rules.js";
 import { COLOR, PIECE } from "./board_definitions.js";
+import GameState from "./game_state.js";
 
 export default class Board {
   constructor(data, chessboard) {
@@ -7,10 +8,6 @@ export default class Board {
     this.lastMoveElement = document.getElementById('last-move');
     this.moveInput = document.getElementById('move-input');
     this.board = chessboard;
-    this.castlingRightsHistory = [];
-    this.castlingRights = 'kqKQ';
-    this.enPassant = '-';
-    this.halfmoveClock = '0';
     this.setupUserInterface();
     this.onGameLoaded(data);
   }
@@ -36,9 +33,7 @@ export default class Board {
 
   initializeGameState(fen) {
     this.lastPosition = this.board.getPosition();
-    this.castlingRights = fen.split(' ')[2];
-    this.enPassant = fen.split(' ')[3];
-    this.halfmoveClock = fen.split(' ')[4];
+    this.gameState = new GameState(fen);
     this.hideGuessResult();
     this.initializeButtonStates(false);
   }
@@ -112,7 +107,7 @@ export default class Board {
       return false;
     }
 
-    const chessRules = new ChessRules(this.board.getPosition(), this.enPassant, this.castlingRights);
+    const chessRules = new ChessRules(position, this.gameState.enPassant, this.gameState.castlingRights);
     if (!chessRules.isLegalMove(from, to, piece)) {
       return false;
     }
@@ -125,14 +120,9 @@ export default class Board {
 
     if (piece === PIECE.wk || piece === PIECE.bk) {
       if (this.isCastling(piece, from, to)) {
-        this.updateCastlingRightsHistory();
         this.performCastling(piece, to, position);
       }
     }
-
-    this.updateCastlingRights(piece, from);
-
-    this.updateEnPassantSquare(piece, from, to);
 
     this.submitGuess(from, to, piece, null, position);
     return true;
@@ -221,17 +211,16 @@ export default class Board {
   moveForward() {
     if (!this.gameOver()) {
       const uiMove = this.uiMoves[this.currentMoveIndex];
+      this.updateGameState(uiMove);
       if (!uiMove.remove && !uiMove.add) {
         uiMove.moves.forEach(m => {
           const [from, to] = m.split('-');
           this.board.movePiece(from, to, true);
-          this.updateEnPassantSquare(this.board.getPiece(to), from, to);
         });
       } else {
         uiMove.moves.forEach(m => {
           const [from, to] = m.split('-');
           this.board.movePiece(from, to, true);
-          this.updateEnPassantSquare(this.board.getPiece(to), from, to);
         });
         if (uiMove.remove && uiMove.remove[1] != uiMove.moves[0].substring(3, 5)) {
           this.board.setPiece(uiMove.remove[1], null);
@@ -247,6 +236,13 @@ export default class Board {
       this.displayGameResult();
     }
     this.updateLastMoveDisplay();
+  }
+
+  updateGameState(uiMove) {
+    const move = uiMove.moves[0];
+    const [from, to] = move.split('-');
+    const piece = this.board.getPiece(from);
+    this.gameState.update(piece, from, to);
   }
 
   displayGameResult() {
@@ -269,28 +265,10 @@ export default class Board {
 
   moveBackward() {
     this.currentMoveIndex--;
-    this.restoreCastlingRightsFromHistory();
-    this.restoreEnPassantFromMove(this.uiMoves[this.currentMoveIndex]);
+    this.gameState.rewind();
     this.reverseMove(this.uiMoves[this.currentMoveIndex]);
     this.updateButtonStates();
     this.updateLastMoveDisplay();
-  }
-
-  restoreCastlingRightsFromHistory() {
-    if (this.castlingRightsHistory[this.currentMoveIndex]) {
-      this.castlingRights = this.castlingRightsHistory[this.currentMoveIndex];
-    }
-  }
-
-  restoreEnPassantFromMove(uiMove) {
-    const targetSquare = uiMove.moves[0].substring(3, 5);
-    if (uiMove.remove && uiMove.remove[0].toLowerCase() === 'p' && 
-        uiMove.remove[1] !== targetSquare) {
-      // This was an en passant capture - set en passant square to the capture square
-      this.enPassant = targetSquare;
-    } else {
-      this.enPassant = '-';
-    }
   }
 
   reverseMove(uiMove) {
@@ -325,10 +303,7 @@ export default class Board {
   }
 
   handleGuessResult(data) {
-    const moveQueue = [];
-
     data.forEach((move) => {
-      this.currentMoveIndex = move.move_number - 1;
       if (move.result === 'correct') {
         if (move.same_as_game) {
           this.updateGuessStatus(
@@ -351,7 +326,8 @@ export default class Board {
             headline,
             evalComment
           );
-          moveQueue.push({ fen: this.lastPosition }, { fen: move.fen });
+          this.board.setPosition(this.lastPosition);
+          this.moveForward();
         }
       } else if (move.result === 'incorrect') {
         const evalDiff = this.compareEvaluations(move.guess_eval.score, move.game_eval.score);
@@ -361,36 +337,17 @@ export default class Board {
           'Incorrect!',
           evalComment
         );
-        moveQueue.push({ fen: this.lastPosition });
+        this.board.setPosition(this.lastPosition);
       } else if (move.result === 'auto_move') {
         if (this.guessMode() == 'both') {
           this.currentMoveIndex--; // Ignore the auto move
           this.setLastMoveDisplay(this.currentMoveIndex, this.moves[this.currentMoveIndex - 1]);
           this.updateButtonStates();
         } else {
-          moveQueue.push({ fen: move.fen });
-          this.setLastMoveDisplay(move.move_number, move.move);
-          this.updateButtonStates();
+          this.moveForward();
         }
       }
     });
-
-    this.replayMoves(moveQueue);
-    this.board.set
-  }
-
-  replayMoves(moveQueue) {
-    if (moveQueue.length === 0) return;
-
-    const move = moveQueue.shift();
-    this.board.setPosition(move.fen);
-
-    setTimeout(() => {
-      this.replayMoves(moveQueue);
-    }, 500);
-    if (this.gameOver()) {
-      this.displayGameResult();
-    }
   }
 
   hideGuessResult() {
@@ -423,6 +380,7 @@ export default class Board {
   submitGuess(source, target, piece, promotedPiece, oldPosition) {
     const currentMove = this.uiMoves[this.currentMoveIndex];
     if (currentMove && this.isExactMatch(source, target, promotedPiece, currentMove)) {
+      this.updateGameState(currentMove);
       this.handleCorrectGuess(currentMove);
       return;
     }
@@ -509,30 +467,22 @@ export default class Board {
     return kingside || queenside;
   }
 
-  updateCastlingRightsHistory() {
-    this.castlingRightsHistory[this.currentMoveIndex] = this.castlingRights;
-  }
-
   performCastling(piece, target, newPos) {
     let rookSource, rookTarget;
 
     if (piece === PIECE.wk) {
       if (target === 'g1') {
-        this.castlingRights = this.castlingRights.replace('K', '');
         rookSource = 'h1';
         rookTarget = 'f1';
       } else if (target === 'c1') {
-        this.castlingRights = this.castlingRights.replace('Q', '');
         rookSource = 'a1';
         rookTarget = 'd1';
       }
     } else if (piece === PIECE.bk) {
       if (target === 'g8') {
-        this.castlingRights = this.castlingRights.replace('k', '');
         rookSource = 'h8';
         rookTarget = 'f8';
       } else if (target === 'c8') {
-        this.castlingRights = this.castlingRights.replace('q', '');
         rookSource = 'a8';
         rookTarget = 'd8';
       }
@@ -668,7 +618,7 @@ export default class Board {
     // Calculate the full move number
     const fullmoveNumber = Math.floor(this.currentMoveIndex / 2) + this.startingWholeMove;
 
-    return `${piecePlacement} ${activeColor} ${this.castlingRights} ${this.enPassant} ${this.halfmoveClock} ${fullmoveNumber}`;
+    return `${piecePlacement} ${activeColor} ${this.gameState.stringForFen()} ${fullmoveNumber}`;
   }
 
   formatEvaluation(evaluation) {
@@ -788,55 +738,6 @@ export default class Board {
       if (radioButton) {
         radioButton.checked = true;
       }
-    }
-  }
-
-  // Add this method to handle castling rights updates
-  updateCastlingRights(piece, from) {
-    if (piece === PIECE.wk) {
-      // Remove both white castling rights when king moves
-      this.castlingRights = this.castlingRights.replace(/[KQ]/g, '');
-    } else if (piece === PIECE.bk) {
-      // Remove both black castling rights when king moves
-      this.castlingRights = this.castlingRights.replace(/[kq]/g, '');
-    } else if (piece === PIECE.wr) {
-      if (from === 'h1') {
-        // Remove kingside castling right
-        this.castlingRights = this.castlingRights.replace('K', '');
-      } else if (from === 'a1') {
-        // Remove queenside castling right
-        this.castlingRights = this.castlingRights.replace('Q', '');
-      }
-    } else if (piece === PIECE.br) {
-      if (from === 'h8') {
-        // Remove kingside castling right
-        this.castlingRights = this.castlingRights.replace('k', '');
-      } else if (from === 'a8') {
-        // Remove queenside castling right
-        this.castlingRights = this.castlingRights.replace('q', '');
-      }
-    }
-
-    // If no castling rights remain, set to '-'
-    if (this.castlingRights === '') {
-      this.castlingRights = '-';
-    }
-  }
-
-  updateEnPassantSquare(piece, from, to) {
-    if (piece.endsWith('p')) {
-      const fromRank = parseInt(from[1]);
-      const toRank = parseInt(to[1]);
-      if (Math.abs(toRank - fromRank) === 2) {
-        // Set the en passant square to the square the pawn passed through
-        const file = from[0];
-        const middleRank = (fromRank + toRank) / 2;
-        this.enPassant = file + middleRank;
-      } else {
-        this.enPassant = '-';
-      }
-    } else {
-      this.enPassant = '-';
     }
   }
 

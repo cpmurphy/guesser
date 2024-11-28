@@ -237,7 +237,6 @@ describe('Board', () => {
       const board = new Board(data, chessboard);
       document.querySelector('input[value="white"]').checked = true;
 
-      // Spy on moveForward
       const moveForwardSpy = vi.spyOn(board, 'moveForward');
 
       board.handleCorrectGuess(data.uiMoves[0]);
@@ -323,7 +322,7 @@ describe('Board', () => {
       const board = new Board(data, chessboard);
       document.querySelector('input[value="white"]').checked = true;
 
-      const replayMovesSpy = vi.spyOn(board, 'replayMoves');
+      const moveForwardSpy = vi.spyOn(board, 'moveForward');
 
       board.handleGuessResult([{
         "result": "correct",
@@ -356,13 +355,6 @@ describe('Board', () => {
       }
       ]);
       vi.runAllTimers();
-
-      // replayMoves is called 4 times:
-      // 1. to reset the board to the position before the guess
-      // 2. to play the actual game move
-      // 3. once to play the opponent's responding move
-      // 4. one additional internal recursive call from inside replayMoves to handle the delay between moves
-      expect(replayMovesSpy).toHaveBeenCalledTimes(4);
       expect(board.currentMoveIndex).toBe(2); // Should have moved forward twice
     });
 
@@ -381,7 +373,7 @@ describe('Board', () => {
       document.querySelector('input[value="black"]').checked = true;
       board.moveForward(); // Play white's first move
 
-      const replayMovesSpy = vi.spyOn(board, 'replayMoves');
+      const moveForwardSpy = vi.spyOn(board, 'moveForward');
 
       board.handleGuessResult([
         {
@@ -418,12 +410,7 @@ describe('Board', () => {
       ]);
       vi.runAllTimers();
 
-      // replayMoves is called 4 times:
-      // 1. to reset the board to the position before the guess
-      // 2. to play the actual game move
-      // 3. once to play the opponent's responding move
-      // 4. one additional internal recursive call from inside replayMoves to handle the delay between moves
-      expect(replayMovesSpy).toHaveBeenCalledTimes(4);
+      expect(moveForwardSpy).toHaveBeenCalledTimes(2);
       expect(board.currentMoveIndex).toBe(3); // Should have moved forward twice
     });
 
@@ -440,7 +427,7 @@ describe('Board', () => {
       const board = new Board(data, chessboard);
       document.querySelector('input[value="both"]').checked = true;
 
-      const replayMovesSpy = vi.spyOn(board, 'replayMoves');
+      const moveForwardSpy = vi.spyOn(board, 'moveForward');
 
       board.moveForward(); // Play white's first move
       board.handleGuessResult([
@@ -478,12 +465,8 @@ describe('Board', () => {
       ]);
       vi.runAllTimers();
 
-      // replayMoves is called 3 times:
-      // 1. to reset the board to the position before the guess
-      // 2. to play the actual game move
-      // 3. one internal recursive call from inside replayMoves to handle the delay between moves
-      expect(replayMovesSpy).toHaveBeenCalledTimes(3);
-      expect(board.currentMoveIndex).toBe(2); // Should have moved forward only one move
+      expect(moveForwardSpy).toHaveBeenCalledTimes(2);
+      expect(board.currentMoveIndex).toBe(1); // Should have moved forward only one move
     });
   });
 

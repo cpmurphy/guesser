@@ -19,7 +19,6 @@ function createGameData(options = {}) {
 
 describe('Board', () => {
   let board;
-  let chessboard = new Chessboard('element', {});
 
   beforeEach(() => {
     // Mock DOM elements that Board expects
@@ -49,6 +48,7 @@ describe('Board', () => {
         moves: ['e4', 'e5', 'Nf3'],
         uiMoves: [{"moves":["e2-e4"]},{"moves":["e7-e5"]},{"moves":["g1-f3"]}]
       });
+      const chessboard = new Chessboard('element', {});
       board = new Board(data, chessboard);
 
       expect(board.currentMoveIndex).toBe(0);
@@ -67,6 +67,7 @@ describe('Board', () => {
         moves: ['e4', 'e5', 'Nf3', 'Nc6'],
         uiMoves: [{"moves":["e2-e4"]},{"moves":["e7-e5"]},{"moves":["g1-f3"]},{"moves":["b8-c6"]}]
       });
+      const chessboard = new Chessboard('element', {});
       board = new Board(data, chessboard);
 
       expect(board.currentMoveIndex).toBe(3);
@@ -84,6 +85,7 @@ describe('Board', () => {
         sideToMove: 'black',
         fen: 'r1bqkbnr/pppp1ppp/2n5/4p3/2B1P3/5N2/PPPP1PPP/RNBQK2R b KQkq - 3 3',
       });
+      const chessboard = new Chessboard('element', {});
       board = new Board(data, chessboard);
 
       expect(board.currentMoveIndex).toBe(0);
@@ -103,6 +105,7 @@ describe('Board', () => {
         moves: ['e4', 'e5', 'Nf3'],
         uiMoves: [{"moves":["e2-e4"]},{"moves":["e7-e5"]},{"moves":["g1-f3"]}]
       });
+      const chessboard = new Chessboard('element', {});
       board = new Board(data, chessboard);
 
       board.moveForward();
@@ -127,6 +130,7 @@ describe('Board', () => {
         sideToMove: 'black',
         fen: 'r1bk3r/pppp2bp/2n5/4p2q/2BP1pNP/2P5/PP4P1/2BQ2KR b - - 0 15',
       });
+      const chessboard = new Chessboard('element', { position: data.fen });
       board = new Board(data, chessboard);
 
       board.moveForward();
@@ -150,6 +154,7 @@ describe('Board', () => {
         moves: ['e4', 'e5', 'Nf3', 'Nc6'],
         uiMoves: [{"moves":["e2-e4"]},{"moves":["e7-e5"]},{"moves":["g1-f3"]},{"moves":["b8-c6"]}]
       });
+      const chessboard = new Chessboard('element', {});
       board = new Board(data, chessboard);
 
       expect(board.currentMoveIndex).toBe(3);
@@ -177,6 +182,7 @@ describe('Board', () => {
         fen: 'r1bk3r/pppp2bp/2n5/4p2q/2BP1pNP/2P5/PP4P1/2BQ2KR b - - 0 15'
       });
 
+      const chessboard = new Chessboard('element', {});
       const board = new Board(data, chessboard);
       const blackRadio = document.querySelector('input[name="guess_mode"][value="black"]');
       expect(blackRadio.checked).toBe(true);
@@ -189,6 +195,7 @@ describe('Board', () => {
         fen: 'r1bk3r/pppp2bp/2n5/4p2q/2BP1pNP/2P5/PP4P1/2BQ2KR w - - 0 15'
       });
 
+      const chessboard = new Chessboard('element', {});
       const board = new Board(data, chessboard);
       const whiteRadio = document.querySelector('input[name="guess_mode"][value="white"]');
       expect(whiteRadio.checked).toBe(true);
@@ -203,6 +210,7 @@ describe('Board', () => {
         sideToMove: 'white'
       });
 
+      const chessboard = new Chessboard('element', {});
       const board = new Board(data, chessboard);
       expect(whiteRadio.checked).toBe(true);
     });
@@ -234,6 +242,7 @@ describe('Board', () => {
         ]
       });
 
+      const chessboard = new Chessboard('element', {});
       const board = new Board(data, chessboard);
       document.querySelector('input[value="white"]').checked = true;
 
@@ -258,6 +267,7 @@ describe('Board', () => {
         sideToMove: 'black'
       });
 
+      const chessboard = new Chessboard('element', {});
       const board = new Board(data, chessboard);
       document.querySelector('input[value="black"]').checked = true;
 
@@ -281,6 +291,7 @@ describe('Board', () => {
         ]
       });
 
+      const chessboard = new Chessboard('element', {});
       const board = new Board(data, chessboard);
       document.querySelector('input[value="both"]').checked = true;
 
@@ -291,6 +302,22 @@ describe('Board', () => {
 
       expect(moveForwardSpy).not.toHaveBeenCalled();
       expect(board.currentMoveIndex).toBe(1); // Should have moved forward only once
+    });
+  });
+
+  describe('submitGuess', () => {
+    it('removes the captured pawn after a correct en-passant move', () => {
+      const data = createGameData({
+        uiMoves: [{'moves':['e2-e4']},{'moves':['c7-c5']},{'moves':['e4-e5']},{'moves':['f7-f5']},{'moves':['e5-f6'],'remove':['p','f5']}],
+        moves: ['e4','c5','e5','f5','exf6']
+      });
+      const chessboard = new Chessboard('element', {});
+      const board = new Board(data, chessboard);
+      for (let i = 0; i < 4; i++) {
+        board.moveForward();
+      }
+      board.submitGuess('e5', 'f6', 'wp', null, 'rnbqkbnr/pp1pp1pp/8/2p1Pp2/8/8/PPPP1PPP/RNBQKBNR');
+      expect(board.board.getPiece('f5')).toBeNull();
     });
   });
 
@@ -319,6 +346,7 @@ describe('Board', () => {
         ]
       });
 
+      const chessboard = new Chessboard('element', {});
       const board = new Board(data, chessboard);
       document.querySelector('input[value="white"]').checked = true;
 
@@ -369,6 +397,7 @@ describe('Board', () => {
         sideToMove: 'black'
       });
 
+      const chessboard = new Chessboard('element', {});
       const board = new Board(data, chessboard);
       document.querySelector('input[value="black"]').checked = true;
       board.moveForward(); // Play white's first move
@@ -424,6 +453,7 @@ describe('Board', () => {
         ]
       });
 
+      const chessboard = new Chessboard('element', {});
       const board = new Board(data, chessboard);
       document.querySelector('input[value="both"]').checked = true;
 

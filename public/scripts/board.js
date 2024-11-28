@@ -706,6 +706,9 @@ export default class Board {
   }
 
   handleCorrectGuess(move) {
+    if (move.remove) {
+      this.board.setPiece(move.remove[1], null);
+    }
     this.updateGuessStatus('green', 'Correct!', 'This is what was played.');
     this.currentMoveIndex++;
     // autoplay the opponent's move unless guess mode is both

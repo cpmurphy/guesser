@@ -311,6 +311,7 @@ export default class Board {
             'Correct!',
             'This is what was played.'
           );
+          this.moveForward(move.move);
         } else {
           const evalDiff = this.compareEvaluations(move.guess_eval.score, move.game_eval.score);
           const evalComment = this.getEvaluationComment(move.result, move.game_move, move.guess_eval.score, evalDiff);
@@ -339,11 +340,7 @@ export default class Board {
         );
         this.board.setPosition(this.lastPosition);
       } else if (move.result === 'auto_move') {
-        if (this.guessMode() == 'both') {
-          this.currentMoveIndex--; // Ignore the auto move
-          this.setLastMoveDisplay(this.currentMoveIndex, this.moves[this.currentMoveIndex - 1]);
-          this.updateButtonStates();
-        } else {
+        if (this.guessMode() != 'both') {
           this.moveForward();
         }
       }

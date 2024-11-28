@@ -459,7 +459,8 @@ describe('Board', () => {
 
       const moveForwardSpy = vi.spyOn(board, 'moveForward');
 
-      board.moveForward(); // Play white's first move
+      board.moveForward(); // Play White's first move
+      // Now handle a guess of Black's first move
       board.handleGuessResult([
         {
           "result": "correct",
@@ -496,7 +497,46 @@ describe('Board', () => {
       vi.runAllTimers();
 
       expect(moveForwardSpy).toHaveBeenCalledTimes(2);
-      expect(board.currentMoveIndex).toBe(1); // Should have moved forward only one move
+      expect(board.currentMoveIndex).toBe(2); // Should have moved forward only one move -- White's second move
+    });
+
+    it('updates the last move after a good guess', () => {
+      document.querySelector('input[value="both"]').checked = true;
+      const data = createGameData({
+        moves: ['e4', 'c5', 'Nf3'],
+        uiMoves: [
+          {moves:['e2-e4']},
+          {moves:['c7-c5']},
+          {moves:['g1-f3']}
+        ]
+      });
+      const chessboard = new Chessboard('element', {});
+      const board = new Board(data, chessboard);
+      board.moveForward();
+      board.handleGuessResult([
+        {
+          result: 'correct',
+          same_as_game: false,
+          game_move: 'c5',
+          best_eval: {'score':-28,'move':'e7e5','variation':['g1f3','b8c6']},
+          guess_eval: {'score':-31,'move':'g1f3','variation':['b8c6','f1c4']},
+          game_eval: {'score':-26,'move':'g1f3','variation':['b8c6','f1b5']},
+          fen: 'rnbqkbnr/pp1ppppp/8/2p5/4P3/8/PPPP1PPP/RNBQKBNR w KQkq c6 0 2',
+          move: 'c5',
+          move_number: 3,
+          total_moves: 16
+        },
+        {
+          result: 'auto_move',
+          fen: 'rnbqkbnr/pp1ppppp/8/2p1P3/8/8/PPPP1PPP/RNBQKBNR b KQkq - 0 2',
+          move: 'e5',
+          move_number: 4,
+          total_moves: 16
+        }
+      ]);
+      expect(board.lastMoveElement.textContent).toBe('1... c5');
+      expect(board.currentMoveIndex).toBe(2);
+      expect(board.isWhiteToMove(board.currentMoveIndex)).toBe(true);
     });
   });
 

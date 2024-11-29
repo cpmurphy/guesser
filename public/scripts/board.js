@@ -242,7 +242,9 @@ export default class Board {
     const move = uiMove.moves[0];
     const [from, to] = move.split('-');
     const piece = this.board.getPiece(from);
-    this.gameState.update(piece, from, to);
+    if (piece) {
+      this.gameState.update(piece, from, to);
+    }
   }
 
   displayGameResult() {

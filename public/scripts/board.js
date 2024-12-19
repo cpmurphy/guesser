@@ -290,14 +290,15 @@ export default class Board {
   }
 
   translatePiece(piece) {
-    if (piece.match(/^[rnbqkp]$/)) {
+    if (this.isWhiteToMove(this.currentMoveIndex)) {
+      return "w" + piece.toLowerCase();
+    } else {
       return "b" + piece.toLowerCase();
     }
-    return "w" + piece.toLowerCase();
   }
 
   pawnForCurrentMove() {
-    if (this.currentMoveIndex % 2 == 0) {
+    if (this.isWhiteToMove(this.currentMoveIndex)) {
       return PIECE.wp;
     } else {
       return PIECE.bp;
@@ -608,7 +609,7 @@ export default class Board {
 
   generateCompleteFen() {
     const piecePlacement = this.board.getPosition();
-    const activeColor = this.currentMoveIndex % 2 === 0 ? 'w' : 'b';
+    const activeColor = this.isWhiteToMove(this.currentMoveIndex) ? 'w' : 'b';
     // Calculate the full move number
     const fullmoveNumber = Math.floor(this.currentMoveIndex / 2) + this.startingWholeMove;
 

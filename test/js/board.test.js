@@ -540,4 +540,25 @@ describe('Board', () => {
     });
   });
 
+  describe('promotion', () => {
+    it('correctly handles the promotion of a black pawn', () => {
+      const data = createGameData({
+        fen: '8/8/8/8/8/8/2pk1K2/8 b - - 0 1',
+        uiMoves: [{"moves":["c2-c1"],"add":["Q","c1"]}],
+        moves: ["c1=Q"],
+        startingWholeMove: 1,
+        currentWholeMove: 1,
+        sideToMove: 'black',
+      });
+      const chessboard = new Chessboard('element', {});
+      const board = new Board(data, chessboard);
+      board.moveForward();
+      expect(board.board.getPiece('c2')).toBe(null);
+      expect(board.board.getPiece('c1')).toBe('bq');
+      board.moveBackward();
+      expect(board.board.getPiece('c1')).toBe(null);
+      expect(board.board.getPiece('c2')).toBe('bp');
+    });
+  });
+
 });

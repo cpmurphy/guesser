@@ -432,23 +432,18 @@ export default class Board {
   }
 
   showPromotionDialog(source, target, piece, newPos, oldPos) {
-    const dialog = this.createPromotionDialog();
     const color = piece.charAt(0);
-
-    ['Q', 'R', 'B', 'N'].forEach(pieceType => {
-      const button = this.createPromotionButton(pieceType, () => {
-        const promotedPiece = color + pieceType.toLowerCase();
-        this.board.setPiece(target, promotedPiece);
-        this.board.setPiece(source, null);
-
-        this.submitGuess(source, target, piece, promotedPiece, newPos, oldPos);
-        document.body.removeChild(dialog);
-      });
-      dialog.appendChild(button);
+    const position = this.board.getPosition();
+    this.board.showPromotionDialog(target, color, (result) => {
+      console.log("Promotion result", result)
+      if (result && result.piece) {
+        this.board.setPiece(result.square, result.piece, true)
+        this.board.setPiece(source, null)
+        this.submitGuess(source, target, piece, result.piece, newPos, oldPos);
+      } else {
+        this.board.setPosition(position)
+      }
     });
-
-    this.positionPromotionDialog(dialog, target);
-    document.body.appendChild(dialog);
   }
 
   isPawnPromotion(from, to, piece) {
@@ -666,42 +661,6 @@ export default class Board {
       }
     }
     return comment;
-  }
-
-  // Helper methods for promotion dialog
-  createPromotionDialog() {
-    const dialog = document.createElement('div');
-    dialog.id = 'promotion-dialog';
-    dialog.style.position = 'fixed';
-    dialog.style.backgroundColor = 'white';
-    dialog.style.border = '1px solid black';
-    dialog.style.padding = '10px';
-    dialog.style.zIndex = 1000;
-    return dialog;
-  }
-
-  createPromotionButton(pieceType, onClick) {
-    const button = document.createElement('button');
-    button.className = 'promotion-choice';
-    button.textContent = pieceType;
-    button.onclick = onClick;
-    return button;
-  }
-
-  positionPromotionDialog(dialog, target) {
-    const boardEl = document.getElementById('board');
-    const boardRect = boardEl.getBoundingClientRect();
-    const squareSize = boardRect.width / 8;
-
-    const isFlipped = this.board.getOrientation() === COLOR.black;
-    const file = target.charCodeAt(0) - 'a'.charCodeAt(0);
-    const rank = target.charCodeAt(1) - '1'.charCodeAt(0);
-
-    const x = isFlipped ? (7 - file) : file;
-    const y = isFlipped ? rank : (7 - rank);
-
-    dialog.style.left = `${boardRect.left + x * squareSize}px`;
-    dialog.style.top = `${boardRect.top + y * squareSize}px`;
   }
 
   handleCorrectGuess(move) {

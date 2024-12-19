@@ -6,6 +6,7 @@
     %title Chess Guesser
     %link{rel:"stylesheet", href:"/3rdparty-assets/cm-chessboard/chessboard.css"}
     %link{rel:"stylesheet", href:"/3rdparty-assets/cm-chessboard/extensions/markers/markers.css"}
+    %link{rel:"stylesheet", href:"/3rdparty-assets/cm-chessboard/extensions/promotion-dialog/promotion-dialog.css"}
     %link{rel:"stylesheet", href:"/styles/game.css"}
 
   %body
@@ -60,6 +61,7 @@
       document.addEventListener('DOMContentLoaded', async () => {
         const { Chessboard, INPUT_EVENT_TYPE, COLOR } = await import('/scripts/3rdparty/Chessboard.js');
         const { Markers, MARKER_TYPE } = await import('/scripts/3rdparty/extensions/markers/Markers.js');
+        const { PromotionDialog } = await import('/scripts/3rdparty/extensions/promotion-dialog/PromotionDialog.js');
         const { default: Board } = await import('/scripts/board.js');
         const guesserState = {
           uiMoves: #{ui_moves.to_json},
@@ -75,11 +77,14 @@
         const chessboard = new Chessboard(document.getElementById("board"), {
           position: guesserState.fen,
           assetsUrl: "/3rdparty-assets/cm-chessboard/",
-          extensions: [{
-            class: Markers,
-            autoMarkers: MARKER_TYPE.dot,
-            sprite: "/3rdparty-assets/cm-chessboard/extensions/markers/markers.svg"
-          }]
+          extensions: [
+            { class: PromotionDialog },
+            {
+              class: Markers,
+              autoMarkers: MARKER_TYPE.dot,
+              sprite: "/3rdparty-assets/cm-chessboard/extensions/markers/markers.svg"
+            }
+          ]
         });
 
         const board = new Board(guesserState, chessboard);

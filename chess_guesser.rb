@@ -8,6 +8,7 @@ require_relative 'lib/analyzer'
 require_relative 'lib/move_judge'
 require_relative 'lib/pgn_summary'
 require_relative 'lib/move_translator'
+require_relative 'lib/guess_evaluator'
 
 class ChessGuesser < Sinatra::Base
   enable :sessions
@@ -50,7 +51,8 @@ class ChessGuesser < Sinatra::Base
 
   def initialize
     super
-    @move_judge = MoveJudge.new
+    move_judge = MoveJudge.new
+    @evaluator = GuessEvaluator.new(move_judge)
   end
 
   get '/' do
@@ -230,64 +232,15 @@ class ChessGuesser < Sinatra::Base
 
   post '/guess' do
     guess = JSON.parse(request.body.read)
-    guessed_move = guess['guessed_move']
-    source = guessed_move['source']
-    target = guessed_move['target']
-    guessed_promotion = guessed_move['promotion']
-
-    # Check if this is a pawn promotion move
-    if needs_promotion?(source, target, guessed_move['piece'])
-      unless guessed_promotion
-        return { result: 'needs_promotion', source: source, target: target }.to_json
-      end
-    end
-
-    current_move = guess['current_move'].to_i - 1
-    number_of_moves = guess['number_of_moves'].to_i
-    guess_state = {}
-
-    guessed_move = guess['guessed_move']
-    source = guessed_move['source']
-    target = guessed_move['target']
     path = guess['path']
     game = game_for_path(path)
-    old_fen = game.positions[current_move].to_fen
+    guessed_move = guess['guessed_move']
+    current_move = guess['current_move'].to_i - 1
+    number_of_moves = game.moves.length
     ui_game_move = guess['game_move']['moves'][0]
-    game_move_uci = ui_game_move.sub('-', '')
-    game_move = game.moves[current_move].notation
-    if game_move.include?('=')
-      game_move_uci += game_move.split('=').last.downcase
-    end
-    guessed_move_uci = source + target + (guessed_promotion ? guessed_promotion : '')
 
-    judgment = @move_judge.compare_moves(old_fen, guessed_move_uci, game_move_uci)
-    if judgment[:good_move]
-      current_move = move_forward(current_move, number_of_moves)
-      guess_state = {
-        result: 'correct',
-        same_as_game: guessed_move_uci == game_move_uci,
-        game_move: game_move,
-        best_eval: judgment[:best_eval],
-        guess_eval: judgment[:guess_eval],
-        game_eval: judgment[:game_eval]
-      }.merge(state_for_current_move(game, current_move))
-    else
-      guess_state = {
-        result: 'incorrect',
-        same_as_game: false,
-        game_move: game_move,
-        best_eval: judgment[:best_eval],
-        guess_eval: judgment[:guess_eval],
-        game_eval: judgment[:game_eval]
-      }.merge(state_for_current_move(game, current_move))
-    end
+    response = @evaluator.handle_guess(guessed_move, current_move, ui_game_move, number_of_moves, game)
 
-    response = [guess_state]
-    # Automatically play the move for the non-guessing side
-    if guess_state[:result] == 'correct' && current_move < number_of_moves
-      current_move = move_forward(current_move, number_of_moves)
-      response.push({ result: 'auto_move'}.merge(state_for_current_move(game, current_move)))
-    end
     response.to_json
   end
 
@@ -297,22 +250,6 @@ class ChessGuesser < Sinatra::Base
     else
       'black'
     end
-  end
-
-  def move_forward(current_move, number_of_moves)
-    if current_move < number_of_moves
-      current_move += 1
-    end
-    current_move
-  end
-
-  def state_for_current_move(game, current_move)
-    number_of_moves = game.moves.length
-    { fen: game.positions[current_move].to_fen,
-      move: current_move > 0 ? game.moves[current_move - 1].notation : nil,
-      move_number: current_move + 1,
-      total_moves: number_of_moves
-    }
   end
 
   def game_for_path(path)
@@ -329,14 +266,6 @@ class ChessGuesser < Sinatra::Base
     move_translator = MoveTranslator.new
     move_translator.load_game_from_fen(old_fen)
     move_translator.translate_move(game.moves[current_move].notation)
-  end
-
-  def needs_promotion?(source, target, piece)
-    # Check if it's a pawn move to the last rank
-    return false unless piece.end_with?('P')
-    source_rank = source[1].to_i
-    target_rank = target[1].to_i
-    (source_rank == 7 && target_rank == 8) || (source_rank == 2 && target_rank == 1)
   end
 
   # start the server if ruby file executed directly

@@ -544,7 +544,7 @@ describe('Board', () => {
     it('correctly handles the promotion of a black pawn', () => {
       const data = createGameData({
         fen: '8/8/8/8/8/8/2pk1K2/8 b - - 0 1',
-        uiMoves: [{"moves":["c2-c1"],"add":["Q","c1"]}],
+        uiMoves: [{"moves":["c2-c1"],"add":["q","c1"]}],
         moves: ["c1=Q"],
         startingWholeMove: 1,
         currentWholeMove: 1,
@@ -561,4 +561,27 @@ describe('Board', () => {
     });
   });
 
+  describe('navigating a whole game', () => {
+    it('navigates a whole game', () => {
+      const data = createGameData({
+        uiMoves: [{"moves":["c2-c4"]},{"moves":["e7-e5"]},{"moves":["b1-c3"]},{"moves":["b8-c6"]},{"moves":["g1-f3"]},{"moves":["g7-g6"]},{"moves":["d2-d4"]},{"moves":["e5-d4"],"remove":["P","d4"]},{"moves":["c3-d5"]},{"moves":["f8-g7"]},{"moves":["c1-g5"]},{"moves":["g8-e7"]},{"moves":["f3-d4"],"remove":["p","d4"]},{"moves":["g7-d4"],"remove":["N","d4"]},{"moves":["d1-d4"],"remove":["b","d4"]},{"moves":["e8-g8","h8-f8"]},{"moves":["d5-f6"]},{"moves":["g8-h8"]},{"moves":["f6-g4"]}],
+        moves: ["c4","e5","Nc3","Nc6","Nf3","g6","d4","exd4","Nd5","Bg7","Bg5","Nge7","Nxd4","Bxd4","Qxd4","O-O","Nf6+","Kh8","Ng4+"],
+        gameResult: '1-0',
+        white: 'Dmitry Andreikin',
+        black: 'Sergey Karjakin'
+      });
+      const chessboard = new Chessboard('element', {});
+      const board = new Board(data, chessboard);
+      for (let i = 0; i < 19; i++) {
+        board.moveForward();
+      }
+      expect(board.currentMoveIndex).toBe(19);
+      expect(board.generateCompleteFen()).toBe('r1bq1r1k/ppppnp1p/2n3p1/6B1/2PQ2N1/8/PP2PPPP/R3KB1R b KQ - 4 10');
+      for (let i = 0; i < 19; i++) {
+        board.moveBackward();
+      }
+      expect(board.currentMoveIndex).toBe(0);
+      expect(board.generateCompleteFen()).toBe('rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1');
+    });
+  });
 });

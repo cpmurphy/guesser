@@ -242,8 +242,9 @@ export default class Board {
     const move = uiMove.moves[0];
     const [from, to] = move.split('-');
     const piece = this.board.getPiece(from);
+    const capturedPiece = uiMove.remove ? uiMove.remove[0] : null;
     if (piece) {
-      this.gameState.update(piece, from, to);
+      this.gameState.update(piece, from, to, capturedPiece);
     }
   }
 
@@ -290,10 +291,10 @@ export default class Board {
   }
 
   translatePiece(piece) {
-    if (this.isWhiteToMove(this.currentMoveIndex)) {
-      return "w" + piece.toLowerCase();
-    } else {
+    if (piece.match(/^[rnbqkp]$/)) {
       return "b" + piece.toLowerCase();
+    } else {
+      return "w" + piece.toLowerCase();
     }
   }
 

@@ -121,4 +121,36 @@ describe('GameState', () => {
       expect(gameState.enPassant).toBe('-');
     });
   });
+
+  describe('halfmove clock', () => {
+    let gameState;
+
+    beforeEach(() => {
+      gameState = new GameState('rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1');
+    });
+
+    it('resets to 0 after a pawn move', () => {
+      gameState.halfmoveClock = 5;
+      gameState.update('wp', 'e2', 'e4');
+      expect(gameState.halfmoveClock).toBe(0);
+    });
+
+    it('resets to 0 after a capture', () => {
+      gameState.halfmoveClock = 5;
+      gameState.update('wn', 'b1', 'c3', 'bp');
+      expect(gameState.halfmoveClock).toBe(0);
+    });
+
+    it('increments after a non-pawn, non-capture move', () => {
+      gameState.halfmoveClock = 5;
+      gameState.update('wn', 'b1', 'c3');
+      expect(gameState.halfmoveClock).toBe(6);
+    });
+
+    it('tracks halfmove clock in FEN string', () => {
+      gameState.halfmoveClock = 5;
+      gameState.update('wn', 'b1', 'c3');
+      expect(gameState.stringForFen()).toBe('KQkq - 6');
+    });
+  });
 });

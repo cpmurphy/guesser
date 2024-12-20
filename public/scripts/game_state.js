@@ -6,16 +6,22 @@ export default class GameState {
       this.castlingRights = fenParts[2];
       this.enPassant = fenParts[3];
       this.halfmoveClock = parseInt(fenParts[4]);
+      this.changeIndex = 0;
     }
   
-    update(piece, from, to) {
+    update(piece, from, to, capturedPiece) {
       if (piece === "wk" || piece === "bk") {
         this.removeCastlingRights(piece);
       } else if (piece === "wr" || piece === "br") {
         this.updateCastlingRights(piece, from);
       }
       this.updateEnPassant(piece, from, to);
-      this.halfmoveClock++;
+      if (piece === "wp" || piece === "bp" || capturedPiece) {
+        this.halfmoveClock = 0;
+      } else {
+        this.halfmoveClock++;
+      }
+      this.changeIndex++;
     }
 
     stringForFen() {
@@ -33,18 +39,23 @@ export default class GameState {
           const file = from[0];
           const middleRank = (fromRank + toRank) / 2;
           this.enPassant = file + middleRank;
-          this.enPassantHistory[this.halfmoveClock+1] = this.enPassant;
+          this.enPassantHistory[this.changeIndex+1] = this.enPassant;
         }
       }
     }
   
     rewind() {
-      this.halfmoveClock--;
-      if (this.castlingRightsHistory[this.halfmoveClock]) {
-        this.castlingRights = this.castlingRightsHistory[this.halfmoveClock];
+      if (this.changeIndex > 0) {
+        this.changeIndex--;
       }
-      if (this.enPassantHistory[this.halfmoveClock]) {
-        this.enPassant = this.enPassantHistory[this.halfmoveClock];
+      if (this.halfmoveClock > 0) {
+        this.halfmoveClock--;
+      }
+      if (this.castlingRightsHistory[this.changeIndex]) {
+        this.castlingRights = this.castlingRightsHistory[this.changeIndex];
+      }
+      if (this.enPassantHistory[this.changeIndex]) {
+        this.enPassant = this.enPassantHistory[this.changeIndex];
       } else {
         this.enPassant = '-';
       }
@@ -52,10 +63,10 @@ export default class GameState {
   
     removeCastlingRights(piece) {
       if (piece === "wk" && this.castlingRights.match(/[KQ]/)) {
-        this.castlingRightsHistory[this.halfmoveClock] = this.castlingRights;
+        this.castlingRightsHistory[this.changeIndex] = this.castlingRights;
         this.castlingRights = this.castlingRights.replaceAll(/[KQ]/g, '');
       } else if (piece === "bk" && this.castlingRights.match(/[kq]/)) {
-        this.castlingRightsHistory[this.halfmoveClock] = this.castlingRights;
+        this.castlingRightsHistory[this.changeIndex] = this.castlingRights;
         this.castlingRights = this.castlingRights.replaceAll(/[kq]/g, '');
       }
     }
@@ -63,18 +74,18 @@ export default class GameState {
     updateCastlingRights(piece, from) {
       if (piece === "wr") {
         if (from === 'a1' && this.castlingRights.match(/Q/)) {
-          this.castlingRightsHistory[this.halfmoveClock] = this.castlingRights;
+          this.castlingRightsHistory[this.changeIndex] = this.castlingRights;
           this.castlingRights = this.castlingRights.replace('Q', '');
         } else if (from === 'h1' && this.castlingRights.match(/K/)) {
-          this.castlingRightsHistory[this.halfmoveClock] = this.castlingRights;
+          this.castlingRightsHistory[this.changeIndex] = this.castlingRights;
           this.castlingRights = this.castlingRights.replace('K', '');
         }
       } else if (piece === "br") {
         if (from === 'a8' && !this.castlingRights.match(/q/)) {
-          this.castlingRightsHistory[this.halfmoveClock] = this.castlingRights;
+          this.castlingRightsHistory[this.changeIndex] = this.castlingRights;
           this.castlingRights = this.castlingRights.replace('q', '');
         } else if (from === 'h8' && !this.castlingRights.match(/k/)) {
-          this.castlingRightsHistory[this.halfmoveClock] = this.castlingRights;
+          this.castlingRightsHistory[this.changeIndex] = this.castlingRights;
           this.castlingRights = this.castlingRights.replace('k', '');
         }
       }

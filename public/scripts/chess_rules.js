@@ -3,10 +3,10 @@ export default class ChessRules {
     this.fenString = fenString;
     this.enPassant = enPassant;
     this.castlingRights = castlingRights;
+    this.position = ChessRules.fenToObj(fenString);
   }
 
   isLegalMove(source, target, piece, skipCheckValidation = false) {
-    const position = ChessRules.fenToObj(this.fenString);
     const pieceType = piece.charAt(1).toLowerCase();
     const isWhite = piece.charAt(0) === 'w';
     const sourceRank = parseInt(source.charAt(1));
@@ -16,9 +16,15 @@ export default class ChessRules {
     const fileDiff = Math.abs(targetFile.charCodeAt(0) - sourceFile.charCodeAt(0));
     const rankDiff = Math.abs(targetRank - sourceRank);
 
+    // First check if the destination square has a piece of the same color
+    const destPiece = this.position[target];
+    if (destPiece && destPiece[0] === piece[0]) {  // Compare first letter ('w' or 'b')
+      return false;
+    }
+
     // Only check for check if not skipping validation
-    if (!skipCheckValidation && this.isInCheck(isWhite, position)) {
-      const testPosition = { ...position };
+    if (!skipCheckValidation && this.isInCheck(isWhite, this.position)) {
+      const testPosition = { ...this.position };
       delete testPosition[source];
       testPosition[target] = piece;
       if (this.isInCheck(isWhite, testPosition)) {
@@ -28,28 +34,31 @@ export default class ChessRules {
 
     switch (pieceType) {
       case 'p': // Pawn
-        return this.isLegalPawnMove(source, target, isWhite, fileDiff, rankDiff, position, this.enPassant);
+        return this.isLegalPawnMove(source, target, isWhite, fileDiff, rankDiff, this.position, this.enPassant);
       case 'n': // Knight
         return this.isLegalKnightMove(fileDiff, rankDiff);
       case 'b': // Bishop
-        return this.isLegalBishopMove(source, target, fileDiff, rankDiff, position);
+        return this.isLegalBishopMove(source, target, fileDiff, rankDiff, this.position);
       case 'r': // Rook
-        return this.isLegalRookMove(source, target, fileDiff, rankDiff, position);
+        return this.isLegalRookMove(source, target, fileDiff, rankDiff, this.position);
       case 'q': // Queen
-        return this.isLegalQueenMove(source, target, fileDiff, rankDiff, position);
+        return this.isLegalQueenMove(source, target, fileDiff, rankDiff, this.position);
       case 'k': // King
-        return this.isLegalKingMove(fileDiff, rankDiff, source, target, piece, position, this.castlingRights, skipCheckValidation);
+        return this.isLegalKingMove(fileDiff, rankDiff, source, target, piece, this.position, this.castlingRights, skipCheckValidation);
       default:
         return false;
     }
   }
 
   static fenToObj(fen) {
+    if (typeof fen !== 'string') {
+      throw new Error('FEN must be a string');
+    }
     const position = {};
     const [piecePlacement] = fen.split(' ');
     let row = 7;
     let col = 0;
-    
+
     for (const char of piecePlacement) {
       if (char === '/') {
         row--;
@@ -64,7 +73,7 @@ export default class ChessRules {
         col++;
       }
     }
-    
+
     return position;
   }
 
@@ -72,11 +81,11 @@ export default class ChessRules {
     let fen = '';
     for (let rank = 8; rank >= 1; rank--) {
       let emptySquares = 0;
-      
+
       for (let file = 'a'; file <= 'h'; file = String.fromCharCode(file.charCodeAt(0) + 1)) {
         const square = file + rank;
         const piece = position[square];
-        
+
         if (piece) {
           // If we had empty squares before this piece, add the count
           if (emptySquares > 0) {
@@ -90,18 +99,18 @@ export default class ChessRules {
           emptySquares++;
         }
       }
-      
+
       // Add any remaining empty squares at the end of the rank
       if (emptySquares > 0) {
         fen += emptySquares;
       }
-      
+
       // Add rank separator (except for the last rank)
       if (rank > 1) {
         fen += '/';
       }
     }
-    
+
     return fen;
   }
 
@@ -147,7 +156,7 @@ export default class ChessRules {
     return false;
   }
 
-  isLegalCapture(source, target, piece, position, enPassant) {
+  isLegalCapture(source, target, piece, position, enPassant, skipCheckValidation = false) {
     const fileDiff = Math.abs(target.charCodeAt(0) - source.charCodeAt(0));
     const rankDiff = Math.abs(parseInt(target.charAt(1)) - parseInt(source.charAt(1)));
     if (piece.charAt(1) === 'n') {
@@ -159,7 +168,8 @@ export default class ChessRules {
     } else if (piece.charAt(1) === 'q') {
       return this.isLegalQueenMove(source, target, fileDiff, rankDiff, position);
     } else if (piece.charAt(1) === 'p') {
-      return this.isLegalPawnCapture(source, target, fileDiff, rankDiff, position, enPassant);
+      const isWhite = piece.charAt(0) === 'w';
+      return this.isLegalPawnCapture(source, target, isWhite, fileDiff, rankDiff, position, enPassant, skipCheckValidation);
     }
     return false;
   }
@@ -186,6 +196,25 @@ export default class ChessRules {
 
   isLegalKingMove(fileDiff, rankDiff, source, target, piece, position, castlingRights, skipCheckValidation = false) {
     const isWhite = piece === 'wk';
+    const opponentKing = isWhite ? 'bk' : 'wk';
+
+    // Check if target square is adjacent to opponent's king
+    for (let fileOffset = -1; fileOffset <= 1; fileOffset++) {
+      for (let rankOffset = -1; rankOffset <= 1; rankOffset++) {
+        if (fileOffset === 0 && rankOffset === 0) continue;
+
+        const file = String.fromCharCode(target.charCodeAt(0) + fileOffset);
+        const rank = parseInt(target[1]) + rankOffset;
+        const square = file + rank;
+
+        // Check if square is on board and contains opponent's king
+        if (file >= 'a' && file <= 'h' && rank >= 1 && rank <= 8) {
+          if (position[square] === opponentKing) {
+            return false;
+          }
+        }
+      }
+    }
 
     // Normal king moves (one square in any direction)
     if (fileDiff <= 1 && rankDiff <= 1) {
@@ -197,7 +226,7 @@ export default class ChessRules {
       const testPosition = { ...position };
       delete testPosition[source];
       testPosition[target] = piece;
-      return !this.isSquareUnderAttack(target, isWhite, testPosition);
+      return !this.isSquareUnderAttack(target, isWhite, testPosition, this.enPassant);
     }
 
     // Skip castling validation if we're just checking for attacks
@@ -218,16 +247,16 @@ export default class ChessRules {
       if (target === `g${rank}` &&
           this.canCastleKingside(isWhite, position, castlingRights)) {
         // Check if squares between king and rook are under attack
-        return !this.isSquareUnderAttack(`f${rank}`, isWhite, position) &&
-               !this.isSquareUnderAttack(`g${rank}`, isWhite, position);
+        return !this.isSquareUnderAttack(`f${rank}`, isWhite, position, this.enPassant) &&
+               !this.isSquareUnderAttack(`g${rank}`, isWhite, position, this.enPassant);
       }
 
       // Queenside castling
       if (target === `c${rank}` &&
           this.canCastleQueenside(isWhite, position, castlingRights)) {
         // Check if squares between king and rook are under attack
-        return !this.isSquareUnderAttack(`d${rank}`, isWhite, position) &&
-               !this.isSquareUnderAttack(`c${rank}`, isWhite, position);
+        return !this.isSquareUnderAttack(`d${rank}`, isWhite, position, this.enPassant) &&
+               !this.isSquareUnderAttack(`c${rank}`, isWhite, position, this.enPassant);
       }
     }
 
@@ -266,10 +295,10 @@ export default class ChessRules {
       }
     }
 
-    return kingSquare && this.isSquareUnderAttack(kingSquare, isWhite, position);
+    return kingSquare && this.isSquareUnderAttack(kingSquare, isWhite, position, this.enPassant);
   }
 
-  isSquareUnderAttack(square, isWhite, position) {
+  isSquareUnderAttack(square, isWhite, position, enPassant) {
     for (const [src, piece] of Object.entries(position)) {
       // Skip pieces of the same color
       if ((isWhite && piece[0] === 'w') || (!isWhite && piece[0] === 'b')) {
@@ -277,7 +306,7 @@ export default class ChessRules {
       }
 
       // Pass skipCheckValidation=true to avoid infinite recursion
-      if (this.isLegalCapture(src, square, piece, position)) {
+      if (this.isLegalCapture(src, square, piece, position, enPassant, true)) {
         return true;
       }
     }
@@ -314,5 +343,68 @@ export default class ChessRules {
       if (rankStep !== 0) rank += rankStep;
     }
     return true;
+  }
+
+  isCheckmate(isWhite) {
+    return this.isInCheck(isWhite, this.position) && !this.isAnyMovePossible(isWhite);
+  }
+
+  isStalemate(isWhite) {
+    return !this.isInCheck(isWhite, this.position) && !this.isAnyMovePossible(isWhite);
+  }
+
+  isInsufficientMaterial() {
+    const pieces = Object.values(this.position);
+
+    // Count pieces
+    const pieceCount = pieces.length;
+
+    // King vs King
+    if (pieceCount === 2) return true;
+
+    // King and Bishop/Knight vs King
+    if (pieceCount === 3) {
+      const nonKingPiece = pieces.find(p => !p.endsWith('k'));
+      return nonKingPiece && (nonKingPiece.endsWith('b') || nonKingPiece.endsWith('n'));
+    }
+
+    // King and Bishop vs King and Bishop (same color bishops)
+    if (pieceCount === 4) {
+      const bishops = pieces.filter(p => p.endsWith('b'));
+      if (bishops.length === 2) {
+        // Check if bishops are on same colored squares
+        const bishopSquares = Object.entries(this.position)
+          .filter(([_, piece]) => piece.endsWith('b'))
+          .map(([square, _]) => this.isLightSquare(square));
+        return bishopSquares[0] === bishopSquares[1];
+      }
+    }
+
+    return false;
+  }
+
+  isLightSquare(square) {
+    const file = square.charCodeAt(0) - 'a'.charCodeAt(0);
+    const rank = parseInt(square[1]) - 1;
+    return (file + rank) % 2 === 0;
+  }
+
+  isAnyMovePossible(isWhite) {
+    for (const [from, piece] of Object.entries(this.position)) {
+      if (piece.charAt(0) !== (isWhite ? 'w' : 'b')) {
+        continue;
+      }
+      // Check all possible destination squares
+      for (let fileNum = 0; fileNum < 8; fileNum++) {
+        for (let rankNum = 0; rankNum < 8; rankNum++) {
+          const to = String.fromCharCode('a'.charCodeAt(0) + fileNum) + (rankNum + 1);
+          if (from !== to && this.isLegalMove(from, to, piece)) {
+            return true;
+          }
+        }
+      }
+    }
+
+    return false;
   }
 }

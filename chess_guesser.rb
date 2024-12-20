@@ -234,8 +234,19 @@ class ChessGuesser < Sinatra::Base
     guess = JSON.parse(request.body.read)
     path = guess['path']
     game = game_for_path(path)
-    guessed_move = guess['guessed_move']
     current_move = guess['current_move'].to_i - 1
+    if current_move >= game.moves.length
+      translator = MoveTranslator.new
+      translator.load_game_from_fen(guess['guessed_move']['oldPos'])
+      guessed_move = guess['guessed_move']['source'] + guess['guessed_move']['target']
+      if guess['guessed_move']['promotion']
+        guessed_move += guess['guessed_move']['promotion']
+      end
+      move = translator.translate_uci_move(guessed_move)
+      return [move.merge({ result: 'game_over' })].to_json
+    end
+    old_fen = game.positions[current_move].to_fen
+    guessed_move = guess['guessed_move']
     number_of_moves = game.moves.length
     ui_game_move = guess['game_move']['moves'][0]
 
@@ -266,6 +277,32 @@ class ChessGuesser < Sinatra::Base
     move_translator = MoveTranslator.new
     move_translator.load_game_from_fen(old_fen)
     move_translator.translate_move(game.moves[current_move].notation)
+  end
+
+  post '/engine_move' do
+    content_type :json
+    data = JSON.parse(request.body.read)
+    fen = data['fen']
+
+    begin
+      analyzer = Analyzer.new
+      best_move = analyzer.evaluate_best_move(fen)
+
+      if best_move && best_move[:move]
+        move = best_move[:move]
+        move_translator = MoveTranslator.new
+        move_translator.load_game_from_fen(fen)
+        {
+          move: move_translator.translate_uci_move(move)
+        }.to_json
+      else
+        status 400
+        { error: "No valid move found" }.to_json
+      end
+    rescue => e
+      status 500
+      { error: "Engine error: #{e.message}" }.to_json
+    end
   end
 
   # start the server if ruby file executed directly

@@ -87,6 +87,72 @@ class MoveTranslator
     result
   end
 
+  def translate_uci_move(uci_move)
+    return nil unless uci_move && uci_move.length >= 4
+
+    from = uci_move[0..1]
+    to = uci_move[2..3]
+    promotion = uci_move[4] if uci_move.length > 4
+
+    # Get the piece that's moving
+    piece = @board[from]
+    return nil unless piece # No piece at source square
+
+    # Check if it's a capture
+    capture = @board[to] ? true : false
+
+    # For pawns, check if it's an en passant capture
+    if piece.upcase == 'P' && from[0] != to[0] && !@board[to]
+      capture = true
+    end
+
+    result = { moves: ["#{from}-#{to}"] }
+
+    # Generate PGN notation
+    notation = if piece.upcase == 'P'
+      if capture
+        "#{from[0]}x#{to}"
+      else
+        to
+      end
+    else
+      piece_char = piece.upcase
+      "#{piece_char}#{capture ? 'x' : ''}#{to}"
+    end
+
+    # Add promotion if applicable
+    if promotion
+      notation += "=#{promotion.upcase}"
+    end
+
+    # Handle capture
+    if capture
+      captured_piece = @board[to]
+      captured_square = to
+
+      # Handle en passant
+      if piece.upcase == 'P' && from[0] != to[0] && !@board[to]
+        captured_square = "#{to[0]}#{from[1]}"
+        captured_piece = @current_player == :white ? 'p' : 'P'
+      end
+
+      result[:remove] = [captured_piece, captured_square]
+    end
+
+    # Handle promotion
+    if promotion
+      if @current_player == :white
+        promoted_piece = promotion.upcase
+      else
+        promoted_piece = promotion.downcase
+      end
+      result[:add] = [promoted_piece, to]
+    end
+
+    result[:notation] = notation
+    result
+  end
+
   def board_as_fen
     fen = ""
     for file in (1..8).to_a.reverse
@@ -108,7 +174,7 @@ class MoveTranslator
       end
       fen += '/' unless file == 1
     end
-    castling_rights = (@white_castle_moves_allowed || @black_castle_moves_allowed) ? " #{@white_castle_moves_allowed}#{@black_castle_moves_allowed}" : " -"
+    castling_rights = (@white_castle_moves_allowed.length > 0 || @black_castle_moves_allowed.length > 0) ? " #{@white_castle_moves_allowed}#{@black_castle_moves_allowed}" : " -"
     fen + " #{@current_player == :white ? 'w' : 'b'}#{castling_rights} #{@en_passant_target} #{@halfmove_clock} #{@fullmove_number}"
   end
 
@@ -144,7 +210,7 @@ class MoveTranslator
     @black_castle_moves_allowed += castling.include?('q') ? 'q' : ''
 
     # Set en passant target square
-    @en_passant_target = en_passant == '-' ? '-' : en_passant
+    @en_passant_target = en_passant == '' ? '-' : en_passant
 
     # Set halfmove clock and fullmove number
     @halfmove_clock = halfmove.to_i
@@ -445,9 +511,9 @@ class MoveTranslator
     @board.delete(king_from)
     @board.delete(rook_from)
     if @current_player == :white
-      @white_castle_moves_allowed = nil
+      @white_castle_moves_allowed = ''
     else
-      @black_castle_moves_allowed = nil
+      @black_castle_moves_allowed = ''
     end
 
     {
@@ -510,34 +576,34 @@ class MoveTranslator
   def update_castling_status(piece, from)
     if piece == 'K'
       if @current_player == :white
-        @white_castle_moves_allowed = nil
+        @white_castle_moves_allowed = ''
       else
-        @black_castle_moves_allowed = nil
+        @black_castle_moves_allowed = ''
       end
     elsif piece == 'R'
       if from == 'h1' && @white_castle_moves_allowed
         if @white_castle_moves_allowed.length > 1
           @white_castle_moves_allowed = 'Q'
         else
-          @white_castle_moves_allowed = nil
+          @white_castle_moves_allowed = ''
         end
       elsif from == 'a1' && @white_castle_moves_allowed
         if @white_castle_moves_allowed.length > 1
           @white_castle_moves_allowed = 'K'
         else
-          @white_castle_moves_allowed = nil
+          @white_castle_moves_allowed = ''
         end
       elsif from == 'h8' && @black_castle_moves_allowed
         if @black_castle_moves_allowed.length > 1
           @black_castle_moves_allowed = 'q'
         else
-          @black_castle_moves_allowed = nil
+          @black_castle_moves_allowed = ''
         end
       elsif from == 'a8' && @black_castle_moves_allowed
         if @black_castle_moves_allowed.length > 1
           @black_castle_moves_allowed = 'k'
         else
-          @black_castle_moves_allowed = nil
+          @black_castle_moves_allowed = ''
         end
       end
     end

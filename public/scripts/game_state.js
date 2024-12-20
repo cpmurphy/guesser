@@ -8,7 +8,7 @@ export default class GameState {
       this.halfmoveClock = parseInt(fenParts[4]);
       this.changeIndex = 0;
     }
-  
+
     update(piece, from, to, capturedPiece) {
       if (piece === "wk" || piece === "bk") {
         this.removeCastlingRights(piece);
@@ -25,9 +25,12 @@ export default class GameState {
     }
 
     stringForFen() {
+      if (this.castlingRights === '') {
+        this.castlingRights = '-';
+      }
       return `${this.castlingRights} ${this.enPassant} ${this.halfmoveClock}`;
     }
-  
+
     updateEnPassant(piece, from, to) {
       if (!piece.endsWith('p')) {
         this.enPassant = '-';
@@ -43,7 +46,7 @@ export default class GameState {
         }
       }
     }
-  
+
     rewind() {
       if (this.changeIndex > 0) {
         this.changeIndex--;
@@ -60,7 +63,7 @@ export default class GameState {
         this.enPassant = '-';
       }
     }
-  
+
     removeCastlingRights(piece) {
       if (piece === "wk" && this.castlingRights.match(/[KQ]/)) {
         this.castlingRightsHistory[this.changeIndex] = this.castlingRights;
@@ -70,7 +73,7 @@ export default class GameState {
         this.castlingRights = this.castlingRights.replaceAll(/[kq]/g, '');
       }
     }
-  
+
     updateCastlingRights(piece, from) {
       if (piece === "wr") {
         if (from === 'a1' && this.castlingRights.match(/Q/)) {

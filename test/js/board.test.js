@@ -29,6 +29,7 @@ describe('Board', () => {
       <div id="white"></div>
       <div id="black"></div>
       <button id="flipBoardBtn"></button>
+      <button id="engineMoveBtn"></button>
       <button id="exportFenBtn"></button>
       <button id="backwardBtn"></button>
       <button id="forwardBtn"></button>
@@ -93,6 +94,32 @@ describe('Board', () => {
       board.moveForward();
       expect(board.isWhiteToMove(board.currentMoveIndex)).toBe(true);
       board.moveForward();
+      expect(board.isWhiteToMove(board.currentMoveIndex)).toBe(false);
+    });
+  });
+
+  describe('moveBackward', () => {
+    it('handles when player redoes a bad move', () => {
+      const data = createGameData({
+        fen: '3q2k1/4Pppp/8/8/8/8/8/7K w - - 0 28',
+        sideToMove: 'white',
+        startingWholeMove: 28,
+        currentWholeMove: 28,
+        moves: [],
+        uiMoves: []
+      });
+      const chessboard = new Chessboard('element', {});
+      board = new Board(data, chessboard);
+
+      expect(board.currentMoveIndex).toBe(0);
+      board.addExtraMove({moves: ["e7-e8"], add: ['R', 'e8'], notation: "e8=R"});
+      board.moveForward();
+      board.moveBackward();
+      board.addExtraMove({moves: ["e7-d8"], add: ['R', 'd8'], remove: ['q', 'd8'], notation: "exd8=R"});
+      board.moveForward();
+      expect(board.moves.length).toBe(1);
+      expect(board.uiMoves[0]).toEqual({moves: ["e7-d8"], add: ['R', 'd8'], remove: ['q', 'd8'], notation: "exd8=R"});
+      expect(board.moves[0]).toEqual("exd8=R");
       expect(board.isWhiteToMove(board.currentMoveIndex)).toBe(false);
     });
   });
@@ -321,7 +348,7 @@ describe('Board', () => {
     });
   });
 
-  describe('handleGuessResult', () => {
+  describe('handleGuessResponse', () => {
     beforeEach(() => {
       document.body.innerHTML += `
         <input type="radio" name="guess_mode" value="white">
@@ -352,7 +379,7 @@ describe('Board', () => {
 
       const moveForwardSpy = vi.spyOn(board, 'moveForward');
 
-      board.handleGuessResult([{
+      board.handleGuessResponse([{
         "result": "correct",
         "same_as_game": false,
         "game_move": data.uiMoves[0],
@@ -404,7 +431,7 @@ describe('Board', () => {
 
       const moveForwardSpy = vi.spyOn(board, 'moveForward');
 
-      board.handleGuessResult([
+      board.handleGuessResponse([
         {
           "result": "correct",
           "same_as_game": false,
@@ -461,7 +488,7 @@ describe('Board', () => {
 
       board.moveForward(); // Play White's first move
       // Now handle a guess of Black's first move
-      board.handleGuessResult([
+      board.handleGuessResponse([
         {
           "result": "correct",
           "same_as_game": false,
@@ -513,7 +540,7 @@ describe('Board', () => {
       const chessboard = new Chessboard('element', {});
       const board = new Board(data, chessboard);
       board.moveForward();
-      board.handleGuessResult([
+      board.handleGuessResponse([
         {
           result: 'correct',
           same_as_game: false,
@@ -582,6 +609,118 @@ describe('Board', () => {
       }
       expect(board.currentMoveIndex).toBe(0);
       expect(board.generateCompleteFen()).toBe('rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1');
+    });
+  });
+
+  describe('requestEngineBestMove', () => {
+    beforeEach(() => {
+      global.fetch = vi.fn();
+    });
+
+    afterEach(() => {
+      vi.restoreAllMocks();
+    });
+
+    it('adds engine move to game and updates UI', async () => {
+      const data = createGameData({
+        moves: ['e4'],
+        uiMoves: [{"moves":["e2-e4"]}]
+      });
+
+      const chessboard = new Chessboard('element', {});
+      const board = new Board(data, chessboard);
+
+      board.moveForward(); // Play white's first move
+
+      // Spy on board methods first
+      const moveForwardSpy = vi.spyOn(board, 'moveForward');
+      const addExtraMoveSpy = vi.spyOn(board, 'addExtraMove');
+
+      // Mock the engine response
+      global.fetch.mockResolvedValue({
+        ok: true,
+        json: () => Promise.resolve({
+          move: {
+            moves: ['e7-e5'],
+            notation: 'e5'
+          }
+        })
+      });
+
+      // Wait for all promises to resolve
+      await board.requestEngineBestMove();
+      await vi.waitFor(() => {
+        expect(addExtraMoveSpy).toHaveBeenCalledWith({
+          "moves":["e7-e5"],"notation":"e5"
+        });
+        expect(moveForwardSpy).toHaveBeenCalled();
+        expect(board.currentMoveIndex).toBe(2);
+        expect(document.getElementById('last-move').textContent).toBe('1... e5');
+      });
+    });
+
+    it('handles engine errors gracefully', async () => {
+      const data = createGameData({
+        moves: ['e4'],
+        uiMoves: [{"moves":["e2-e4"]}]
+      });
+
+      const chessboard = new Chessboard('element', {});
+      const board = new Board(data, chessboard);
+
+      const addExtraMoveSpy = vi.spyOn(board, 'addExtraMove');
+      const moveForwardSpy = vi.spyOn(board, 'moveForward');
+
+      // Mock a failed engine response
+      global.fetch.mockResolvedValue({
+        ok: true,
+        json: () => Promise.resolve({ error: "Engine error" })
+      });
+
+      await board.requestEngineBestMove();
+      await vi.waitFor(() => {
+        expect(addExtraMoveSpy).not.toHaveBeenCalled();
+        expect(moveForwardSpy).not.toHaveBeenCalled();
+      });
+    });
+  });
+
+  describe('addExtraMove', () => {
+    it('adds an extra move to the game if none exists at the current index', () => {
+      const data = createGameData({
+        moves: ['e4', 'e5'],
+        uiMoves: [{"moves":["e2-e4"]},{"moves":["e7-e5"]}]
+      });
+      const chessboard = new Chessboard('element', {});
+      const board = new Board(data, chessboard);
+      board.moveForward();
+      board.moveForward();
+      board.addExtraMove({moves:["g1-f3"],notation:"Nf3"});
+      expect(board.uiMoves.length).toBe(3);
+      expect(board.moves.length).toBe(3);
+      expect(board.uiMoves[0].moves).toEqual(["e2-e4"]);
+      expect(board.uiMoves[1].moves).toEqual(["e7-e5"]);
+      expect(board.uiMoves[2].moves).toEqual(["g1-f3"]);
+      expect(board.moves[0]).toEqual("e4");
+      expect(board.moves[1]).toEqual("e5");
+      expect(board.moves[2]).toEqual("Nf3");
+    });
+    it('replaces a extra move in the game if one exists at the current index', () => {
+      const data = createGameData({
+        moves: ['e4', 'e5'],
+        uiMoves: [{"moves":["e2-e4"]},{"moves":["e7-e5"]}]
+      });
+      const chessboard = new Chessboard('element', {});
+      const board = new Board(data, chessboard);
+      board.moveForward();
+      board.moveForward();
+      board.addExtraMove({moves:["g1-f3"],notation:"Nf3"});
+      board.moveBackward();
+      board.addExtraMove({moves:["d2-d4"],notation:"d4"});
+      expect(board.uiMoves.length).toBe(3);
+      expect(board.moves.length).toBe(3);
+      expect(board.uiMoves[2].moves).toEqual(["d2-d4"]);
+      expect(board.moves[2]).toEqual("d4");
     });
   });
 });

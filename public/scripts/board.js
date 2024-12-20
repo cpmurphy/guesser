@@ -18,6 +18,7 @@ export default class Board {
     this.setupFlipBoardButton();
     this.setupMoveHandlers();
     this.setupExportFenButton();
+    this.setupEngineMoveButton();
   }
 
   setupMoveHandlers() {
@@ -43,6 +44,7 @@ export default class Board {
     this.initializeButtonStates(data.moves.length > 0);
     this.initializeGuessMode(data.currentWholeMove, data.sideToMove);
     this.moves = data.moves;
+    this.recordedGameLength = data.moves.length;
     this.result = data.result;
     this.uiMoves = data.uiMoves;
     this.startingWholeMove = data.startingWholeMove;
@@ -68,8 +70,6 @@ export default class Board {
 
   }
 
-
-  // Replace old onDragStart with new onMoveStart
   onMoveStart(square) {
     const piece = this.board.getPiece(square);
 
@@ -84,7 +84,7 @@ export default class Board {
     // 1. It's the correct color's turn
     // 2. We're in the right guess mode
     // 3. We're not at game end
-    if (this.gameOver() ||
+    if (this.isGameTerminated() ||
       isWhiteToMove !== isWhitePiece ||
       !this.isCorrectGuessMode(isWhitePiece)) {
       return false;
@@ -114,7 +114,7 @@ export default class Board {
     this.lastPosition = position;
 
     if (this.isPawnPromotion(from, to, piece)) {
-      this.showPromotionDialog(from, to, piece);
+      this.showPromotionDialog(from, to, piece, this.generateCompleteFen());
       return false; // Don't complete the move yet
     }
 
@@ -124,7 +124,7 @@ export default class Board {
       }
     }
 
-    this.submitGuess(from, to, piece, null, position);
+    this.submitGuess(from, to, piece, null, this.generateCompleteFen());
     return true;
   }
 
@@ -306,7 +306,7 @@ export default class Board {
     }
   }
 
-  handleGuessResult(data) {
+  handleGuessResponse(data) {
     data.forEach((move) => {
       if (move.result === 'correct') {
         if (move.same_as_game) {
@@ -315,7 +315,7 @@ export default class Board {
             'Correct!',
             'This is what was played.'
           );
-          this.moveForward(move.move);
+          this.moveForward();
         } else {
           const evalDiff = this.compareEvaluations(move.guess_eval.score, move.game_eval.score);
           const evalComment = this.getEvaluationComment(move.result, move.game_move, move.guess_eval.score, evalDiff);
@@ -347,8 +347,19 @@ export default class Board {
         if (this.guessMode() != 'both') {
           this.moveForward();
         }
+      } else if (move.result === 'game_over') {
+        this.handleNonEvaluationGuessResult(move);
       }
     });
+  }
+
+  handleNonEvaluationGuessResult(move) {
+    this.updateGuessStatus(
+      'green',
+      '',
+      'Moves beyond the end of the game are not evaluated.'
+    );
+    this.addExtraMove(move);
   }
 
   hideGuessResult() {
@@ -378,6 +389,10 @@ export default class Board {
     return this.currentMoveIndex >= this.moves.length;
   }
 
+  isPastRecordedMoves() {
+    return this.currentMoveIndex >= this.recordedGameLength;
+  }
+
   submitGuess(source, target, piece, promotedPiece, oldPosition) {
     const currentMove = this.uiMoves[this.currentMoveIndex];
     if (currentMove && this.isExactMatch(source, target, promotedPiece, currentMove)) {
@@ -396,7 +411,6 @@ export default class Board {
         target,
         piece: piece,
         promotion: promotedPiece ? promotedPiece.charAt(1) : undefined,
-        newPos: "" + this.board.getPosition(),
         oldPos: "" + oldPosition
       }
     };
@@ -421,27 +435,14 @@ export default class Board {
     return currentMove.moves.some(move => move === `${source}-${target}`);
   }
 
-  handleGuessResponse(data) {
-    if (data.result === 'needs_promotion') {
-      return; // Dialog is already showing
-    }
-    if (data.result === 'auto_move') {
-      this.board.setPosition(data.fen);
-      this.updateButtonStates();
-    } else {
-      this.handleGuessResult(data);
-    }
-  }
-
-  showPromotionDialog(source, target, piece, newPos, oldPos) {
+  showPromotionDialog(source, target, piece, oldPos) {
     const color = piece.charAt(0);
     const position = this.board.getPosition();
     this.board.showPromotionDialog(target, color, (result) => {
-      console.log("Promotion result", result)
       if (result && result.piece) {
         this.board.setPiece(result.square, result.piece, true)
         this.board.setPiece(source, null)
-        this.submitGuess(source, target, piece, result.piece, newPos, oldPos);
+        this.submitGuess(source, target, piece, result.piece, oldPos);
       } else {
         this.board.setPosition(position)
       }
@@ -463,7 +464,7 @@ export default class Board {
     return kingside || queenside;
   }
 
-  performCastling(piece, target, newPos) {
+  performCastling(piece, target) {
     let rookSource, rookTarget;
 
     if (piece === PIECE.wk) {
@@ -492,7 +493,8 @@ export default class Board {
       { id: 'fastRewindBtn', disabled: this.currentMoveIndex <= 0 },
       { id: 'backwardBtn', disabled: this.currentMoveIndex <= 0 },
       { id: 'forwardBtn', disabled: this.currentMoveIndex >= this.moves.length },
-      { id: 'fastForwardBtn', disabled: this.currentMoveIndex >= this.moves.length }
+      { id: 'fastForwardBtn', disabled: this.currentMoveIndex >= this.moves.length },
+      { id: 'engineMoveBtn', disabled: !this.isPastRecordedMoves() || this.isGameTerminated() }
     ];
 
     buttons.forEach(({ id, disabled }) => {
@@ -558,13 +560,6 @@ export default class Board {
     this.lastMoveElement.textContent = `${wholeMoveNumber}${this.isWhiteToMove(moveIndex) ? '.' : '...'} ${moveNotation}`;
   }
 
-  updatedPosition(oldPos, from, to) {
-    const newPos = {...oldPos};
-    newPos[to] = newPos[from];
-    delete newPos[from];
-    return newPos;
-  }
-
   setupExportFenButton() {
     const exportBtn = document.getElementById('exportFenBtn');
     exportBtn.addEventListener('click', (e) => {
@@ -606,6 +601,43 @@ export default class Board {
         }, 1500);
       });
     });
+  }
+
+  setupEngineMoveButton() {
+    const engineMoveBtn = document.getElementById('engineMoveBtn');
+    engineMoveBtn.addEventListener('click', (e) => {
+      e.preventDefault();
+      this.requestEngineBestMove();
+    });
+    engineMoveBtn.disabled = true;
+  }
+
+  requestEngineBestMove() {
+    fetch('/engine_move', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        fen: this.generateCompleteFen(),
+        path: window.location.pathname
+      })
+    })
+    .then(response => response.json())
+    .then(data => {
+      if (data.move) {
+        this.addExtraMove(data.move);
+      }
+    });
+  }
+
+  addExtraMove(move) {
+    if (this.currentMoveIndex <= this.moves.length - 1) {
+      // truncate the uiMoves and moves arrays
+      this.uiMoves = this.uiMoves.slice(0, this.currentMoveIndex);
+      this.moves = this.moves.slice(0, this.currentMoveIndex);
+    }
+    this.uiMoves.push(move);
+    this.moves.push(move.notation);
+    this.moveForward();
   }
 
   generateCompleteFen() {
@@ -702,6 +734,30 @@ export default class Board {
         radioButton.checked = true;
       }
     }
+  }
+
+  isGameTerminated() {
+    const position = this.board.getPosition();
+    const chessRules = new ChessRules(position, this.gameState.enPassant, this.gameState.castlingRights);
+
+    const isWhite = this.isWhiteToMove(this.currentMoveIndex);
+    if (chessRules.isCheckmate(isWhite)) {
+      return true;
+    }
+
+    if (chessRules.isStalemate(isWhite)) {
+      return true;
+    }
+
+    if (chessRules.isInsufficientMaterial()) {
+      return true;
+    }
+
+    if (this.gameState.halfMoveClock >= 100) { // 50 moves = 100 half moves
+      return true;
+    }
+
+    return false;
   }
 
 }

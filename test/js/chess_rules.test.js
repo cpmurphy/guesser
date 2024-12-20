@@ -2,11 +2,6 @@ import { describe, it, expect, beforeEach } from 'vitest';
 import ChessRules from '../../public/scripts/chess_rules.js';
 
 describe('ChessRules', () => {
-  let rules;
-
-  beforeEach(() => {
-    rules = new ChessRules();
-  });
 
   describe('objToFen', () => {
     it('converts an empty board to the correct FEN string', () => {
@@ -145,6 +140,14 @@ describe('ChessRules', () => {
       expect(rules.isLegalMove('d1', 'd3', 'wq')).toBe(false);
       expect(rules.isLegalMove('d1', 'f3', 'wq')).toBe(false);
     });
+
+    it('disallows capture of own piece', () => {
+      const position = { 'd1': 'wq', 'd2': 'wp' };
+      const fen = ChessRules.objToFen(position);
+      const rules = new ChessRules(fen, '-');
+
+      expect(rules.isLegalMove('d1', 'd2', 'wq')).toBe(false);
+    });
   });
 
   describe('Kings', () => {
@@ -167,6 +170,23 @@ describe('ChessRules', () => {
       // More than one square
       expect(rules.isLegalMove('e1', 'e3', 'wk')).toBe(false);
       expect(rules.isLegalMove('e1', 'g1', 'wk')).toBe(false);
+    });
+
+    it('prevents a king moving next to another king', () => {
+      const position = { 'e1': 'wk', 'g1': 'bk' };
+      const fen = ChessRules.objToFen(position);
+      const rules = new ChessRules(fen, '-');
+
+      expect(rules.isLegalMove('e1', 'f1', 'wk')).toBe(false);
+      expect(rules.isLegalMove('e1', 'f2', 'wk')).toBe(false);
+    });
+
+    it('prevents a king moving into check from a pawn', () => {
+      const position = { 'g1': 'wk', 'g6': 'wp', 'h6': 'wp', 'g8': 'bk' };
+      const fen = ChessRules.objToFen(position);
+      const rules = new ChessRules(fen, '-');
+
+      expect(rules.isLegalMove('g8', 'f7', 'bk')).toBe(false);
     });
 
     it('allows kingside castling', () => {
@@ -277,6 +297,157 @@ describe('ChessRules', () => {
       const rules = new ChessRules(fen, 'KQkq');
 
       expect(rules.isLegalMove('d7', 'c6', 'bk')).toBe(true);
+    });
+  });
+
+  describe('Game ending conditions', () => {
+    describe('Checkmate', () => {
+      it('detects scholar\'s mate', () => {
+        const fen = 'r1bqkb1r/pppp1Qpp/2n2n2/4p3/2B1P3/8/PPPP1PPP/RNB1K1NR b KQkq - 0 4';
+        const rules = new ChessRules(fen, '-');
+
+        expect(rules.isCheckmate(false)).toBe(true);
+      });
+
+      it('detects simple mate in the corner', () => {
+        const fen = '8/8/1p6/1P5p/7P/8/1QK3P1/k7 b - - 5 56';
+        const rules = new ChessRules(fen, '-');
+
+        expect(rules.isCheckmate(false)).toBe(true);
+      });
+
+      it('recognizes check is not checkmate', () => {
+        const position = {
+          'e1': 'wk',
+          'e8': 'bk',
+          'h5': 'wq'
+        };
+        const fen = ChessRules.objToFen(position);
+        const rules = new ChessRules(fen, '-');
+
+        expect(rules.isCheckmate(false)).toBe(false);
+      });
+
+      it('detects a checkmate with queen and pawns', () => {
+        const fen = '3Q2k1/8/1P4PP/8/8/8/8/3b2K1 b - - 2 51';
+        const rules = new ChessRules(fen, '-');
+
+        expect(rules.isCheckmate(false)).toBe(true);
+      });
+    });
+
+    describe('Stalemate', () => {
+      it('detects basic stalemate', () => {
+        const position = {
+          'h8': 'wk',
+          'f8': 'bk',
+          'g6': 'bq'
+        };
+        const fen = ChessRules.objToFen(position);
+        const rules = new ChessRules(fen, '-');
+
+        expect(rules.isStalemate(true)).toBe(true);
+      });
+
+      it('recognizes non-stalemate position', () => {
+        const position = {
+          'h8': 'wk',
+          'f8': 'bk',
+          'g5': 'bq'
+        };
+        const fen = ChessRules.objToFen(position);
+        const rules = new ChessRules(fen, '-');
+
+        expect(rules.isStalemate(true)).toBe(false);
+      });
+    });
+
+    describe('Insufficient Material', () => {
+      it('recognizes king vs king', () => {
+        const position = {
+          'e1': 'wk',
+          'e8': 'bk'
+        };
+        const fen = ChessRules.objToFen(position);
+        const rules = new ChessRules(fen, '-');
+
+        expect(rules.isInsufficientMaterial()).toBe(true);
+      });
+
+      it('recognizes king and bishop vs king', () => {
+        const position = {
+          'e1': 'wk',
+          'e8': 'bk',
+          'c1': 'wb'
+        };
+        const fen = ChessRules.objToFen(position);
+        const rules = new ChessRules(fen, '-');
+
+        expect(rules.isInsufficientMaterial()).toBe(true);
+      });
+
+      it('recognizes king and knight vs king', () => {
+        const position = {
+          'e1': 'wk',
+          'e8': 'bk',
+          'c1': 'wn'
+        };
+        const fen = ChessRules.objToFen(position);
+        const rules = new ChessRules(fen, '-');
+
+        expect(rules.isInsufficientMaterial()).toBe(true);
+      });
+
+      it('recognizes king and bishop vs king and bishop (same colored squares)', () => {
+        const position = {
+          'e1': 'wk',
+          'e8': 'bk',
+          'c1': 'wb', // light square bishop
+          'f8': 'bb'  // light square bishop
+        };
+        const fen = ChessRules.objToFen(position);
+        const rules = new ChessRules(fen, '-');
+
+        expect(rules.isInsufficientMaterial()).toBe(true);
+      });
+
+      it('recognizes sufficient material with opposite colored bishops', () => {
+        const position = {
+          'e1': 'wk',
+          'e8': 'bk',
+          'c1': 'wb', // light square bishop
+          'c8': 'bb'  // dark square bishop
+        };
+        const fen = ChessRules.objToFen(position);
+        const rules = new ChessRules(fen, '-');
+
+        expect(rules.isInsufficientMaterial()).toBe(false);
+      });
+
+      it('recognizes sufficient material with pawns', () => {
+        const position = {
+          'e1': 'wk',
+          'e8': 'bk',
+          'e2': 'wp'
+        };
+        const fen = ChessRules.objToFen(position);
+        const rules = new ChessRules(fen, '-');
+
+        expect(rules.isInsufficientMaterial()).toBe(false);
+      });
+
+      it('recognizes sufficient material with two knights', () => {
+        const position = {
+          'e1': 'wk',
+          'e8': 'bk',
+          'b1': 'wn',
+          'g1': 'wn'
+        };
+        const fen = ChessRules.objToFen(position);
+        const rules = new ChessRules(fen, '-');
+
+        expect(rules.isInsufficientMaterial()).toBe(false);
+      });
     });
   });
 });

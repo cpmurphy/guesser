@@ -166,4 +166,19 @@ class MoveTranslatorTest < Minitest::Test
     @translator.translate_moves(["Ba4", "Kc7", "Bc6", "Kb6", "Kd6", "Ka5", "Kc5", "Ka6", "Ra4"])
     assert_equal("8/8/k1B5/2K5/R7/8/8/8 b - - 9 5", @translator.board_as_fen)
   end
+
+  def test_position_with_lots_of_moves
+    @translator.translate_moves(["e4", "e5", "Nf3", "Nc6", "Bc4", "Bc5", "c3", "d6", "d4", "exd4", "cxd4", "Bb6", "h3", "Nf6", "O-O"])
+    assert_equal("r1bqk2r/ppp2ppp/1bnp1n2/8/2BPP3/5N1P/PP3PP1/RNBQ1RK1 b kq - 2 8", @translator.board_as_fen)
+  end
+
+  def test_uci_promotion_to_queen
+    @translator.load_game_from_fen("6k1/8/8/8/8/8/4q2p/K7 b - - 0 52")
+    assert_equal({ moves: ["h2-h1"], add: ['q', 'h1'], notation: "h1=Q" }, @translator.translate_uci_move("h2h1q"))
+  end
+
+  def test_uci_promotion_with_capture
+    @translator.load_game_from_fen("3q2k1/4Pppp/8/8/8/8/8/7K w - - 0 28")
+    assert_equal({ moves: ["e7-d8"], add: ['R', 'd8'], remove: ['q', 'd8'], notation: "exd8=R" }, @translator.translate_uci_move("e7d8R"))
+  end
 end

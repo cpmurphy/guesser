@@ -479,11 +479,11 @@ class MoveTranslator
     # Handle promotion
     if promotion
       promoted_piece = promotion[-1]
-      result[:add] = [promoted_piece, to]
       if @current_player != :white
         promoted_piece = promoted_piece.downcase
       end
       @board[to] = promoted_piece
+      result[:add] = [promoted_piece, to]
     else
       @board[to] = @board[from]
     end

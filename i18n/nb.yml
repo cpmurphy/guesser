@@ -1,0 +1,75 @@
+nb:
+  title: Gjett trekket
+  choose_from_built_in_games: Velg fra innebygde partier
+  games:
+    one: ett parti
+    other: "%{count} partier"
+    list:
+      title: Partier i denne PGN-filen
+      columns:
+        white: Hvit
+        black: Svart
+        year: År
+        result: Resultat
+        serious_mistake: Alvorlig feil
+        critical_moment: Kritisk øyeblikk
+        action: Handling
+      play: Spill
+    back: Tilbake til utvalg
+  upload:
+    title: Last opp dine egne partier
+    method:
+      file: Last opp PGN-fil
+      paste: Lim inn PGN-tekst
+    paste_placeholder: Lim inn PGN her
+    submit: Last opp PGN
+  chess:
+    pieces:
+      K: K
+      Q: D
+      R: T
+      B: L
+      N: S
+      P: ""  # Pawns typically have no prefix in Norwegian
+  game:
+    white: Hvit
+    black: Svart
+    versus: mot
+    last_move: Siste trekk
+    controls:
+      fast_rewind: Gå til start
+      backward: Forrige trekk
+      forward: Neste trekk
+      fast_forward: Gå til slutt
+      engine_move: Spill motortrekk
+      flip_board: Snu brett
+      export_fen: Kopier FEN til utklippstavle
+    guess_mode:
+      both: Gjett begge
+      white: Gjett hvit
+      black: Gjett svart
+    actions:
+      other_games: Andre partier
+  js:
+    moves:
+      invalid_number: Vennligst skriv inn et gyldig trekknummer.
+    guess:
+      correct:
+        correct_exclamation: Riktig!
+        same_as_game: Dette er trekket som ble spilt.
+        good_move: Godt trekk!
+        good_guess: Godt gjettet!
+      incorrect: Feil!
+      beyond_game: Trekk etter partislutt blir ikke evaluert.
+    fen:
+      copied: FEN kopiert!
+    evaluation:
+      much_better: Ditt trekk er enda bedre enn partitrekket (%{game_move})!
+      slightly_better: Ditt trekk er litt bedre enn partitrekket (%{game_move}).
+      much_worse: Partitrekket%{move} var mye bedre.
+      worse: Partitrekket%{move} var betydelig bedre.
+      slightly_worse: Partitrekket%{move} var litt bedre.
+      equal: Ditt trekk er omtrent like godt som partitrekket%{move}.
+      not_as_good: Ditt trekk var ikke like godt som partitrekket.
+      still_good: Ditt trekk var fortsatt godt.
+      reasonable: Ditt trekk gir fortsatt en rimelig stilling. 

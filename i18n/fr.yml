@@ -1,0 +1,75 @@
+fr:
+  title: Devinez le coup
+  choose_from_built_in_games: Choisissez parmi les parties intégrées
+  games:
+    one: une partie
+    other: "%{count} parties"
+    list:
+      title: Parties dans ce fichier PGN
+      columns:
+        white: Blancs
+        black: Noirs
+        year: Année
+        result: Résultat
+        serious_mistake: Erreur grave
+        critical_moment: Moment critique
+        action: Action
+      play: Jouer
+    back: Retour à la sélection
+  upload:
+    title: Envoyez vos propres parties
+    method:
+      file: Envoyer un fichier PGN
+      paste: Coller le texte PGN
+    paste_placeholder: Collez votre PGN ici
+    submit: Envoyer le PGN
+  chess:
+    pieces:
+      K: R
+      Q: D
+      R: T
+      B: F
+      N: C
+      P: ""  # Pawns typically have no prefix in French
+  game:
+    white: Blancs
+    black: Noirs
+    versus: contre
+    last_move: Dernier coup
+    controls:
+      fast_rewind: Aller au début
+      backward: Coup précédent
+      forward: Coup suivant
+      fast_forward: Aller à la fin
+      engine_move: Jouer le coup du moteur
+      flip_board: Retourner l'échiquier
+      export_fen: Copier la position FEN
+    guess_mode:
+      both: Deviner les deux
+      white: Deviner les Blancs
+      black: Deviner les Noirs
+    actions:
+      other_games: Autres parties
+  js:
+    moves:
+      invalid_number: Veuillez entrer un numéro de coup valide.
+    guess:
+      correct:
+        correct_exclamation: Correct !
+        same_as_game: C'est le coup qui a été joué.
+        good_move: Bon coup !
+        good_guess: Bonne supposition !
+      incorrect: Incorrect !
+      beyond_game: Les coups après la fin de la partie ne sont pas évalués.
+    fen:
+      copied: Position FEN copiée !
+    evaluation:
+      much_better: Votre coup est encore meilleur que le coup joué (%{game_move}) !
+      slightly_better: Votre coup est légèrement meilleur que le coup joué (%{game_move}).
+      much_worse: Le coup joué%{move} était bien meilleur.
+      worse: Le coup joué%{move} était significativement meilleur.
+      slightly_worse: Le coup joué%{move} était légèrement meilleur.
+      equal: Votre coup est à peu près aussi bon que le coup joué%{move}.
+      not_as_good: Votre coup n'était pas aussi bon que le coup joué.
+      still_good: Votre coup était quand même bon.
+      reasonable: Votre coup mène toujours à une position raisonnable. 

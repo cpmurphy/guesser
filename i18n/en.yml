@@ -1,0 +1,75 @@
+en:
+  title: Chess Guesser
+  choose_from_built_in_games: Choose From Built-in Games
+  games:
+    one: one game
+    other: "%{count} games"
+    list:
+      title: Games in this PGN file
+      columns:
+        white: White
+        black: Black
+        year: Year
+        result: Result
+        serious_mistake: Serious Mistake
+        critical_moment: Critical Moment
+        action: Action
+      play: Play
+    back: Back to Game Selection
+  upload:
+    title: Upload Your Own Games
+    method:
+      file: Upload PGN file
+      paste: Paste PGN text
+    paste_placeholder: Paste your PGN here
+    submit: Upload PGN
+  chess:
+    pieces:
+      K: K
+      Q: Q
+      R: R
+      B: B
+      N: N
+      P: ""  # Pawns typically have no prefix in English
+  game:
+    white: White
+    black: Black
+    versus: vs
+    last_move: Last move
+    controls:
+      fast_rewind: Go to start
+      backward: Previous move
+      forward: Next move
+      fast_forward: Go to end
+      engine_move: Play engine move
+      flip_board: Flip Board
+      export_fen: Copy FEN to clipboard
+    guess_mode:
+      both: Guess Both
+      white: Guess White
+      black: Guess Black
+    actions:
+      other_games: Other games
+  js:
+    moves:
+      invalid_number: Please enter a valid move number.
+    guess:
+      correct:
+        correct_exclamation: Correct!
+        same_as_game: This is what was played.
+        good_move: Good move!
+        good_guess: Good guess!
+      incorrect: Incorrect!
+      beyond_game: Moves beyond the end of the game are not evaluated.
+    fen:
+      copied: FEN copied!
+    evaluation:
+      much_better: Your move is even better than the game move (%{game_move})!
+      slightly_better: Your move is slightly better than the game move (%{game_move}).
+      much_worse: The game move%{move} was much better.
+      worse: The game move%{move} was significantly better.
+      slightly_worse: The game move%{move} was slightly better.
+      equal: Your move is about as good as the game move%{move}.
+      not_as_good: Your move was not as good as the game move.
+      still_good: Your move was still good.
+      reasonable: Your move still leaves you with a reasonable position.

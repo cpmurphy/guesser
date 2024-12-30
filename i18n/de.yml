@@ -1,0 +1,75 @@
+de:
+  title: Schachzug-Rater
+  choose_from_built_in_games: Wähle aus vorhandenen Partien
+  games:
+    one: eine Partie
+    other: "%{count} Partien"
+    list:
+      title: Partien in dieser PGN-Datei
+      columns:
+        white: Weiß
+        black: Schwarz
+        year: Jahr
+        result: Ergebnis
+        serious_mistake: Grober Fehler
+        critical_moment: Kritischer Moment
+        action: Aktion
+      play: Spielen
+    back: Zurück zur Auswahl
+  upload:
+    title: Lade deine eigenen Partien hoch
+    method:
+      file: PGN-Datei hochladen
+      paste: PGN-Text einfügen
+    paste_placeholder: Füge dein PGN hier ein
+    submit: PGN hochladen
+  chess:
+    pieces:
+      K: K
+      Q: D
+      R: T
+      B: L
+      N: S
+      P: ""  # Pawns typically have no prefix in German
+  game:
+    white: Weiß
+    black: Schwarz
+    versus: gegen
+    last_move: Letzter Zug
+    controls:
+      fast_rewind: Zum Anfang
+      backward: Vorheriger Zug
+      forward: Nächster Zug
+      fast_forward: Zum Ende
+      engine_move: Engine-Zug spielen
+      flip_board: Brett drehen
+      export_fen: FEN in Zwischenablage kopieren
+    guess_mode:
+      both: Beide raten
+      white: Weiß raten
+      black: Schwarz raten
+    actions:
+      other_games: Andere Partien
+  js:
+    moves:
+      invalid_number: Bitte gib eine gültige Zugnummer ein.
+    guess:
+      correct:
+        correct_exclamation: Richtig!
+        same_as_game: Das wurde auch in der Partie gespielt.
+        good_move: Guter Zug!
+        good_guess: Gut geraten!
+      incorrect: Falsch!
+      beyond_game: Züge nach Partieende werden nicht bewertet.
+    fen:
+      copied: FEN kopiert!
+    evaluation:
+      much_better: Dein Zug ist sogar besser als der Partiezug (%{game_move})!
+      slightly_better: Dein Zug ist etwas besser als der Partiezug (%{game_move}).
+      much_worse: Der Partiezug%{move} war viel besser.
+      worse: Der Partiezug%{move} war deutlich besser.
+      slightly_worse: Der Partiezug%{move} war etwas besser.
+      equal: Dein Zug ist etwa gleichwertig mit dem Partiezug%{move}.
+      not_as_good: Dein Zug war nicht so gut wie der Partiezug.
+      still_good: Dein Zug war trotzdem gut.
+      reasonable: Dein Zug führt immer noch zu einer vernünftigen Position.

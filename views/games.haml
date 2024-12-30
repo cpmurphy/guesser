@@ -1,43 +1,43 @@
 !!! 5
-%html{lang:"en"}
+%html{lang: I18n.locale}
   %head
     %meta{charset:"UTF-8"}
     %meta{name:"viewport", content:"width=device-width, initial-scale=1.0"}
-    %title Chess Guesser - Games
+    %title= I18n.t('title') + " - " + I18n.t('games.list.title')
 
     %link{rel:"stylesheet", href:"/styles/game_selection.css"}
 
   %body
-    %h2 Games in this PGN file
+    %h2= I18n.t('games.list.title')
     .table-responsive
       %table#game_selection_table
         %thead
           %tr
-            %th White
-            %th Black
-            %th Year
-            %th Result
-            %th Serious Mistake
-            %th Critical Moment
-            %th Action
+            %th= I18n.t('games.list.columns.white')
+            %th= I18n.t('games.list.columns.black')
+            %th= I18n.t('games.list.columns.year')
+            %th= I18n.t('games.list.columns.result')
+            %th= I18n.t('games.list.columns.serious_mistake')
+            %th= I18n.t('games.list.columns.critical_moment')
+            %th= I18n.t('games.list.columns.action')
         %tbody
           - summary.games.each_with_index do |game, index|
             %tr
-              %td{"data-label" => "White"}= game['White']
-              %td{"data-label" => "Black"}= game['Black']
-              %td{"data-label" => "Year"}= game['Date'] ? game['Date'][0..3] : ''
-              %td{"data-label" => "Result"}= game['Result']
-              %td{"data-label" => "Serious Mistake"}
+              %td{"data-label" => I18n.t('games.list.columns.white')}= game['White']
+              %td{"data-label" => I18n.t('games.list.columns.black')}= game['Black']
+              %td{"data-label" => I18n.t('games.list.columns.year')}= game['Date'] ? game['Date'][0..3] : ''
+              %td{"data-label" => I18n.t('games.list.columns.result')}= game['Result']
+              %td{"data-label" => I18n.t('games.list.columns.serious_mistake')}
                 - if game[:analysis] && game[:analysis]['first_serious_mistake']
                   - moment = notation_for_move(game[:analysis]['first_serious_mistake'])
                   %a{href: "/#{path_prefix}/#{index}?move=#{moment[:move_number]}&side=#{moment[:side]}"}
                     = moment[:text]
-              %td{"data-label" => "Critical Moment"}
+              %td{"data-label" => I18n.t('games.list.columns.critical_moment')}
                 - if game[:analysis] && game[:analysis]['last_critical_moment']
                   - moment = notation_for_move(game[:analysis]['last_critical_moment'])
                   %a{href: "/#{path_prefix}/#{index}?move=#{moment[:move_number]}&side=#{moment[:side]}"}
                     = moment[:text]
               %td
-                %a{href: "/#{path_prefix}/#{index}"} Play
+                %a{href: "/#{path_prefix}/#{index}"}= I18n.t('games.list.play')
 
-    %a.btn{href: "/"} Back to Game Selection
+    %a.btn{href: "/"}= I18n.t('games.back')

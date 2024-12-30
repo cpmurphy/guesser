@@ -217,6 +217,8 @@ class MoveTranslator
     @fullmove_number = fullmove.to_i
   end
 
+
+
   private
 
   def moves_into_check?(square, to, piece)

@@ -2,9 +2,45 @@ import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import Board from '../../public/scripts/board.js';
 import { Chessboard } from './__mocks__/cm-chessboard.js';
 
+// Mock translations that would normally be injected by the server
+global.window = {
+  location: {
+    pathname: '/builtin/1/2'
+  },
+  TRANSLATIONS: {
+    moves: {
+      invalid_number: "Please enter a valid move number."
+    },
+    guess: {
+      correct: {
+        same_as_game: "Correct! This is what was played.",
+        good_move: "Good move!",
+        good_guess: "Good guess!"
+      },
+      incorrect: "Incorrect!",
+      beyond_game: "Moves beyond the end of the game are not evaluated."
+    },
+    fen: {
+      copied: "FEN copied!"
+    },
+    evaluation: {
+      much_better: "Your move is even better than the game move (%{game_move})!",
+      slightly_better: "Your move is slightly better than the game move (%{game_move}).",
+      much_worse: "The game move%{move} was much better.",
+      worse: "The game move%{move} was significantly better.",
+      slightly_worse: "The game move%{move} was slightly better.",
+      equal: "Your move is about as good as the game move%{move}.",
+      not_as_good: "Your move was not as good as the game move.",
+      still_good: "Your move was still good.",
+      reasonable: "Your move still leaves you with a reasonable position."
+    }
+  }
+};
+
 // Helper to create a minimal data object that Board needs
 function createGameData(options = {}) {
   return {
+    locale: options.locale || 'en',
     moves: options.moves || [],
     uiMoves: options.uiMoves || [],
     startingWholeMove: options.startingWholeMove || 1,
@@ -382,7 +418,7 @@ describe('Board', () => {
       board.handleGuessResponse([{
         "result": "correct",
         "same_as_game": false,
-        "game_move": data.uiMoves[0],
+        "game_move": "e4",
         "best_eval": {
           "score": 26,
           "move": "e2e4",

@@ -1,0 +1,108 @@
+export default class MoveLocalizer {
+
+
+    constructor(locale) {
+      this.locale = locale;
+      this.CASTLING_REGEX = /^(O-O-O|O-O)([+#])?$/;
+      this.STANDARD_MOVE_REGEX = /^([KQRBN])?([a-h])?([1-8])?(x)?([a-h][1-8])(=[QRBN])?([+#])?$/;
+      this.CAPTURE = 'x'
+      this.PROMOTION = '='
+      this.CHECK = '+'
+      this.CHECKMATE = '#'
+
+      this.TRANSLATIONS = {
+        en: {
+          'piece.K': 'K',
+          'piece.Q': 'Q',
+          'piece.R': 'R',
+          'piece.B': 'B',
+          'piece.N': 'N',
+          'piece.P': '',
+        },
+        de: {
+          'piece.K': 'K',
+          'piece.Q': 'D',
+          'piece.R': 'T',
+          'piece.B': 'L',
+          'piece.N': 'S',
+          'piece.P': '',
+        },
+        es: {
+          'piece.K': 'R',
+          'piece.Q': 'D',
+          'piece.R': 'T',
+          'piece.B': 'A',
+          'piece.N': 'C',
+          'piece.P': '',
+        }
+      };
+    }
+
+    localize(algebraic) {
+      // Convert English algebraic notation to moveInfo
+      const moveInfo = this.moveInfoFromAlgebraic(algebraic);
+
+      // Convert moveInfo to localized notation
+      const piece = moveInfo['piece'] || 'P';
+      const pieceLetter = (piece && piece.toUpperCase() != 'P') ? this.TRANSLATIONS[this.locale][`piece.${piece.toUpperCase()}`] : '';
+
+      if (moveInfo['castling']) {
+        return algebraic;
+      } else {
+        // For regular moves, maintain algebraic notation format
+        const fileHint = moveInfo['disambiguation'] || '';  // Use the original disambiguation if any
+        const capture = moveInfo['capture'] ? this.CAPTURE : '';
+        const promotion = moveInfo['promotion'] ? `${this.PROMOTION}${this.TRANSLATIONS[this.locale][`piece.${moveInfo['promotion'].toUpperCase()}`]}` : '';
+        const check = moveInfo['check'] ? this.CHECK : '';
+        const checkmate = moveInfo['checkmate'] ? this.CHECKMATE : '';
+
+        return `${pieceLetter}${fileHint}${capture}${moveInfo['to']}${promotion}${check}${checkmate}`;
+      }
+    }
+
+    moveInfoFromAlgebraic(algebraic) {
+      // Handle castling first
+      const castlingMatch = algebraic.match(this.CASTLING_REGEX);
+      if (castlingMatch) {
+        const castling = castlingMatch[1] === 'O-O' ? 'kingside' : 'queenside';
+        const check = castlingMatch[2] === '+';
+        const checkmate = castlingMatch[2] === '#';
+        return {
+          castling: castling,
+          check: check,
+          checkmate: checkmate
+        };
+      }
+
+      // Parse the move components
+      const standardMatch = algebraic.match(this.STANDARD_MOVE_REGEX);
+      if (standardMatch) {
+        const piece = standardMatch[1] || 'P';
+        const fileHint = standardMatch[2];
+        const rankHint = standardMatch[3];
+        const capture = standardMatch[4] === 'x';
+        const to = standardMatch[5];
+        const promotion = standardMatch[6]?.replace('=', '');
+        const check = standardMatch[7] === '+';
+        const checkmate = standardMatch[7] === '#';
+
+        // Keep original disambiguation (if any)
+        let disambiguation = '';
+        if (fileHint) { disambiguation += fileHint; }
+        if (rankHint) { disambiguation += rankHint; }
+
+        return {
+          piece: piece,
+          disambiguation: disambiguation,
+          to: to,
+          capture: capture,
+          promotion: promotion,
+          check: check,
+          checkmate: checkmate
+        };
+      } else {
+        throw new Error(`Invalid algebraic notation: ${algebraic}`);
+      }
+    }
+
+}

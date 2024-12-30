@@ -1,0 +1,75 @@
+es:
+  title: Adivinador de Ajedrez
+  choose_from_built_in_games: Elegir de Juegos Incorporados
+  games:
+    one: un juego
+    other: "%{count} juegos"
+    list:
+      title: Partidas en este archivo PGN
+      columns:
+        white: Blancas
+        black: Negras
+        year: Año
+        result: Resultado
+        serious_mistake: Error Grave
+        critical_moment: Momento Crítico
+        action: Acción
+      play: Jugar
+    back: Volver a Selección
+  upload:
+    title: Sube Tus Propios Juegos
+    method:
+      file: Subir archivo PGN
+      paste: Pegar texto PGN
+    paste_placeholder: Pega tu PGN aquí
+    submit: Subir PGN
+  chess:
+    pieces:
+      K: R
+      Q: D
+      R: T
+      B: A
+      N: C
+      P: ""  # Pawns typically have no prefix in Spanish
+  game:
+    white: Blancas
+    black: Negras
+    versus: contra
+    last_move: Último movimiento
+    controls:
+      fast_rewind: Ir al inicio
+      backward: Movimiento anterior
+      forward: Siguiente movimiento
+      fast_forward: Ir al final
+      engine_move: Jugar movimiento del motor
+      flip_board: Girar tablero
+      export_fen: Copiar FEN al portapapeles
+    guess_mode:
+      both: Adivinar ambos
+      white: Adivinar blancas
+      black: Adivinar negras
+    actions:
+      other_games: Otros juegos
+  js:
+    moves:
+      invalid_number: Por favor, introduce un número de movimiento válido.
+    guess:
+      correct:
+        correct_exclamation: ¡Correcto!
+        same_as_game: Esto es lo que se jugó.
+        good_move: ¡Buen movimiento!
+        good_guess: ¡Buena suposición!
+      incorrect: ¡Incorrecto!
+      beyond_game: Los movimientos después del final de la partida no se evalúan.
+    fen:
+      copied: ¡FEN copiado!
+    evaluation:
+      much_better: ¡Tu movimiento es incluso mejor que el de la partida (%{game_move})!
+      slightly_better: Tu movimiento es ligeramente mejor que el de la partida (%{game_move}).
+      much_worse: El movimiento de la partida%{move} era mucho mejor.
+      worse: El movimiento de la partida%{move} era significativamente mejor.
+      slightly_worse: El movimiento de la partida%{move} era ligeramente mejor.
+      equal: Tu movimiento es tan bueno como el de la partida%{move}.
+      not_as_good: Tu movimiento no fue tan bueno como el de la partida.
+      still_good: Tu movimiento seguía siendo bueno.
+      reasonable: Tu movimiento aún te deja en una posición razonable.

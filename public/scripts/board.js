@@ -701,7 +701,9 @@ export default class Board {
     if (move.remove) {
       this.board.setPiece(move.remove[1], null);
     }
-    this.updateGuessStatus('green', window.TRANSLATIONS.guess.correct.correct_exclamation, window.TRANSLATIONS.guess.correct.same_as_game);
+    if (!this.isPastRecordedMoves()) {
+      this.updateGuessStatus('green', window.TRANSLATIONS.guess.correct.correct_exclamation, window.TRANSLATIONS.guess.correct.same_as_game);
+    }
     this.currentMoveIndex++;
     // autoplay the opponent's move unless guess mode is both
     if (this.guessMode() !== 'both') {

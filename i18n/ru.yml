@@ -1,0 +1,86 @@
+ru:
+  title: Угадай ход
+  choose_from_built_in_games: Выберите из встроенных партий
+  games:
+    one: одна партия
+    few: "%{count} партии"
+    many: "%{count} партий"
+    other: "%{count} партий"
+    list:
+      title: Партии в этом PGN-файле
+      columns:
+        white: Белые
+        black: Чёрные
+        year: Год
+        result: Результат
+        serious_mistake: Серьёзная ошибка
+        critical_moment: Критический момент
+        action: Действие
+      play: Играть
+    back: Назад к выбору
+  upload:
+    title: Загрузите свои партии
+    method:
+      file: Загрузить PGN-файл
+      paste: Вставить PGN-текст
+    paste_placeholder: Вставьте ваш PGN сюда
+    submit: Загрузить PGN
+  chess:
+    files:
+      a: а
+      b: б
+      c: в
+      d: г
+      e: д
+      f: е
+      g: ж
+      h: з
+    pieces:
+      K: Кр
+      Q: Ф
+      R: Л
+      B: С
+      N: К
+      P: ""
+  game:
+    white: Белые
+    black: Чёрные
+    versus: против
+    last_move: Последний ход
+    controls:
+      fast_rewind: В начало
+      backward: Предыдущий ход
+      forward: Следующий ход
+      fast_forward: В конец
+      engine_move: Сделать ход движка
+      flip_board: Перевернуть доску
+      export_fen: Скопировать FEN в буфер обмена
+    guess_mode:
+      both: Угадывать оба
+      white: Угадывать белых
+      black: Угадывать чёрных
+    actions:
+      other_games: Другие партии
+  js:
+    moves:
+      invalid_number: Пожалуйста, введите правильный номер хода.
+    guess:
+      correct:
+        correct_exclamation: Правильно!
+        same_as_game: Это тот ход, который был сыгран.
+        good_move: Хороший ход!
+        good_guess: Хорошая догадка!
+      incorrect: Неправильно!
+      beyond_game: Ходы после окончания партии не оцениваются.
+    fen:
+      copied: FEN скопирован!
+    evaluation:
+      much_better: Ваш ход даже лучше, чем ход в партии (%{game_move})!
+      slightly_better: Ваш ход немного лучше, чем ход в партии (%{game_move}).
+      much_worse: Ход в партии%{move} был намного лучше.
+      worse: Ход в партии%{move} был значительно лучше.
+      slightly_worse: Ход в партии%{move} был немного лучше.
+      equal: Ваш ход примерно равноценен ходу в партии%{move}.
+      not_as_good: Ваш ход был не так хорош, как ход в партии.
+      still_good: Ваш ход всё равно хороший.
+      reasonable: Ваш ход всё ещё ведёт к приемлемой позиции. 

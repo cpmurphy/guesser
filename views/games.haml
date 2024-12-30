@@ -1,43 +1,43 @@
 !!! 5
-%html{lang: I18n.locale}
+%html{lang: @locale}
   %head
     %meta{charset:"UTF-8"}
     %meta{name:"viewport", content:"width=device-width, initial-scale=1.0"}
-    %title= I18n.t('title') + " - " + I18n.t('games.list.title')
+    %title= I18n.t('title', locale: @locale) + " - " + I18n.t('games.list.title', locale: @locale)
 
     %link{rel:"stylesheet", href:"/styles/game_selection.css"}
 
   %body
-    %h2= I18n.t('games.list.title')
+    %h2= I18n.t('games.list.title', locale: @locale)
     .table-responsive
       %table#game_selection_table
         %thead
           %tr
-            %th= I18n.t('games.list.columns.white')
-            %th= I18n.t('games.list.columns.black')
-            %th= I18n.t('games.list.columns.year')
-            %th= I18n.t('games.list.columns.result')
-            %th= I18n.t('games.list.columns.serious_mistake')
-            %th= I18n.t('games.list.columns.critical_moment')
-            %th= I18n.t('games.list.columns.action')
+            %th= I18n.t('games.list.columns.white', locale: @locale)
+            %th= I18n.t('games.list.columns.black', locale: @locale)
+            %th= I18n.t('games.list.columns.year', locale: @locale)
+            %th= I18n.t('games.list.columns.result', locale: @locale)
+            %th= I18n.t('games.list.columns.serious_mistake', locale: @locale)
+            %th= I18n.t('games.list.columns.critical_moment', locale: @locale)
+            %th= I18n.t('games.list.columns.action', locale: @locale)
         %tbody
           - summary.games.each_with_index do |game, index|
             %tr
-              %td{"data-label" => I18n.t('games.list.columns.white')}= game['White']
-              %td{"data-label" => I18n.t('games.list.columns.black')}= game['Black']
-              %td{"data-label" => I18n.t('games.list.columns.year')}= game['Date'] ? game['Date'][0..3] : ''
-              %td{"data-label" => I18n.t('games.list.columns.result')}= game['Result']
-              %td{"data-label" => I18n.t('games.list.columns.serious_mistake')}
+              %td{"data-label" => I18n.t('games.list.columns.white', locale: @locale)}= game['White']
+              %td{"data-label" => I18n.t('games.list.columns.black', locale: @locale)}= game['Black']
+              %td{"data-label" => I18n.t('games.list.columns.year', locale: @locale)}= game['Date'] ? game['Date'][0..3] : ''
+              %td{"data-label" => I18n.t('games.list.columns.result', locale: @locale)}= game['Result']
+              %td{"data-label" => I18n.t('games.list.columns.serious_mistake', locale: @locale)}
                 - if game[:analysis] && game[:analysis]['first_serious_mistake']
                   - moment = notation_for_move(game[:analysis]['first_serious_mistake'])
                   %a{href: "/#{path_prefix}/#{index}?move=#{moment[:move_number]}&side=#{moment[:side]}"}
                     = moment[:text]
-              %td{"data-label" => I18n.t('games.list.columns.critical_moment')}
+              %td{"data-label" => I18n.t('games.list.columns.critical_moment', locale: @locale)}
                 - if game[:analysis] && game[:analysis]['last_critical_moment']
                   - moment = notation_for_move(game[:analysis]['last_critical_moment'])
                   %a{href: "/#{path_prefix}/#{index}?move=#{moment[:move_number]}&side=#{moment[:side]}"}
                     = moment[:text]
               %td
-                %a{href: "/#{path_prefix}/#{index}"}= I18n.t('games.list.play')
+                %a{href: "/#{path_prefix}/#{index}"}= I18n.t('games.list.play', locale: @locale)
 
-    %a.btn{href: "/"}= I18n.t('games.back')
+    %a.btn{href: "/"}= I18n.t('games.back', locale: @locale)

@@ -50,6 +50,22 @@ export default class MoveLocalizer {
           'piece.B': 'L',
           'piece.N': 'S',
           'piece.P': '',
+        },
+        ru: {
+          'piece.K': 'Кр',
+          'piece.Q': 'Ф',
+          'piece.R': 'Л',
+          'piece.B': 'С',
+          'piece.N': 'К',
+          'piece.P': '',
+          'file.a': 'а',
+          'file.b': 'б',
+          'file.c': 'в',
+          'file.d': 'г',
+          'file.e': 'д',
+          'file.f': 'е',
+          'file.g': 'ж',
+          'file.h': 'з',
         }
       };
     }
@@ -66,13 +82,34 @@ export default class MoveLocalizer {
         return algebraic;
       } else {
         // For regular moves, maintain algebraic notation format
-        const fileHint = moveInfo['disambiguation'] || '';  // Use the original disambiguation if any
+        const disambiguation = this.localizeDisambiguation(moveInfo['disambiguation'] || '');  // Use the original disambiguation if any
         const capture = moveInfo['capture'] ? this.CAPTURE : '';
+        const to = this.localizeTo(moveInfo['to']); 
         const promotion = moveInfo['promotion'] ? `${this.PROMOTION}${this.TRANSLATIONS[this.locale][`piece.${moveInfo['promotion'].toUpperCase()}`]}` : '';
         const check = moveInfo['check'] ? this.CHECK : '';
         const checkmate = moveInfo['checkmate'] ? this.CHECKMATE : '';
 
-        return `${pieceLetter}${fileHint}${capture}${moveInfo['to']}${promotion}${check}${checkmate}`;
+        return `${pieceLetter}${disambiguation}${capture}${to}${promotion}${check}${checkmate}`;
+      }
+    }
+
+    localizeDisambiguation(disambiguation) {
+        if (this.locale !== 'ru') {
+            return disambiguation;
+        }
+
+        if (disambiguation && disambiguation.match(/^([a-h])([1-8])?$/)) {
+            return this.TRANSLATIONS[this.locale][`file.${disambiguation[0]}`] + (disambiguation[1] || '');
+        } else {
+            return disambiguation;
+        }
+    }
+
+    localizeTo(to) {
+      if (to.length > 1 && this.locale === 'ru') {
+        return `${this.TRANSLATIONS[this.locale][`file.${to[0]}`]}${to[1]}`;
+      } else {
+        return to;
       }
     }
 

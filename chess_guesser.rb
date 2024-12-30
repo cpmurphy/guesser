@@ -5,6 +5,7 @@ require 'pgn'
 require 'secure_headers'
 require 'i18n'
 
+
 require_relative 'lib/analyzer'
 require_relative 'lib/move_judge'
 require_relative 'lib/pgn_summary'
@@ -52,12 +53,14 @@ class ChessGuesser < Sinatra::Base
   end
 
   before do
-    I18n.locale = extract_locale_from_accept_language_header
+    @locale = extract_locale_from_accept_language_header
+    @move_localizer = MoveLocalizer.new(@locale)
   end
 
   private
 
   def extract_locale_from_accept_language_header
+    I18n.default_locale = :en
     return I18n.default_locale unless request.env['HTTP_ACCEPT_LANGUAGE']
     
     # Parse Accept-Language header and get ordered list of locales
@@ -81,8 +84,6 @@ class ChessGuesser < Sinatra::Base
     move_judge = MoveJudge.new
     @evaluator = GuessEvaluator.new(move_judge)
     I18n.load_path << Dir[File.expand_path("i18n/*.yml")]
-    I18n.default_locale = :en
-    @move_localizer = MoveLocalizer.new
   end
 
   get '/' do
@@ -224,18 +225,18 @@ class ChessGuesser < Sinatra::Base
     starting_move = 1
     white_player = game.tags['White']
     if !white_player || white_player.empty?
-      white_player = I18n.t('game.white')
+      white_player = I18n.t('game.white', locale: @locale)
     end
     black_player = game.tags['Black']
     if !black_player || black_player.empty?
-      black_player = I18n.t('game.black')
+      black_player = I18n.t('game.black', locale: @locale)
     end
     if game.starting_position
       move_translator.load_game_from_fen(game.starting_position.to_fen.to_s)
       starting_move = game.starting_position.fullmove
     end
     {
-      locale: I18n.locale,
+      locale: @locale,
       fen: game.positions.first.to_fen,
       moves: moves,
       ui_moves: moves.map { |move| move_translator.translate_move(move) },

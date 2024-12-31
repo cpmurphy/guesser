@@ -1,5 +1,5 @@
 !!! 5
-%html{lang:"en"}
+%html{lang: @locale}
   %head
     %meta{charset:"UTF-8"}
     %meta{name:"viewport", content:"width=device-width, initial-scale=1.0"}
@@ -8,6 +8,12 @@
     %link{rel:"stylesheet", href:"/styles/game_selection.css"}
 
   %body
+    #language-selector
+      %select#locale-select{name: "locale"}
+        - supported_locales = { en: "English", de: "Deutsch", es: "Español", fr: "Français", nb: "Norsk", ru: "Русский" }
+        - supported_locales.each do |code, name|
+          %option{value: code, selected: code.to_s == @locale.to_s}= name
+
     - unless builtin_pgns.empty?
       #builtin_selection_container
         %h3= I18n.t(:choose_from_built_in_games, locale: @locale)
@@ -36,5 +42,9 @@
       %button#upload_pgn_btn.btn{type: "submit"}= I18n.t('upload.submit', locale: @locale)
 
     %script{src:"../scripts/pgn_uploader.js"}
+    %script{src:"../scripts/locale_selector.js"}
     :javascript
-      document.addEventListener('DOMContentLoaded', () => { const uploader = new PgnUploader(); });
+      document.addEventListener('DOMContentLoaded', () => { 
+        const uploader = new PgnUploader();
+        const selector = new LocaleSelector();
+      });

@@ -53,7 +53,14 @@ class ChessGuesser < Sinatra::Base
   end
 
   before do
-    @locale = extract_locale_from_accept_language_header
+    # First try cookie
+    @locale = if request.cookies['locale']
+      request.cookies['locale'].to_sym
+    else
+      # Fall back to browser Accept-Language header
+      extract_locale_from_accept_language_header
+    end
+    I18n.locale = @locale
     @move_localizer = MoveLocalizer.new(@locale)
   end
 
@@ -71,7 +78,7 @@ class ChessGuesser < Sinatra::Base
       .map { |locale, _| locale.to_sym }
 
     # Find first supported locale from the accepted languages
-    supported_locales = I18n.available_locales
+    supported_locales = [:en, :de, :es, :fr, :nb, :ru]
     preferred_locale = accepted_languages.find { |locale| supported_locales.include?(locale) }
 
     preferred_locale || I18n.default_locale

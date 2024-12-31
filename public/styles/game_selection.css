@@ -1,7 +1,7 @@
 body {
   font-family: Arial, sans-serif;
   line-height: 1.6;
-  padding: 20px;
+  padding: 1rem;
   max-width: 100%;
   box-sizing: border-box;
 }
@@ -91,5 +91,43 @@ textarea, input[type="file"] {
     display: block;
     width: 100%;
     text-align: center;
+  }
+}
+
+#language-selector {
+  margin-bottom: 2rem;
+  text-align: right;
+}
+
+#locale-select {
+  padding: 0.5rem;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  font-size: 1rem;
+  background-color: white;
+  max-width: 100%;
+}
+
+#locale-select:hover {
+  border-color: #888;
+}
+
+#locale-select:focus {
+  outline: none;
+  border-color: #4a90e2;
+  box-shadow: 0 0 0 2px rgba(74, 144, 226, 0.2);
+}
+
+/* Desktop styles */
+@media (min-width: 768px) {
+  body {
+    padding: 2rem;
+  }
+
+  #language-selector {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    margin-bottom: 0;
   }
 }

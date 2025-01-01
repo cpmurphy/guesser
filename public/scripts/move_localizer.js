@@ -51,6 +51,14 @@ export default class MoveLocalizer {
           'piece.N': 'S',
           'piece.P': '',
         },
+        'pt-BR': {
+          'piece.K': 'K',
+          'piece.Q': 'D',
+          'piece.R': 'T',
+          'piece.B': 'L',
+          'piece.N': 'S',
+          'piece.P': '',
+        },
         ru: {
           'piece.K': 'Кр',
           'piece.Q': 'Ф',

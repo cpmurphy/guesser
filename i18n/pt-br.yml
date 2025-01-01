@@ -1,0 +1,87 @@
+pt-BR:
+  title: Adivinhe o Lance
+  choose_from_built_in_games: Escolha entre as Partidas Incluídas
+  games:
+    one: uma partida
+    other: "%{count} partidas"
+    list:
+      title: Partidas neste arquivo PGN
+      columns:
+        white: Brancas
+        black: Pretas
+        year: Ano
+        result: Resultado
+        serious_mistake: Erro Grave
+        critical_moment: Momento Crítico
+        action: Ação
+      play: Jogar
+    back: Voltar à Seleção
+  upload:
+    title: Envie Suas Próprias Partidas
+    method:
+      file: Enviar arquivo PGN
+      paste: Colar texto PGN
+    paste_placeholder: Cole seu PGN aqui
+    submit: Enviar PGN
+  chess:
+    pieces:
+      K: R
+      Q: D
+      R: T
+      B: B
+      N: C
+      P: ""
+    files:
+      a: a
+      b: b
+      c: c
+      d: d
+      e: e
+      f: f
+      g: g
+      h: h
+  game:
+    white: Brancas
+    black: Pretas
+    versus: contra
+    last_move: Último lance
+    controls:
+      fast_rewind: Ir para o início
+      backward: Lance anterior
+      forward: Próximo lance
+      fast_forward: Ir para o final
+      engine_move: Jogar lance do motor
+      flip_board: Girar Tabuleiro
+      export_fen: Copiar FEN para área de transferência
+    guess_mode:
+      both: Adivinhar Ambos
+      white: Adivinhar Brancas
+      black: Adivinhar Pretas
+    actions:
+      other_games: Outras partidas
+  js:
+    moves:
+      invalid_number: Por favor, insira um número de lance válido.
+    guess:
+      correct:
+        correct_exclamation: Correto!
+        same_as_game: Este foi o lance jogado.
+        good_move: Bom lance!
+        good_guess: Boa tentativa!
+      incorrect: Incorreto!
+      beyond_game: Lances após o final da partida não são avaliados.
+    fen:
+      copied: FEN copiado!
+    evaluation:
+      much_better: Seu lance é ainda melhor que o lance da partida (%{game_move})!
+      slightly_better: Seu lance é um pouco melhor que o lance da partida (%{game_move}).
+      much_worse: O lance da partida%{move} era muito melhor.
+      worse: O lance da partida%{move} era significativamente melhor.
+      slightly_worse: O lance da partida%{move} era um pouco melhor.
+      equal: Seu lance é tão bom quanto o lance da partida%{move}.
+      not_as_good: Seu lance não foi tão bom quanto o lance da partida.
+      still_good: Seu lance ainda foi bom.
+      reasonable: Seu lance ainda leva a uma posição razoável.
+  builtins:
+    master_games: "500 Partidas de Mestres"
+    nykterstein_games: "Algumas Partidas do Dr. Nykterstein" 

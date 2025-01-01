@@ -79,7 +79,7 @@ class ChessGuesser < Sinatra::Base
       .map { |locale, _| locale.to_sym }
 
     # Find first supported locale from the accepted languages
-    supported_locales = [:en, :de, :es, :fr, :nb, :ru]
+    supported_locales = [:en, :de, :es, :fr, :nb, :ru, :'pt-BR']
     preferred_locale = accepted_languages.find { |locale| supported_locales.include?(locale) }
 
     preferred_locale || I18n.default_locale

@@ -10,7 +10,7 @@
   %body
     #language-selector
       %select#locale-select{name: "locale"}
-        - supported_locales = { en: "English", de: "Deutsch", es: "Español", fr: "Français", nb: "Norsk", ru: "Русский" }
+        - supported_locales = { en: "English", de: "Deutsch", es: "Español", fr: "Français", nb: "Norsk", 'pt-BR': "Português (BR)", ru: "Русский" }
         - supported_locales.each do |code, name|
           %option{value: code, selected: code.to_s == @locale.to_s}= name
 

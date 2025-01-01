@@ -48,3 +48,17 @@ task :docker_run do
   puts "Running Docker container..."
   sh "docker run -p 3000:3000 chess_guesser"
 end
+
+desc "Update asset manifest with new version"
+task :bump_version do
+  require 'json'
+  require 'time'
+
+  manifest = {
+    'version' => Time.now.strftime('%Y%m%d.%H%M%S'),
+    'last_updated' => Time.now.iso8601
+  }
+
+  File.write('public/asset-manifest.json', JSON.pretty_generate(manifest))
+  puts "Updated asset manifest with version #{manifest['version']}"
+end

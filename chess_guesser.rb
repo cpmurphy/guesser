@@ -12,6 +12,7 @@ require_relative 'lib/pgn_summary'
 require_relative 'lib/move_translator'
 require_relative 'lib/guess_evaluator'
 require_relative 'lib/move_localizer'
+require_relative 'lib/asset_version'
 
 class ChessGuesser < Sinatra::Base
   enable :sessions
@@ -350,6 +351,18 @@ class ChessGuesser < Sinatra::Base
     rescue => e
       status 500
       { error: "Engine error: #{e.message}" }.to_json
+    end
+  end
+
+  configure do
+    # Enable asset versioning
+    set :asset_version, AssetVersion.version
+  end
+
+  # Helper method for asset paths
+  helpers do
+    def asset_path(path)
+      "/#{path}?v=#{settings.asset_version}"
     end
   end
 

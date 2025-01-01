@@ -3,12 +3,19 @@
 set -e
 set -x
 
+if [ -n "$(git status -s)" ]; then
+  echo "Uncommitted changes found! Aborting."
+  exit 1
+fi
+
 SCRIPT_DIR=$(dirname "$0")
 
 # load the deployment environment variables
 # Needed are: DEPLOY_USER, DEPLOY_HOST, DEPLOY_DIR
+# shellcheck source=deploy_env.sh
 . "${SCRIPT_DIR}"/../deploy_env.sh
 
+rake bump_version && git add public/asset-manifest.json && git commit -m 'bump asset version'
 rake docker_build
 
 rm -f chess_guesser.tar

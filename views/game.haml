@@ -4,10 +4,10 @@
     %meta{charset:"UTF-8"}
     %meta{name:"viewport", content:"width=device-width, initial-scale=1.0"}
     %title= I18n.t('title', locale: @locale)
-    %link{rel:"stylesheet", href:"/3rdparty-assets/cm-chessboard/chessboard.css"}
-    %link{rel:"stylesheet", href:"/3rdparty-assets/cm-chessboard/extensions/markers/markers.css"}
-    %link{rel:"stylesheet", href:"/3rdparty-assets/cm-chessboard/extensions/promotion-dialog/promotion-dialog.css"}
-    %link{rel:"stylesheet", href:"/styles/game.css"}
+    %link{rel:"stylesheet", href:asset_path("3rdparty-assets/cm-chessboard/chessboard.css")}
+    %link{rel:"stylesheet", href:asset_path("3rdparty-assets/cm-chessboard/extensions/markers/markers.css")}
+    %link{rel:"stylesheet", href:asset_path("3rdparty-assets/cm-chessboard/extensions/promotion-dialog/promotion-dialog.css")}
+    %link{rel:"stylesheet", href:asset_path("styles/game.css")}
 
   %body
     #board_container
@@ -90,15 +90,19 @@
           reasonable: "#{I18n.t('js.evaluation.reasonable', locale: @locale)}"
         }
       };
-    %script{type: "module", src:"/scripts/board.js"}
     :javascript
       document.addEventListener('DOMContentLoaded', async () => {
-        const { Chessboard, INPUT_EVENT_TYPE, COLOR } = await import('/scripts/3rdparty/Chessboard.js');
-        const { Markers, MARKER_TYPE } = await import('/scripts/3rdparty/extensions/markers/Markers.js');
-        const { PromotionDialog } = await import('/scripts/3rdparty/extensions/promotion-dialog/PromotionDialog.js');
-        const { default: Board } = await import('/scripts/board.js');
+        const version = '#{settings.asset_version}';
+        const versionSuffix = `?v=${version}`;
+
+        const { Chessboard, INPUT_EVENT_TYPE, COLOR } = await import(`/scripts/3rdparty/Chessboard.js${versionSuffix}`);
+        const { Markers, MARKER_TYPE } = await import(`/scripts/3rdparty/extensions/markers/Markers.js${versionSuffix}`);
+        const { PromotionDialog } = await import(`/scripts/3rdparty/extensions/promotion-dialog/PromotionDialog.js${versionSuffix}`);
+        const { default: Board } = await import(`/scripts/board.js${versionSuffix}`);
+
         const guesserState = {
           locale: '#{@locale}',
+          version: version,
           uiMoves: #{ui_moves.to_json},
           moves: #{moves.to_json},
           startingWholeMove: #{starting_whole_move},
@@ -109,6 +113,7 @@
           white: '#{white}',
           black: '#{black}'
         };
+
         const chessboard = new Chessboard(document.getElementById("board"), {
           position: guesserState.fen,
           assetsUrl: "/3rdparty-assets/cm-chessboard/",

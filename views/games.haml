@@ -5,7 +5,7 @@
     %meta{name:"viewport", content:"width=device-width, initial-scale=1.0"}
     %title= I18n.t('title', locale: @locale) + " - " + I18n.t('games.list.title', locale: @locale)
 
-    %link{rel:"stylesheet", href:"/styles/game_selection.css"}
+    %link{rel:"stylesheet", href:asset_path("styles/game_selection.css")}
 
   %body
     %h2= I18n.t('games.list.title', locale: @locale)

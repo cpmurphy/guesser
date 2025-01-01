@@ -5,7 +5,7 @@
     %meta{name:"viewport", content:"width=device-width, initial-scale=1.0"}
     %title= I18n.t('title', default: 'Chess Guesser', locale: @locale)
 
-    %link{rel:"stylesheet", href:"/styles/game_selection.css"}
+    %link{rel:"stylesheet", href:asset_path("styles/game_selection.css"), type:"text/css"}
 
   %body
     #language-selector
@@ -41,8 +41,8 @@
 
       %button#upload_pgn_btn.btn{type: "submit"}= I18n.t('upload.submit', locale: @locale)
 
-    %script{src:"../scripts/pgn_uploader.js"}
-    %script{src:"../scripts/locale_selector.js"}
+    %script{src:asset_path("scripts/pgn_uploader.js")}
+    %script{src:asset_path("scripts/locale_selector.js")}
     :javascript
       document.addEventListener('DOMContentLoaded', () => { 
         const uploader = new PgnUploader();

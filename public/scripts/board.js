@@ -1,18 +1,38 @@
-import ChessRules from "./chess_rules.js";
-import { COLOR, PIECE } from "./board_definitions.js";
-import GameState from "./game_state.js";
-import MoveLocalizer from "./move_localizer.js";
+// Get version from the constructor data
+const initializeModules = async (version) => {
+  const versionSuffix = version ? `?v=${version}` : '';
+
+  // Use dynamic imports to include version
+  return Promise.all([
+    import(`./chess_rules.js${versionSuffix}`).then(m => m.default),
+    import(`./board_definitions.js${versionSuffix}`),
+    import(`./game_state.js${versionSuffix}`).then(m => m.default),
+    import(`./move_localizer.js${versionSuffix}`).then(m => m.default)
+  ]);
+};
 
 export default class Board {
-  constructor(data, chessboard) {
+  async initialize(data, chessboard) {
+    // Store modules as class properties
+    [
+      this.ChessRules,
+      { COLOR: this.COLOR, PIECE: this.PIECE },
+      this.GameState,
+      this.MoveLocalizer
+    ] = await initializeModules(data.version);
+
     this.locale = data.locale;
-    this.moveLocalizer = new MoveLocalizer(this.locale);
+    this.moveLocalizer = new this.MoveLocalizer(this.locale);
     this.gameResult = data.gameResult;
     this.lastMoveElement = document.getElementById('last-move');
     this.moveInput = document.getElementById('move-input');
     this.board = chessboard;
     this.setupUserInterface();
     this.onGameLoaded(data);
+  }
+
+  constructor(data, chessboard) {
+    this.initialize(data, chessboard);
   }
 
   setupUserInterface() {
@@ -37,7 +57,7 @@ export default class Board {
 
   initializeGameState(fen) {
     this.lastPosition = this.board.getPosition();
-    this.gameState = new GameState(fen);
+    this.gameState = new this.GameState(fen);
     this.hideGuessResult();
     this.initializeButtonStates(false);
   }
@@ -110,7 +130,7 @@ export default class Board {
       return false;
     }
 
-    const chessRules = new ChessRules(position, this.gameState.enPassant, this.gameState.castlingRights);
+    const chessRules = new this.ChessRules(position, this.gameState.enPassant, this.gameState.castlingRights);
     if (!chessRules.isLegalMove(from, to, piece)) {
       return false;
     }
@@ -121,7 +141,7 @@ export default class Board {
       return false; // Don't complete the move yet
     }
 
-    if (piece === PIECE.wk || piece === PIECE.bk) {
+    if (piece === this.PIECE.wk || piece === this.PIECE.bk) {
       if (this.isCastling(piece, from, to)) {
         this.performCastling(piece, to, position);
       }
@@ -303,9 +323,9 @@ export default class Board {
 
   pawnForCurrentMove() {
     if (this.isWhiteToMove(this.currentMoveIndex)) {
-      return PIECE.wp;
+      return this.PIECE.wp;
     } else {
-      return PIECE.bp;
+      return this.PIECE.bp;
     }
   }
 
@@ -456,17 +476,17 @@ export default class Board {
   }
 
   isCastling(piece, source, target) {
-    const kingside = (piece === PIECE.wk && source === 'e1' && target === 'g1') ||
-      (piece === PIECE.bk && source === 'e8' && target === 'g8');
-    const queenside = (piece === PIECE.wk && source === 'e1' && target === 'c1') ||
-      (piece === PIECE.bk && source === 'e8' && target === 'c8');
+    const kingside = (piece === this.PIECE.wk && source === 'e1' && target === 'g1') ||
+      (piece === this.PIECE.bk && source === 'e8' && target === 'g8');
+    const queenside = (piece === this.PIECE.wk && source === 'e1' && target === 'c1') ||
+      (piece === this.PIECE.bk && source === 'e8' && target === 'c8');
     return kingside || queenside;
   }
 
   performCastling(piece, target) {
     let rookSource, rookTarget;
 
-    if (piece === PIECE.wk) {
+    if (piece === this.PIECE.wk) {
       if (target === 'g1') {
         rookSource = 'h1';
         rookTarget = 'f1';
@@ -474,7 +494,7 @@ export default class Board {
         rookSource = 'a1';
         rookTarget = 'd1';
       }
-    } else if (piece === PIECE.bk) {
+    } else if (piece === this.PIECE.bk) {
       if (target === 'g8') {
         rookSource = 'h8';
         rookTarget = 'f8';
@@ -513,10 +533,10 @@ export default class Board {
   }
 
   flipBoard() {
-    if (this.board.getOrientation() === COLOR.white) {
-      this.board.setOrientation(COLOR.black);
+    if (this.board.getOrientation() === this.COLOR.white) {
+      this.board.setOrientation(this.COLOR.black);
     } else {
-      this.board.setOrientation(COLOR.white);
+      this.board.setOrientation(this.COLOR.white);
     }
   }
 
@@ -740,7 +760,7 @@ export default class Board {
 
   isGameTerminated() {
     const position = this.board.getPosition();
-    const chessRules = new ChessRules(position, this.gameState.enPassant, this.gameState.castlingRights);
+    const chessRules = new this.ChessRules(position, this.gameState.enPassant, this.gameState.castlingRights);
 
     const isWhite = this.isWhiteToMove(this.currentMoveIndex);
     if (chessRules.isCheckmate(isWhite)) {

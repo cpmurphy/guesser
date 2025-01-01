@@ -72,4 +72,7 @@ fr:
       equal: Votre coup est à peu près aussi bon que le coup joué%{move}.
       not_as_good: Votre coup n'était pas aussi bon que le coup joué.
       still_good: Votre coup était quand même bon.
-      reasonable: Votre coup mène toujours à une position raisonnable. 
+      reasonable: Votre coup mène toujours à une position raisonnable.
+  builtins:
+    master_games: "500 Parties de Maîtres"
+    nykterstein_games: "Quelques Parties du Dr Nykterstein" 

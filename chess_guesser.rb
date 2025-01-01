@@ -103,7 +103,9 @@ class ChessGuesser < Sinatra::Base
   def gather_builtins
     Dir.glob('data/builtins/*.pgn').map.with_index do |file, index|
       basename = File.basename(file, '.pgn')
-      description = basename.split('-').map(&:capitalize).join(' ')
+      # Convert filename to translation key
+      translation_key = basename.gsub('-', '_')
+      description = I18n.t("builtins.#{translation_key}", locale: @locale)
       game_count = PgnSummary.new(File.open(file, encoding: Encoding::ISO_8859_1)).load.size
       [index, file, description, game_count]
     end

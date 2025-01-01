@@ -73,3 +73,6 @@ es:
       not_as_good: Tu movimiento no fue tan bueno como el de la partida.
       still_good: Tu movimiento seguía siendo bueno.
       reasonable: Tu movimiento aún te deja en una posición razonable.
+  builtins:
+    master_games: "500 Partidas de Maestros"
+    nykterstein_games: "Algunas Partidas del Dr. Nykterstein"

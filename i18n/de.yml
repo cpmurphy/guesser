@@ -73,3 +73,6 @@ de:
       not_as_good: Dein Zug war nicht so gut wie der Partiezug.
       still_good: Dein Zug war trotzdem gut.
       reasonable: Dein Zug führt immer noch zu einer vernünftigen Position.
+  builtins:
+    master_games: "500 Meisterpartien"
+    nykterstein_games: "Einige Partien von Dr. Nykterstein"

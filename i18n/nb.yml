@@ -72,4 +72,7 @@ nb:
       equal: Ditt trekk er omtrent like godt som partitrekket%{move}.
       not_as_good: Ditt trekk var ikke like godt som partitrekket.
       still_good: Ditt trekk var fortsatt godt.
-      reasonable: Ditt trekk gir fortsatt en rimelig stilling. 
+      reasonable: Ditt trekk gir fortsatt en rimelig stilling.
+  builtins:
+    master_games: "500 Mesterpartier"
+    nykterstein_games: "Noen Partier av Dr. Nykterstein" 

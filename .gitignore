@@ -15,8 +15,8 @@ public/3rdparty-assets/
 public/scripts/3rdparty/
 
 # too big to include
-data/builtins/500-master-games.pgn
-data/builtins/500-master-games.json
+data/builtins/master-games.pgn
+data/builtins/master-games.json
 sandbox/
 
 # throwaway scripts

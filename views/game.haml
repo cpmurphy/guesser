@@ -3,7 +3,7 @@
   %head
     %meta{charset:"UTF-8"}
     %meta{name:"viewport", content:"width=device-width, initial-scale=1.0"}
-    %title= I18n.t('title', locale: @locale)
+    %title= t('title')
     %link{rel:"stylesheet", href:asset_path("3rdparty-assets/cm-chessboard/chessboard.css")}
     %link{rel:"stylesheet", href:asset_path("3rdparty-assets/cm-chessboard/extensions/markers/markers.css")}
     %link{rel:"stylesheet", href:asset_path("3rdparty-assets/cm-chessboard/extensions/promotion-dialog/promotion-dialog.css")}
@@ -13,31 +13,31 @@
     #board_container
       %h2
         %span#white White
-        = I18n.t('game.versus', locale: @locale)
+        = t('game.versus')
         %span#black Black
       #board
-      #last-move.small-font= I18n.t('game.last_move', locale: @locale)
+      #last-move.small-font= t('game.last_move')
       #move_controls
-        %button#fastRewindBtn.control-btn{title: I18n.t('game.controls.fast_rewind', locale: @locale)}
+        %button#fastRewindBtn.control-btn{title: t('game.controls.fast_rewind')}
           %svg.icon{viewBox: "0 0 24 24"}
             %path{d: "M11 18V6l-8.5 6 8.5 6zm.5-6l8.5 6V6l-8.5 6z"}
-        %button#backwardBtn.control-btn{title: I18n.t('game.controls.backward', locale: @locale)}
+        %button#backwardBtn.control-btn{title: t('game.controls.backward')}
           %svg.icon{viewBox: "0 0 24 24"}
             %path{d: "M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z"}
         %input#move-input{type: "text"}
-        %button#forwardBtn.control-btn{title: I18n.t('game.controls.forward', locale: @locale)}
+        %button#forwardBtn.control-btn{title: t('game.controls.forward')}
           %svg.icon{viewBox: "0 0 24 24"}
             %path{d: "M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z"}
-        %button#fastForwardBtn.control-btn{title: I18n.t('game.controls.fast_forward', locale: @locale)}
+        %button#fastForwardBtn.control-btn{title: t('game.controls.fast_forward')}
           %svg.icon{viewBox: "0 0 24 24"}
             %path{d: "M4 18l8.5-6L4 6v12zm9-12v12l8.5-6L13 6z"}
-        %button#engineMoveBtn.control-btn{title: I18n.t('game.controls.engine_move', locale: @locale), disabled: true}
+        %button#engineMoveBtn.control-btn{title: t('game.controls.engine_move'), disabled: true}
           %svg.icon{viewBox: "0 0 24 24"}
             %path{d: "M15 9H9v6h6V9zm-2 4h-2v-2h2v2zm8-2V9h-2V7c0-1.1-.9-2-2-2h-2V3h-2v2h-2V3H9v2H7c-1.1 0-2 .9-2 2v2H3v2h2v2H3v2h2v2c0 1.1.9 2 2 2h2v2h2v-2h2v2h2v-2h2c1.1 0 2-.9 2-2v-2h2v-2h-2v-2h2zm-4 6H7V7h10v10z"}
-        %button#flipBoardBtn.control-btn{title: I18n.t('game.controls.flip_board', locale: @locale)}
+        %button#flipBoardBtn.control-btn{title: t('game.controls.flip_board')}
           %svg.icon{viewBox: "0 0 24 24"}
             %path{d: "M19 8l-4 4h3c0 3.31-2.69 6-6 6-1.01 0-1.97-.25-2.8-.7l-1.46 1.46C8.97 19.54 10.43 20 12 20c4.42 0 8-3.58 8-8h3l-4-4zM6 12c0-3.31 2.69-6 6-6 1.01 0 1.97.25 2.8.7l1.46-1.46C15.03 4.46 13.57 4 12 4c-4.42 0-8 3.58-8 8H1l4 4 4-4H6z"}
-        %button#exportFenBtn.control-btn{title: I18n.t('game.controls.export_fen', locale: @locale)}
+        %button#exportFenBtn.control-btn{title: t('game.controls.export_fen')}
           %svg.icon{viewBox: "0 0 24 24"}
             %path{d: "M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"}
 
@@ -50,44 +50,44 @@
       #guess_mode_selection
         %label
           %input{type: "radio", name: "guess_mode", value: "both", checked: true}
-          = I18n.t('game.guess_mode.both', locale: @locale)
+          = t('game.guess_mode.both')
         %label
           %input{type: "radio", name: "guess_mode", value: "white"}
-          = I18n.t('game.guess_mode.white', locale: @locale)
+          = t('game.guess_mode.white')
         %label
           %input{type: "radio", name: "guess_mode", value: "black"}
-          = I18n.t('game.guess_mode.black', locale: @locale)
+          = t('game.guess_mode.black')
       #actions
-        %a{href: "/"}= I18n.t('game.actions.other_games', locale: @locale)
+        %a{href: "/"}= t('game.actions.other_games')
 
     :javascript
       window.TRANSLATIONS = {
         moves: {
-          invalid_number: "#{I18n.t('js.moves.invalid_number', locale: @locale)}"
+          invalid_number: "#{t('js.moves.invalid_number')}"
         },
         guess: {
           correct: {
-            correct_exclamation: "#{I18n.t('js.guess.correct.correct_exclamation', locale: @locale)}",
-            same_as_game: "#{I18n.t('js.guess.correct.same_as_game', locale: @locale)}",
-            good_move: "#{I18n.t('js.guess.correct.good_move', locale: @locale)}",
-            good_guess: "#{I18n.t('js.guess.correct.good_guess', locale: @locale)}"
+            correct_exclamation: "#{t('js.guess.correct.correct_exclamation')}",
+            same_as_game: "#{t('js.guess.correct.same_as_game')}",
+            good_move: "#{t('js.guess.correct.good_move')}",
+            good_guess: "#{t('js.guess.correct.good_guess')}"
           },
-          incorrect: "#{I18n.t('js.guess.incorrect', locale: @locale)}",
-          beyond_game: "#{I18n.t('js.guess.beyond_game', locale: @locale)}"
+          incorrect: "#{t('js.guess.incorrect')}",
+          beyond_game: "#{t('js.guess.beyond_game')}"
         },
         fen: {
-          copied: "#{I18n.t('js.fen.copied', locale: @locale)}"
+          copied: "#{t('js.fen.copied')}"
         },
         evaluation: {
-          much_better: "#{I18n.t('js.evaluation.much_better', locale: @locale)}",
-          slightly_better: "#{I18n.t('js.evaluation.slightly_better', locale: @locale)}",
-          much_worse: "#{I18n.t('js.evaluation.much_worse', locale: @locale)}",
-          worse: "#{I18n.t('js.evaluation.worse', locale: @locale)}",
-          slightly_worse: "#{I18n.t('js.evaluation.slightly_worse', locale: @locale)}",
-          equal: "#{I18n.t('js.evaluation.equal', locale: @locale)}",
-          not_as_good: "#{I18n.t('js.evaluation.not_as_good', locale: @locale)}",
-          still_good: "#{I18n.t('js.evaluation.still_good', locale: @locale)}",
-          reasonable: "#{I18n.t('js.evaluation.reasonable', locale: @locale)}"
+          much_better: "#{t('js.evaluation.much_better')}",
+          slightly_better: "#{t('js.evaluation.slightly_better')}",
+          much_worse: "#{t('js.evaluation.much_worse')}",
+          worse: "#{t('js.evaluation.worse')}",
+          slightly_worse: "#{t('js.evaluation.slightly_worse')}",
+          equal: "#{t('js.evaluation.equal')}",
+          not_as_good: "#{t('js.evaluation.not_as_good')}",
+          still_good: "#{t('js.evaluation.still_good')}",
+          reasonable: "#{t('js.evaluation.reasonable')}"
         }
       };
     :javascript

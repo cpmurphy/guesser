@@ -3,7 +3,7 @@
   %head
     %meta{charset:"UTF-8"}
     %meta{name:"viewport", content:"width=device-width, initial-scale=1.0"}
-    %title= I18n.t('title', default: 'Chess Guesser', locale: @locale)
+    %title= t('title')
 
     %link{rel:"stylesheet", href:asset_path("styles/game_selection.css"), type:"text/css"}
 
@@ -16,30 +16,30 @@
 
     - unless builtin_pgns.empty?
       #builtin_selection_container
-        %h3= I18n.t(:choose_from_built_in_games, locale: @locale)
+        %h3= t(:choose_from_built_in_games)
         %ul.game-list
           - builtin_pgns.each do |(index, file, description, game_count)|
             %li
-              %a.btn{href: "/builtin/#{index}"} #{description} (#{I18n.t(:games, count: game_count, locale: @locale)})
+              %a.btn{href: "/builtin/#{index}"} #{description} (#{t(:games, count: game_count)})
 
     %form#pgn_upload_form.upload-form{action: "/upload_pgn", method: "post", enctype: "multipart/form-data"}
-      %h3= I18n.t('upload.title', locale: @locale)
+      %h3= t('upload.title')
       .form-group
         %label
           %input#upload_method_file{type: "radio", name: "upload_method", value: "file", checked: true}
-          = I18n.t('upload.method.file', locale: @locale)
+          = t('upload.method.file')
       .form-group
         %label
           %input#upload_method_paste{type: "radio", name: "upload_method", value: "paste"}
-          = I18n.t('upload.method.paste', locale: @locale)
+          = t('upload.method.paste')
 
       #file_upload_container.form-group
         %input#pgn_file_input{type: "file", name: "pgn_file", accept: ".pgn"}
 
       #pgn_paste_container.form-group{style: "display: none;"}
-        %textarea#pgn_text_input{name: "pgn_text", rows: "10", cols: "50", placeholder: I18n.t('upload.paste_placeholder', locale: @locale)}
+        %textarea#pgn_text_input{name: "pgn_text", rows: "10", cols: "50", placeholder: t('upload.paste_placeholder')}
 
-      %button#upload_pgn_btn.btn{type: "submit"}= I18n.t('upload.submit', locale: @locale)
+      %button#upload_pgn_btn.btn{type: "submit"}= t('upload.submit')
 
     %script{src:asset_path("scripts/pgn_uploader.js")}
     %script{src:asset_path("scripts/locale_selector.js")}

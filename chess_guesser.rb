@@ -94,6 +94,10 @@ class ChessGuesser < Sinatra::Base
     I18n.load_path << Dir[File.expand_path("i18n/*.yml")]
   end
 
+  def t(key)
+    I18n.t(key, locale: @locale)
+  end
+
   get '/' do
     builtin_pgns = gather_builtins
 
@@ -105,7 +109,7 @@ class ChessGuesser < Sinatra::Base
       basename = File.basename(file, '.pgn')
       # Convert filename to translation key
       translation_key = basename.gsub('-', '_')
-      description = I18n.t("builtins.#{translation_key}", locale: @locale)
+      description = t("builtins.#{translation_key}")
       game_count = PgnSummary.new(File.open(file, encoding: Encoding::ISO_8859_1)).load.size
       [index, file, description, game_count]
     end
@@ -235,11 +239,11 @@ class ChessGuesser < Sinatra::Base
     starting_move = 1
     white_player = game.tags['White']
     if !white_player || white_player.empty?
-      white_player = I18n.t('game.white', locale: @locale)
+      white_player = t('game.white')
     end
     black_player = game.tags['Black']
     if !black_player || black_player.empty?
-      black_player = I18n.t('game.black', locale: @locale)
+      black_player = t('game.black')
     end
     if game.starting_position
       move_translator.load_game_from_fen(game.starting_position.to_fen.to_s)

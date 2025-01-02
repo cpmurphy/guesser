@@ -1,26 +1,39 @@
-// Get version from the constructor data
-const initializeModules = async (version) => {
-  const versionSuffix = version ? `?v=${version}` : '';
-
-  // Use dynamic imports to include version
-  return Promise.all([
-    import(`./chess_rules.js${versionSuffix}`).then(m => m.default),
-    import(`./board_definitions.js${versionSuffix}`),
-    import(`./game_state.js${versionSuffix}`).then(m => m.default),
-    import(`./move_localizer.js${versionSuffix}`).then(m => m.default)
-  ]);
-};
+// Static imports for testing
+import ChessRules from './chess_rules.js';
+import { COLOR, PIECE } from './board_definitions.js';
+import GameState from './game_state.js';
+import MoveLocalizer from './move_localizer.js';
+import { loadModules } from './module_loader.js';
 
 export default class Board {
-  async initialize(data, chessboard) {
-    // Store modules as class properties
-    [
-      this.ChessRules,
-      { COLOR: this.COLOR, PIECE: this.PIECE },
-      this.GameState,
-      this.MoveLocalizer
-    ] = await initializeModules(data.version);
+  constructor(data, chessboard) {
+    if (data.version) {
+      // Production mode - use dynamic loading
+      this.initialize(data, chessboard);
+    } else {
+      // Test mode - use static imports
+      this.ChessRules = ChessRules;
+      this.COLOR = COLOR;
+      this.PIECE = PIECE;
+      this.GameState = GameState;
+      this.MoveLocalizer = MoveLocalizer;
 
+      this.initializeSync(data, chessboard);
+    }
+  }
+
+  async initialize(data, chessboard) {
+    const modules = await loadModules(data.version);
+    this.ChessRules = modules.ChessRules;
+    this.COLOR = modules.COLOR;
+    this.PIECE = modules.PIECE;
+    this.GameState = modules.GameState;
+    this.MoveLocalizer = modules.MoveLocalizer;
+
+    this.initializeSync(data, chessboard);
+  }
+
+  initializeSync(data, chessboard) {
     this.locale = data.locale;
     this.moveLocalizer = new this.MoveLocalizer(this.locale);
     this.gameResult = data.gameResult;
@@ -29,10 +42,6 @@ export default class Board {
     this.board = chessboard;
     this.setupUserInterface();
     this.onGameLoaded(data);
-  }
-
-  constructor(data, chessboard) {
-    this.initialize(data, chessboard);
   }
 
   setupUserInterface() {

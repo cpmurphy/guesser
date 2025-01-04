@@ -15,6 +15,8 @@ SCRIPT_DIR=$(dirname "$0")
 # shellcheck source=deploy_env.sh
 . "${SCRIPT_DIR}"/../deploy_env.sh
 
+rake smoke
+
 rake bump_version && git add public/asset-manifest.json && git commit -m 'bump asset version'
 rake docker_build
 

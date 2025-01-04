@@ -11,6 +11,8 @@ gem 'puma', '>= 5.0'
 gem 'secure_headers'
 gem 'i18n'
 
-group :development do
+group :development, :test do
   gem 'debug', '>= 1.0.0'
+  gem 'rack-test'
+  gem 'minitest'
 end

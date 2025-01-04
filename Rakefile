@@ -12,8 +12,15 @@ task :ui_test do
   sh "npm run test_once"
 end
 
+desc 'Run a smoke test'
+Rake::TestTask.new(:smoke) do |t|
+  t.libs << "test"
+  t.test_files = FileList['test/smoke_test.rb']
+  t.warning = false
+end
+
 desc 'Run all the tests'
-task :test_all => [:test, :ui_test]
+task :test_all => [:test, :ui_test, :smoke]
 
 desc 'Install npm dependencies'
 task :npm_install do

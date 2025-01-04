@@ -18,6 +18,7 @@ GEM
       rdoc (>= 4.0.0)
       reline (>= 0.4.2)
     logger (1.6.4)
+    minitest (5.25.4)
     mustermann (3.0.3)
       ruby2_keywords (~> 0.0.1)
     nio4r (2.7.4)
@@ -33,8 +34,11 @@ GEM
       base64 (>= 0.1.0)
       logger (>= 1.6.0)
       rack (>= 3.0.0, < 4)
-    rack-session (2.0.0)
+    rack-session (2.1.0)
+      base64 (>= 0.1.0)
       rack (>= 3.0.0)
+    rack-test (2.2.0)
+      rack (>= 1.3)
     rackup (2.2.1)
       rack (>= 3)
     rdoc (6.10.0)
@@ -66,9 +70,11 @@ DEPENDENCIES
   debug (>= 1.0.0)
   haml
   i18n
+  minitest
   pgn2
   puma (>= 5.0)
   rack
+  rack-test
   rackup
   secure_headers
   sinatra

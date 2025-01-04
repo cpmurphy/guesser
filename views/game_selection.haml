@@ -10,8 +10,7 @@
   %body
     #language-selector
       %select#locale-select{name: "locale"}
-        - supported_locales = { en: "English", de: "Deutsch", es: "Español", fr: "Français", nb: "Norsk", 'pt-BR': "Português (BR)", ru: "Русский" }
-        - supported_locales.each do |code, name|
+        - supported_locales_with_names.each do |code, name|
           %option{value: code, selected: code.to_s == @locale.to_s}= name
 
     - unless builtin_pgns.empty?
@@ -20,7 +19,7 @@
         %ul.game-list
           - builtin_pgns.each do |(index, file, description, game_count)|
             %li
-              %a.btn{href: "/builtin/#{index}"} #{description} (#{t(:games, count: game_count)})
+              %a.btn{href: "/builtin/#{index}"} #{description} (#{I18n.t(:games, count: game_count)})
 
     %form#pgn_upload_form.upload-form{action: "/upload_pgn", method: "post", enctype: "multipart/form-data"}
       %h3= t('upload.title')

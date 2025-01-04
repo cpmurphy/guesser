@@ -15,6 +15,25 @@ require_relative 'lib/move_localizer'
 require_relative 'lib/asset_version'
 
 class ChessGuesser < Sinatra::Base
+  def self.discover_supported_locales
+    # Find all yml files in i18n directory
+    i18n_path = File.expand_path("i18n/*.yml")
+    Dir.glob(i18n_path).map do |file|
+      # Extract locale from filename (e.g., "en.yml" -> :en)
+      basename = File.basename(file, '.yml')
+      
+      # Handle two-part locales (e.g., "pt-br.yml" -> :"pt-BR")
+      if basename.include?('-')
+        language, region = basename.split('-', 2)
+        :"#{language}-#{region.upcase}"
+      else
+        basename.to_sym
+      end
+    end.freeze
+  end
+
+  SUPPORTED_LOCALES = discover_supported_locales
+
   enable :sessions
   set :session_store, Rack::Session::Pool
 
@@ -79,8 +98,7 @@ class ChessGuesser < Sinatra::Base
       .map { |locale, _| locale.to_sym }
 
     # Find first supported locale from the accepted languages
-    supported_locales = [:en, :de, :es, :fr, :nb, :ru, :'pt-BR']
-    preferred_locale = accepted_languages.find { |locale| supported_locales.include?(locale) }
+    preferred_locale = accepted_languages.find { |locale| SUPPORTED_LOCALES.include?(locale) }
 
     preferred_locale || I18n.default_locale
   end
@@ -369,6 +387,12 @@ class ChessGuesser < Sinatra::Base
   helpers do
     def asset_path(path)
       "/#{path}?v=#{settings.asset_version}"
+    end
+
+    def supported_locales_with_names
+      SUPPORTED_LOCALES.map do |locale|
+        [locale, I18n.t('language_name', locale: locale)]
+      end.to_h
     end
   end
 

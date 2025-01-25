@@ -64,8 +64,12 @@ class GuessEvaluator
     game_move_uci = convert_to_uci(ui_game_move, game_move)
     guessed_move_uci = "#{source}#{target}#{guessed_move['promotion'] || ''}"
 
-    # Compare the moves
-    judgment = @move_judge.compare_moves(old_fen, guessed_move_uci, game_move_uci)
+    if game_move_uci == '--'
+      judgment = @move_judge.evaluate_standalone(old_fen, guessed_move_uci)
+    else
+      # Compare the moves
+      judgment = @move_judge.compare_moves(old_fen, guessed_move_uci, game_move_uci)
+    end
 
     build_evaluation(judgment, guessed_move_uci, game_move_uci, game_move, game, current_move, number_of_moves)
   end
@@ -78,6 +82,9 @@ class GuessEvaluator
   end
 
   def convert_to_uci(ui_move, pgn_move)
+    if pgn_move == '--'
+      return pgn_move
+    end
     uci = ui_move.sub('-', '')
     uci += pgn_move.split('=').last.downcase if pgn_move.include?('=')
     uci

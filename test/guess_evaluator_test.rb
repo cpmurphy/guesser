@@ -100,6 +100,23 @@ class GuessEvaluatorTest < Minitest::Test
     assert_equal 'e8', result[0][:target]
   end
 
+  def test_handle_guess_with_passing_move
+    game = OpenStruct.new(
+      moves: [OpenStruct.new(notation: '--')],
+      positions: [
+        OpenStruct.new(to_fen: 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1'),
+        OpenStruct.new(to_fen: 'rnbqkbnr/pppppppp/8/8/3P4/8/PPP1PPPP/RNBQKBNR b KQkq - 0 1')
+      ]
+    )
+    guess = create_guess('e2', 'e4')
+    @move_judge.expect(:evaluate_standalone,
+      { good_move: true, best_eval: 0.5, guess_eval: 0.3, game_eval: 0.3 },
+      [game.positions[0].to_fen, 'e2e4'])
+
+    result = @evaluator.handle_guess(guess, 0, '--', 1, game)
+    assert_equal 'correct', result[0][:result]
+  end
+
   private
 
   def create_game_with_one_move

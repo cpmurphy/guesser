@@ -33,4 +33,15 @@ class MoveJudge
     }
   end
 
+  def evaluate_standalone(old_fen, guessed_move_uci)
+    best_eval = @analyzer.evaluate_best_move(old_fen)
+    guess_eval = @analyzer.evaluate_move(old_fen, guessed_move_uci)
+    guess_score = 0 - guess_eval[:score]
+    best_score = best_eval[:score]
+    { good_move: guess_score >= best_score * 0.75,
+      best_eval: best_eval.merge(score: best_score),
+      guess_eval: guess_eval.merge(score: guess_score)
+    }
+  end
+
 end

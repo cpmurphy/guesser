@@ -728,6 +728,9 @@ export default class Board {
     } else {
       comment = window.TRANSLATIONS.evaluation.not_as_good;
     }
+    if (comment.includes('()')) {
+      comment = comment.replace(/\(\)/, '');
+    }
 
     if (evalDiff < -10) {
       if (evalDiff > -50 && guessEval > 50) {

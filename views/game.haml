@@ -49,14 +49,14 @@
 
       #guess_mode_selection
         %label
-          %input{type: "radio", name: "guess_mode", value: "both", checked: true}
-          = t('game.guess_mode.both')
-        %label
           %input{type: "radio", name: "guess_mode", value: "white"}
           = t('game.guess_mode.white')
         %label
           %input{type: "radio", name: "guess_mode", value: "black"}
           = t('game.guess_mode.black')
+        %label
+          %input{type: "radio", name: "guess_mode", value: "both", checked: true}
+          = t('game.guess_mode.both')
       #actions
         %a{href: "/"}= t('game.actions.other_games')
 

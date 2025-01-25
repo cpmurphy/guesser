@@ -18,6 +18,7 @@ global.window = {
         good_guess: "Good guess!"
       },
       incorrect: "Incorrect!",
+      move_was_passed: "The game move was a passing move.",
       beyond_game: "Moves beyond the end of the game are not evaluated."
     },
     fen: {
@@ -601,6 +602,18 @@ describe('Board', () => {
       expect(board.currentMoveIndex).toBe(2);
       expect(board.isWhiteToMove(board.currentMoveIndex)).toBe(true);
     });
+    it("handles guesses when the game move is a passing move", () => {
+      const data = createGameData({
+        moves: ['e4', '--', 'd4', 'e6'],
+        uiMoves: [{"moves":["e2-e4"]},{"moves":[]},{"moves":["d2-d4"]},{"moves":["e7-e6"]}]
+      });
+      const chessboard = new Chessboard('element', {});
+      const board = new Board(data, chessboard);
+      board.moveForward();
+      expect(board.currentMoveIndex).toBe(1);
+      board.handleGuessResponse([{"moves":[]}]);
+      expect(board.currentMoveIndex).toBe(1);
+    });
   });
 
   describe('promotion', () => {
@@ -757,6 +770,32 @@ describe('Board', () => {
       expect(board.moves.length).toBe(3);
       expect(board.uiMoves[2].moves).toEqual(["d2-d4"]);
       expect(board.moves[2]).toEqual("d4");
+    });
+  });
+  describe('passing moves', () => {
+    it('moves forward through passing moves', () => {
+      const data = createGameData({
+        moves: ['e4', '--', 'd4', 'e6'],
+        uiMoves: [{"moves":["e2-e4"]},{"moves":[]},{"moves":["d2-d4"]},{"moves":["e7-e6"]}]
+      });
+      const chessboard = new Chessboard('element', {});
+      const board = new Board(data, chessboard);
+      board.moveForward();
+      expect(board.currentMoveIndex).toBe(1);
+      expect(board.uiMoves[0].moves).toEqual(["e2-e4"]);
+      expect(board.moves[0]).toEqual('e4');
+      board.moveForward();
+      expect(board.currentMoveIndex).toBe(2);
+      expect(board.uiMoves[1].moves).toEqual([]);
+      expect(board.moves[1]).toEqual('--');
+      board.moveForward();
+      expect(board.currentMoveIndex).toBe(3);
+      expect(board.uiMoves[2].moves).toEqual(["d2-d4"]);
+      expect(board.moves[2]).toEqual('d4');
+      board.moveForward();
+      expect(board.currentMoveIndex).toBe(4);
+      expect(board.uiMoves[3].moves).toEqual(["e7-e6"]);
+      expect(board.moves[3]).toEqual('e6');
     });
   });
 });

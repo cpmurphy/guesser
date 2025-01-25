@@ -62,6 +62,7 @@ nb:
         good_guess: Godt gjettet!
       incorrect: Feil!
       beyond_game: Trekk etter partislutt blir ikke evaluert.
+      move_was_passed: Trekket var et passtrekk.
     fen:
       copied: FEN kopiert!
     evaluation:

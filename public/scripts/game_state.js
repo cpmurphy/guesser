@@ -24,6 +24,11 @@ export default class GameState {
       this.changeIndex++;
     }
 
+    updateForPassingMove() {
+      this.halfmoveClock++;
+      this.changeIndex++;
+    }
+
     stringForFen() {
       if (this.castlingRights === '') {
         this.castlingRights = '-';

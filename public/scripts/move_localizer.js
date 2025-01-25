@@ -88,6 +88,8 @@ export default class MoveLocalizer {
 
       if (moveInfo['castling']) {
         return algebraic;
+      } else if (algebraic === '--') {
+        return '--';
       } else {
         // For regular moves, maintain algebraic notation format
         const disambiguation = this.localizeDisambiguation(moveInfo['disambiguation'] || '');  // Use the original disambiguation if any
@@ -122,7 +124,9 @@ export default class MoveLocalizer {
     }
 
     moveInfoFromAlgebraic(algebraic) {
-      // Handle castling first
+      if (algebraic === '--') {
+        return { };
+      }
       const castlingMatch = algebraic.match(this.CASTLING_REGEX);
       if (castlingMatch) {
         const castling = castlingMatch[1] === 'O-O' ? 'kingside' : 'queenside';

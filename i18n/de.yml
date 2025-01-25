@@ -62,6 +62,7 @@ de:
         good_guess: Gut geraten!
       incorrect: Falsch!
       beyond_game: Züge nach Partieende werden nicht bewertet.
+      move_was_passed: Der Spielzug war ein Aussetzzug.
     fen:
       copied: FEN kopiert!
     evaluation:

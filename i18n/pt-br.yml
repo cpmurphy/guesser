@@ -71,6 +71,7 @@ pt-BR:
         good_guess: Boa tentativa!
       incorrect: Incorreto!
       beyond_game: Lances após o final da partida não são avaliados.
+      move_was_passed: A jogada foi um lance de passe.
     fen:
       copied: FEN copiado!
     evaluation:

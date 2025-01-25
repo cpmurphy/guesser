@@ -62,6 +62,7 @@ fr:
         good_guess: Bonne supposition !
       incorrect: Incorrect !
       beyond_game: Les coups après la fin de la partie ne sont pas évalués.
+      move_was_passed: Le coup était un coup de passe.
     fen:
       copied: Position FEN copiée !
     evaluation:

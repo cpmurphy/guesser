@@ -73,6 +73,7 @@ ru:
         good_guess: Хорошая догадка!
       incorrect: Неправильно!
       beyond_game: Ходы после окончания партии не оцениваются.
+      move_was_passed: Этот ход был пропущен.
     fen:
       copied: FEN скопирован!
     evaluation:

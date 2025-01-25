@@ -154,4 +154,8 @@ describe('MoveLocalizer', () => {
     });
   });
 
-}); 
+  it('handles passing moves', () => {
+    expect(localizer.localize('--')).toBe('--');
+  });
+
+});

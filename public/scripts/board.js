@@ -271,12 +271,17 @@ export default class Board {
   }
 
   updateGameState(uiMove) {
-    const move = uiMove.moves[0];
-    const [from, to] = move.split('-');
-    const piece = this.board.getPiece(from);
-    const capturedPiece = uiMove.remove ? uiMove.remove[0] : null;
-    if (piece) {
-      this.gameState.update(piece, from, to, capturedPiece);
+    if (uiMove.moves.length === 0) {
+      this.gameState.updateForPassingMove();
+    } else {
+      const [from, to] = uiMove.moves[0].split('-');
+      const piece = this.board.getPiece(from);
+      if (uiMove.remove) {
+        const capturedPiece = uiMove.remove[0];
+        this.gameState.update(piece, from, to, capturedPiece);
+      } else {
+        this.gameState.update(piece, from, to);
+      }
     }
   }
 
@@ -367,13 +372,21 @@ export default class Board {
           this.moveForward();
         }
       } else if (move.result === 'incorrect') {
-        const evalDiff = this.compareEvaluations(move.guess_eval.score, move.game_eval.score);
-        const evalComment = this.getEvaluationComment(move.result, move.game_move, move.guess_eval.score, evalDiff);
-        this.updateGuessStatus(
-          'red',
-          window.TRANSLATIONS.guess.incorrect,
-          evalComment
-        );
+        if (move.game_move === '--') {
+          this.updateGuessStatus(
+            'black',
+            '',
+            window.TRANSLATIONS.guess.move_was_passed
+          );
+        } else {
+          const evalDiff = this.compareEvaluations(move.guess_eval.score, move.game_eval.score);
+          const evalComment = this.getEvaluationComment(move.result, move.game_move, move.guess_eval.score, evalDiff);
+          this.updateGuessStatus(
+            'red',
+            window.TRANSLATIONS.guess.incorrect,
+            evalComment
+          );
+        }
         this.board.setPosition(this.lastPosition);
       } else if (move.result === 'auto_move') {
         if (this.guessMode() != 'both') {

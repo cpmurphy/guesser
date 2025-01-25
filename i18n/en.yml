@@ -61,6 +61,7 @@ en:
         good_move: Good move!
         good_guess: Good guess!
       incorrect: Incorrect!
+      move_was_passed: The game move was a passing move.
       beyond_game: Moves beyond the end of the game are not evaluated.
     fen:
       copied: FEN copied!

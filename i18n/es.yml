@@ -62,6 +62,7 @@ es:
         good_guess: ¡Buena suposición!
       incorrect: ¡Incorrecto!
       beyond_game: Los movimientos después del final de la partida no se evalúan.
+      move_was_passed: La jugada fue un movimiento de paso.
     fen:
       copied: ¡FEN copiado!
     evaluation:

@@ -123,14 +123,17 @@ class ChessGuesser < Sinatra::Base
   end
 
   def gather_builtins
-    Dir.glob('data/builtins/*.pgn').map.with_index do |file, index|
+    file_map = Dir.glob('data/builtins/*.pgn').inject({}) do |map, file|
       basename = File.basename(file, '.pgn')
       # Convert filename to translation key
       translation_key = basename.gsub('-', '_')
       description = t("builtins.#{translation_key}")
       game_count = PgnSummary.new(File.open(file, encoding: Encoding::ISO_8859_1)).load.size
-      [index, file, description, game_count]
+      map[basename] = [file, description, game_count]
+      map
     end
+    index = 0
+    file_map.values.sort_by { |item| item[1] }.map { |item| item.unshift(index); index += 1; item }
   end
 
   def build_table(summary)

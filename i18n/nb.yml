@@ -76,4 +76,7 @@ nb:
       reasonable: Ditt trekk gir fortsatt en rimelig stilling.
   builtins:
     master_games: "500 Mesterpartier"
-    nykterstein_games: "Noen Partier av Dr. Nykterstein" 
+    nykterstein_games: "Noen Partier av Dr. Nykterstein"
+    mcdonnel_games: "Alexander McDonnell"
+    staunton_games: "Howard Staunton"
+    anderssen_games: "Adolf Anderssen"

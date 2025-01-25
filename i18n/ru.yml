@@ -87,4 +87,7 @@ ru:
       reasonable: Ваш ход всё ещё ведёт к приемлемой позиции.
   builtins:
     master_games: "500 мастерских партий"
-    nykterstein_games: "Несколько партий доктора Никтерштейна" 
+    nykterstein_games: "Несколько партий доктора Никтерштейна"
+    mcdonnel_games: "Александр Макдоннелл"
+    staunton_games: "Говард Стонтон"
+    anderssen_games: "Адольф Андерсен"

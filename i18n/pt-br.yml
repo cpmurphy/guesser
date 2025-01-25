@@ -77,10 +77,10 @@ pt-BR:
     evaluation:
       much_better: Seu lance é ainda melhor que o lance da partida (%{game_move})!
       slightly_better: Seu lance é um pouco melhor que o lance da partida (%{game_move}).
-      much_worse: O lance da partida%{move} era muito melhor.
-      worse: O lance da partida%{move} era significativamente melhor.
-      slightly_worse: O lance da partida%{move} era um pouco melhor.
-      equal: Seu lance é tão bom quanto o lance da partida%{move}.
+      much_worse: O lance da partida (%{move}) era muito melhor.
+      worse: O lance da partida (%{move}) era significativamente melhor.
+      slightly_worse: O lance da partida (%{move}) era um pouco melhor.
+      equal: Seu lance é tão bom quanto o lance da partida (%{move}).
       not_as_good: Seu lance não foi tão bom quanto o lance da partida.
       still_good: Seu lance ainda foi bom.
       reasonable: Seu lance ainda leva a uma posição razoável.

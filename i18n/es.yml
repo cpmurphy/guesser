@@ -68,10 +68,10 @@ es:
     evaluation:
       much_better: ¡Tu movimiento es incluso mejor que el de la partida (%{game_move})!
       slightly_better: Tu movimiento es ligeramente mejor que el de la partida (%{game_move}).
-      much_worse: El movimiento de la partida%{move} era mucho mejor.
-      worse: El movimiento de la partida%{move} era significativamente mejor.
-      slightly_worse: El movimiento de la partida%{move} era ligeramente mejor.
-      equal: Tu movimiento es tan bueno como el de la partida%{move}.
+      much_worse: El movimiento de la partida (%{move}) era mucho mejor.
+      worse: El movimiento de la partida (%{move}) era significativamente mejor.
+      slightly_worse: El movimiento de la partida (%{move}) era ligeramente mejor.
+      equal: Tu movimiento es tan bueno como el de la partida (%{move}).
       not_as_good: Tu movimiento no fue tan bueno como el de la partida.
       still_good: Tu movimiento seguía siendo bueno.
       reasonable: Tu movimiento aún te deja en una posición razonable.

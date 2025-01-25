@@ -68,10 +68,10 @@ fr:
     evaluation:
       much_better: Votre coup est encore meilleur que le coup joué (%{game_move}) !
       slightly_better: Votre coup est légèrement meilleur que le coup joué (%{game_move}).
-      much_worse: Le coup joué%{move} était bien meilleur.
-      worse: Le coup joué%{move} était significativement meilleur.
-      slightly_worse: Le coup joué%{move} était légèrement meilleur.
-      equal: Votre coup est à peu près aussi bon que le coup joué%{move}.
+      much_worse: Le coup joué (%{move}) était bien meilleur.
+      worse: Le coup joué (%{move}) était significativement meilleur.
+      slightly_worse: Le coup joué (%{move}) était légèrement meilleur.
+      equal: Votre coup est à peu près aussi bon que le coup joué (%{move}).
       not_as_good: Votre coup n'était pas aussi bon que le coup joué.
       still_good: Votre coup était quand même bon.
       reasonable: Votre coup mène toujours à une position raisonnable.

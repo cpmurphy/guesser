@@ -711,7 +711,7 @@ export default class Board {
   getEvaluationComment(guessResult, gameMove, guessEval, evalDiff) {
     var comment = '';
     const guessCorrect = guessResult == 'correct';
-    const moveText = guessCorrect ? ` (${this.moveLocalizer.localize(gameMove)})` : '';
+    const moveText = guessCorrect ? this.moveLocalizer.localize(gameMove) : '';
 
     if (evalDiff > 50) {
       comment = window.TRANSLATIONS.evaluation.much_better.replace('%{game_move}', gameMove);

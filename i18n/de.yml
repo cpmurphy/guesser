@@ -68,10 +68,10 @@ de:
     evaluation:
       much_better: Dein Zug ist sogar besser als der Partiezug (%{game_move})!
       slightly_better: Dein Zug ist etwas besser als der Partiezug (%{game_move}).
-      much_worse: Der Partiezug%{move} war viel besser.
-      worse: Der Partiezug%{move} war deutlich besser.
-      slightly_worse: Der Partiezug%{move} war etwas besser.
-      equal: Dein Zug ist etwa gleichwertig mit dem Partiezug%{move}.
+      much_worse: Der Partiezug (%{move}) war viel besser.
+      worse: Der Partiezug (%{move}) war deutlich besser.
+      slightly_worse: Der Partiezug (%{move}) war etwas besser.
+      equal: Dein Zug ist etwa gleichwertig mit dem Partiezug (%{move}).
       not_as_good: Dein Zug war nicht so gut wie der Partiezug.
       still_good: Dein Zug war trotzdem gut.
       reasonable: Dein Zug führt immer noch zu einer vernünftigen Position.

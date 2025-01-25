@@ -68,10 +68,10 @@ en:
     evaluation:
       much_better: Your move is even better than the game move (%{game_move})!
       slightly_better: Your move is slightly better than the game move (%{game_move}).
-      much_worse: The game move%{move} was much better.
-      worse: The game move%{move} was significantly better.
-      slightly_worse: The game move%{move} was slightly better.
-      equal: Your move is about as good as the game move%{move}.
+      much_worse: The game move (%{move}) was much better.
+      worse: The game move (%{move}) was significantly better.
+      slightly_worse: The game move (%{move}) was slightly better.
+      equal: Your move is about as good as the game move (%{move}).
       not_as_good: Your move was not as good as the game move.
       still_good: Your move was still good.
       reasonable: Your move still leaves you with a reasonable position.

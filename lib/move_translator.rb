@@ -74,6 +74,10 @@ class MoveTranslator
       from = find_source_square(piece, capture, to, file_hint, rank_hint)
       result = handle_regular_move(from, to, piece, capture, promotion)
       update_castling_status(piece, from)
+    when /^--$/
+      # passing move
+      result = { moves: [] }
+      @halfmove_clock += 1
     else
       raise "Invalid move: #{pgn_move}"
     end

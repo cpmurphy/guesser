@@ -181,4 +181,11 @@ class MoveTranslatorTest < Minitest::Test
     @translator.load_game_from_fen("3q2k1/4Pppp/8/8/8/8/8/7K w - - 0 28")
     assert_equal({ moves: ["e7-d8"], add: ['R', 'd8'], remove: ['q', 'd8'], notation: "exd8=R" }, @translator.translate_uci_move("e7d8R"))
   end
+
+  def test_passing_move
+    # Sometimes seen in odds games, for example Edward Lowe vs. Howard Staunton, 1847.
+    # Staunton played Black without an f-pawn, and he passed his first turn.
+    assert_equal({ moves: ["e2-e4"] }, @translator.translate_move("e4"))
+    assert_equal({ moves: [] }, @translator.translate_move("--"))
+  end
 end

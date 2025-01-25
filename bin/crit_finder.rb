@@ -1,4 +1,4 @@
-#! /usr/bin/ruby
+#! /usr/bin/env ruby
 require 'pgn'
 require_relative '../lib/analyzer'
 require_relative '../lib/move_translator'

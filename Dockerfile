@@ -47,6 +47,9 @@ RUN cd Stockfish/src && \
 # Final stage
 FROM base
 
+# Remove a package we don't need
+RUN apt-get -y remove imagemagick-6-common && apt-get -y autoremove
+
 # Copy only necessary artifacts from build stage
 COPY --from=build "${BUNDLE_PATH}" "${BUNDLE_PATH}"
 COPY --from=build /app/bin/stockfish /app/bin/stockfish

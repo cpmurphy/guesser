@@ -383,6 +383,16 @@ describe('Board', () => {
       board.submitGuess('e5', 'f6', 'wp', null, 'rnbqkbnr/pp1pp1pp/8/2p1Pp2/8/8/PPPP1PPP/RNBQKBNR');
       expect(board.board.getPiece('f5')).toBeNull();
     });
+    it('handles promotion moves', () => {
+      const data = createGameData({
+        fen: '7k/4P2p/5K2/8/8/8/8/8 w - - 0 1',
+        moves: ['e8=Q'],
+        uiMoves: [{"moves":["e7-e8"],"add":["q","e8"]}]
+      });
+      const chessboard = new Chessboard('element', { position: data.fen });
+      const board = new Board(data, chessboard);
+      board.submitGuess('e7', 'e8', 'wp', 'wq', '7k/4P2p/5K2/8/8/8/8/8 w - - 0 1');
+    });
   });
 
   describe('handleGuessResponse', () => {

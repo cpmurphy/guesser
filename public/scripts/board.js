@@ -243,22 +243,25 @@ export default class Board {
   moveForward() {
     if (!this.gameOver()) {
       const uiMove = this.uiMoves[this.currentMoveIndex];
-      this.updateGameState(uiMove);
-      if (!uiMove.remove && !uiMove.add) {
-        uiMove.moves.forEach(m => {
-          const [from, to] = m.split('-');
-          this.board.movePiece(from, to, true);
-        });
-      } else {
-        uiMove.moves.forEach(m => {
-          const [from, to] = m.split('-');
-          this.board.movePiece(from, to, true);
-        });
-        if (uiMove.remove && uiMove.remove[1] != uiMove.moves[0].substring(3, 5)) {
-          this.board.setPiece(uiMove.remove[1], null);
-        }
-        if (uiMove.add) {
-          this.board.setPiece(uiMove.add[1], this.translatePiece(uiMove.add[0]));
+      if (uiMove.moves.length > 0) {
+          const piece = this.board.getPiece(uiMove.moves[0].split('-')[0]);
+          this.updateGameState(uiMove, piece);
+        if (!uiMove.remove && !uiMove.add) {
+          uiMove.moves.forEach(m => {
+            const [from, to] = m.split('-');
+            this.board.movePiece(from, to, true);
+          });
+        } else {
+          uiMove.moves.forEach(m => {
+            const [from, to] = m.split('-');
+            this.board.movePiece(from, to, true);
+          });
+          if (uiMove.remove && uiMove.remove[1] != uiMove.moves[0].substring(3, 5)) {
+            this.board.setPiece(uiMove.remove[1], null);
+          }
+          if (uiMove.add) {
+            this.board.setPiece(uiMove.add[1], this.translatePiece(uiMove.add[0]));
+          }
         }
       }
       this.currentMoveIndex++;
@@ -270,12 +273,11 @@ export default class Board {
     this.updateLastMoveDisplay();
   }
 
-  updateGameState(uiMove) {
+  updateGameState(uiMove, piece) {
     if (uiMove.moves.length === 0) {
       this.gameState.updateForPassingMove();
     } else {
       const [from, to] = uiMove.moves[0].split('-');
-      const piece = this.board.getPiece(from);
       if (uiMove.remove) {
         const capturedPiece = uiMove.remove[0];
         this.gameState.update(piece, from, to, capturedPiece);
@@ -437,7 +439,7 @@ export default class Board {
   submitGuess(source, target, piece, promotedPiece, oldPosition) {
     const currentMove = this.uiMoves[this.currentMoveIndex];
     if (currentMove && this.isExactMatch(source, target, promotedPiece, currentMove)) {
-      this.updateGameState(currentMove);
+      this.updateGameState(currentMove, piece);
       this.handleCorrectGuess(currentMove);
       return;
     }

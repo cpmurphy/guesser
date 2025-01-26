@@ -110,7 +110,7 @@ class MoveTranslator
       capture = true
     end
 
-    result = { moves: ["#{from}-#{to}"] }
+    result = { piece: piece, moves: ["#{from}-#{to}"] }
 
     # Generate PGN notation
     notation = if piece.upcase == 'P'
@@ -522,13 +522,16 @@ class MoveTranslator
       @black_castle_moves_allowed = ''
     end
 
+    player_piece = @current_player == :white ? 'K' : 'k'
     {
+      piece: player_piece,
       moves: ["#{king_from}-#{king_to}", "#{rook_from}-#{rook_to}"]
     }
   end
 
   def handle_regular_move(from, to, piece, capture, promotion)
-    result = { moves: ["#{from}-#{to}"] }
+    player_piece = @current_player == :white ? piece.upcase : piece.downcase
+    result = { piece: player_piece, moves: ["#{from}-#{to}"] }
 
     # Handle capture
     if capture || (@board[to] && piece.upcase == 'P' && from[0] != to[0])

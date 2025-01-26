@@ -7,79 +7,79 @@ class MoveTranslatorTest < Minitest::Test
   end
 
   def test_pawn_move
-    assert_equal({ moves: ["e2-e4"] }, @translator.translate_move("e4"))
-    assert_equal({ moves: ["d7-d5"] }, @translator.translate_move("d5"))
-    assert_equal({ moves: ["e4-e5"] }, @translator.translate_move("e5"))
+    assert_equal({ piece: 'P', moves: ["e2-e4"] }, @translator.translate_move("e4"))
+    assert_equal({ piece: 'p', moves: ["d7-d5"] }, @translator.translate_move("d5"))
+    assert_equal({ piece: 'P', moves: ["e4-e5"] }, @translator.translate_move("e5"))
   end
 
   def test_pawn_capture
     @translator.translate_moves(["e4", "d5"])
-    assert_equal({ moves: ["e4-d5"], remove: ['p', 'd5'] }, @translator.translate_move("exd5"))
+    assert_equal({ piece: 'P', moves: ["e4-d5"], remove: ['p', 'd5'] }, @translator.translate_move("exd5"))
   end
 
   def test_black_pawn_capture
     @translator.translate_moves(["e4", "d5", "d4"])
-    assert_equal({ moves: ["d5-e4"], remove: ['P', 'e4'] }, @translator.translate_move("dxe4"))
+    assert_equal({ piece: 'p', moves: ["d5-e4"], remove: ['P', 'e4'] }, @translator.translate_move("dxe4"))
   end
 
   def test_pawn_en_passant_capture
     @translator.translate_moves(["e4", "a6", "e5", "d5"])
-    assert_equal({ moves: ["e5-d6"], remove: ['p', 'd5'] }, @translator.translate_move("exd6"))
+    assert_equal({ piece: 'P', moves: ["e5-d6"], remove: ['p', 'd5'] }, @translator.translate_move("exd6"))
   end
 
   def test_pawn_en_passant_capture_black
     @translator.translate_moves(["Nf3", "c5", "e4", "c4", "d4"])
-    assert_equal({ moves: ["c4-d3"], remove: ['P', 'd4'] }, @translator.translate_move("cxd3"))
+    assert_equal({ piece: 'p', moves: ["c4-d3"], remove: ['P', 'd4'] }, @translator.translate_move("cxd3"))
   end
 
   def test_knight_move
-    assert_equal({ moves: ["g1-f3"] }, @translator.translate_move("Nf3"))
-    assert_equal({ moves: ["b8-c6"] }, @translator.translate_move("Nc6"))
+    assert_equal({ piece: 'N', moves: ["g1-f3"] }, @translator.translate_move("Nf3"))
+    assert_equal({ piece: 'n', moves: ["b8-c6"] }, @translator.translate_move("Nc6"))
   end
 
   def test_bishop_move
     @translator.translate_move("e4")
     @translator.translate_move("e5")
-    assert_equal({ moves: ["f1-c4"] }, @translator.translate_move("Bc4"))
+    assert_equal({ piece: 'B', moves: ["f1-c4"] }, @translator.translate_move("Bc4"))
   end
 
   def test_rook_move
     @translator.translate_moves(["Nf3", "d5", "e3", "Nc6", "Bb5", "Nf6"])
-    assert_equal({ moves: ["h1-f1"] }, @translator.translate_move("Rf1"))
+    assert_equal({ piece: 'R', moves: ["h1-f1"] }, @translator.translate_move("Rf1"))
   end
 
   def test_queen_move
     @translator.translate_move("e4")
     @translator.translate_move("e5")
-    assert_equal({ moves: ["d1-h5"] }, @translator.translate_move("Qh5"))
+    assert_equal({ piece: 'Q', moves: ["d1-h5"] }, @translator.translate_move("Qh5"))
   end
 
   def test_king_move
     @translator.translate_move("e4")
     @translator.translate_move("e5")
-    assert_equal({ moves: ["e1-e2"] }, @translator.translate_move("Ke2"))
+    assert_equal({ piece: 'K', moves: ["e1-e2"] }, @translator.translate_move("Ke2"))
   end
 
   def test_castle_short
     @translator.translate_moves(["e4", "e5", "Nf3", "Nc6", "Bc4", "Bc5"])
-    assert_equal({ moves: ["e1-g1", "h1-f1"] }, @translator.translate_move("O-O"))
+    assert_equal({ piece: 'K', moves: ["e1-g1", "h1-f1"] }, @translator.translate_move("O-O"))
   end
 
   def test_castle_long
     @translator.translate_moves(["d4", "d5", "Nc3", "Nc6", "Bf4", "Bf5", "Qd3", "Qd6"])
-    assert_equal({ moves: ["e1-c1", "a1-d1"] }, @translator.translate_move("O-O-O"))
+    assert_equal({ piece: 'K', moves: ["e1-c1", "a1-d1"] }, @translator.translate_move("O-O-O"))
   end
 
   def test_promotion_to_queen
     @translator.instance_variable_set(:@board, {'a7' => 'P', 'a8' => nil})
     @translator.instance_variable_set(:@current_player, :white)
-    assert_equal({ moves: ["a7-a8"], add: ['Q', 'a8'] }, @translator.translate_move("a8=Q"))
+    assert_equal({ piece: 'P', moves: ["a7-a8"], add: ['Q', 'a8'] }, @translator.translate_move("a8=Q"))
   end
 
   def test_promotion_to_knight
     @translator.instance_variable_set(:@board, {'a7' => 'P', 'a8' => nil})
     @translator.instance_variable_set(:@current_player, :white)
-    assert_equal({ moves: ["a7-a8"], add: ['N', 'a8'] }, @translator.translate_move("a8=N"))
+    assert_equal({ piece: 'P', moves: ["a7-a8"], add: ['N', 'a8'] }, @translator.translate_move("a8=N"))
   end
 
   def test_start_position_to_fen
@@ -152,7 +152,7 @@ class MoveTranslatorTest < Minitest::Test
   def test_when_black_promotes
     @translator.translate_moves(["b4", "a5", "c3", "axb4", "Nf3", "bxc3", "g3", "c2", "Bg2"])
     result = @translator.translate_move("cxb1=Q")
-    assert_equal({ moves: ["c2-b1"], remove: ['N', 'b1'], add: ['q', 'b1'] }, result)
+    assert_equal({ piece: 'p', moves: ["c2-b1"], remove: ['N', 'b1'], add: ['q', 'b1'] }, result)
   end
 
   def test_position_when_black_promotes
@@ -174,18 +174,18 @@ class MoveTranslatorTest < Minitest::Test
 
   def test_uci_promotion_to_queen
     @translator.load_game_from_fen("6k1/8/8/8/8/8/4q2p/K7 b - - 0 52")
-    assert_equal({ moves: ["h2-h1"], add: ['q', 'h1'], notation: "h1=Q" }, @translator.translate_uci_move("h2h1q"))
+    assert_equal({ piece: 'p', moves: ["h2-h1"], add: ['q', 'h1'], notation: "h1=Q" }, @translator.translate_uci_move("h2h1q"))
   end
 
   def test_uci_promotion_with_capture
     @translator.load_game_from_fen("3q2k1/4Pppp/8/8/8/8/8/7K w - - 0 28")
-    assert_equal({ moves: ["e7-d8"], add: ['R', 'd8'], remove: ['q', 'd8'], notation: "exd8=R" }, @translator.translate_uci_move("e7d8R"))
+    assert_equal({ piece: 'P', moves: ["e7-d8"], add: ['R', 'd8'], remove: ['q', 'd8'], notation: "exd8=R" }, @translator.translate_uci_move("e7d8R"))
   end
 
   def test_passing_move
     # Sometimes seen in odds games, for example Edward Lowe vs. Howard Staunton, 1847.
     # Staunton played Black without an f-pawn, and he passed his first turn.
-    assert_equal({ moves: ["e2-e4"] }, @translator.translate_move("e4"))
+    assert_equal({ piece: 'P', moves: ["e2-e4"] }, @translator.translate_move("e4"))
     assert_equal({ moves: [] }, @translator.translate_move("--"))
   end
 end

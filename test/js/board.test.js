@@ -84,7 +84,7 @@ describe('Board', () => {
         sideToMove: 'white',
         startingWholeMove: 1,
         moves: ['e4', 'e5', 'Nf3'],
-        uiMoves: [{"moves":["e2-e4"]},{"moves":["e7-e5"]},{"moves":["g1-f3"]}]
+        uiMoves: [{"piece":"P","moves":["e2-e4"]},{"piece":"p","moves":["e7-e5"]},{"piece":"N","moves":["g1-f3"]}]
       });
       const chessboard = new Chessboard('element', {});
       board = new Board(data, chessboard);
@@ -103,7 +103,7 @@ describe('Board', () => {
         currentWholeMove: 2,
         sideToMove: 'black',
         moves: ['e4', 'e5', 'Nf3', 'Nc6'],
-        uiMoves: [{"moves":["e2-e4"]},{"moves":["e7-e5"]},{"moves":["g1-f3"]},{"moves":["b8-c6"]}]
+        uiMoves: [{"piece":"P","moves":["e2-e4"]},{"piece":"p","moves":["e7-e5"]},{"piece":"N","moves":["g1-f3"]},{"piece":"N","moves":["b8-c6"]}]
       });
       const chessboard = new Chessboard('element', {});
       board = new Board(data, chessboard);
@@ -116,7 +116,7 @@ describe('Board', () => {
 
     it('handles a game that starts with black to move', () => {
       const data = createGameData({
-        uiMoves: [{"moves":["f8-c5"]},{"moves":["c2-c3"]},{"moves":["g8-f6"]}],
+        uiMoves: [{"piece":"b","moves":["f8-c5"]},{"piece":"p","moves":["c2-c3"]},{"piece":"n","moves":["g8-f6"]}],
         moves: ["Bc5","c3","Nf6"],
         startingWholeMove: 3,
         currentWholeMove: 3,
@@ -149,13 +149,13 @@ describe('Board', () => {
       board = new Board(data, chessboard);
 
       expect(board.currentMoveIndex).toBe(0);
-      board.addExtraMove({moves: ["e7-e8"], add: ['R', 'e8'], notation: "e8=R"});
+      board.addExtraMove({piece:"P", moves: ["e7-e8"], add: ['R', 'e8'], notation: "e8=R"});
       board.moveForward();
       board.moveBackward();
-      board.addExtraMove({moves: ["e7-d8"], add: ['R', 'd8'], remove: ['q', 'd8'], notation: "exd8=R"});
+      board.addExtraMove({piece:"P", moves: ["e7-d8"], add: ['R', 'd8'], remove: ['q', 'd8'], notation: "exd8=R"});
       board.moveForward();
       expect(board.moves.length).toBe(1);
-      expect(board.uiMoves[0]).toEqual({moves: ["e7-d8"], add: ['R', 'd8'], remove: ['q', 'd8'], notation: "exd8=R"});
+      expect(board.uiMoves[0]).toEqual({piece:"P", moves: ["e7-d8"], add: ['R', 'd8'], remove: ['q', 'd8'], notation: "exd8=R"});
       expect(board.moves[0]).toEqual("exd8=R");
       expect(board.isWhiteToMove(board.currentMoveIndex)).toBe(false);
     });
@@ -167,7 +167,7 @@ describe('Board', () => {
         sideToMove: 'white',
         startingWholeMove: 1,
         moves: ['e4', 'e5', 'Nf3'],
-        uiMoves: [{"moves":["e2-e4"]},{"moves":["e7-e5"]},{"moves":["g1-f3"]}]
+        uiMoves: [{"piece":"P","moves":["e2-e4"]},{"piece":"p","moves":["e7-e5"]},{"piece":"N","moves":["g1-f3"]}]
       });
       const chessboard = new Chessboard('element', {});
       board = new Board(data, chessboard);
@@ -187,7 +187,7 @@ describe('Board', () => {
 
     it('handles a game starting with black at move 15', () => {
       const data = createGameData({
-        uiMoves: [{"moves":["d7-d6"]},{"moves":["c4-e2"]},{"moves":["h5-e8"]}],
+        uiMoves: [{"piece":"p","moves":["d7-d6"]},{"piece":"B","moves":["c4-e2"]},{"piece":"Q","moves":["h5-e8"]}],
         moves: ["d6","Be2","Qe8"],
         startingWholeMove: 15,
         currentWholeMove: 15,
@@ -216,7 +216,7 @@ describe('Board', () => {
         currentWholeMove: 2,
         sideToMove: 'black',
         moves: ['e4', 'e5', 'Nf3', 'Nc6'],
-        uiMoves: [{"moves":["e2-e4"]},{"moves":["e7-e5"]},{"moves":["g1-f3"]},{"moves":["b8-c6"]}]
+        uiMoves: [{"piece":"P","moves":["e2-e4"]},{"piece":"p","moves":["e7-e5"]},{"piece":"N","moves":["g1-f3"]},{"piece":"N","moves":["b8-c6"]}]
       });
       const chessboard = new Chessboard('element', {});
       board = new Board(data, chessboard);
@@ -300,9 +300,9 @@ describe('Board', () => {
       const data = createGameData({
         moves: ['e4', 'e5', 'Nf3'],
         uiMoves: [
-          {"moves":["e2-e4"]},
-          {"moves":["e7-e5"]},
-          {"moves":["g1-f3"]}
+          {"piece":"P","moves":["e2-e4"]},
+          {"piece":"p","moves":["e7-e5"]},
+          {"piece":"N","moves":["g1-f3"]}
         ]
       });
 
@@ -323,10 +323,10 @@ describe('Board', () => {
       const data = createGameData({
         moves: ['e4', 'e5', 'Nf3'],
         uiMoves: [
-          {"moves":["e2-e4"]},
-          {"moves":["e7-e5"]},
-          {"moves":["g1-f3"]},
-          {"moves":["b8-c6"]}
+          {"piece":"P","moves":["e2-e4"]},
+          {"piece":"p","moves":["e7-e5"]},
+          {"piece":"N","moves":["g1-f3"]},
+          {"piece":"N","moves":["b8-c6"]}
         ],
         sideToMove: 'black'
       });
@@ -349,9 +349,9 @@ describe('Board', () => {
       const data = createGameData({
         moves: ['e4', 'e5', 'Nf3'],
         uiMoves: [
-          {"moves":["e2-e4"]},
-          {"moves":["e7-e5"]},
-          {"moves":["g1-f3"]}
+          {"piece":"P","moves":["e2-e4"]},
+          {"piece":"p","moves":["e7-e5"]},
+          {"piece":"N","moves":["g1-f3"]}
         ]
       });
 
@@ -372,7 +372,7 @@ describe('Board', () => {
   describe('submitGuess', () => {
     it('removes the captured pawn after a correct en-passant move', () => {
       const data = createGameData({
-        uiMoves: [{'moves':['e2-e4']},{'moves':['c7-c5']},{'moves':['e4-e5']},{'moves':['f7-f5']},{'moves':['e5-f6'],'remove':['p','f5']}],
+        uiMoves: [{'piece':'P','moves':['e2-e4']},{'piece':'p','moves':['c7-c5']},{'piece':'P','moves':['e4-e5']},{'piece':'p','moves':['f7-f5']},{'piece':'P','moves':['e5-f6'],'remove':['p','f5']}],
         moves: ['e4','c5','e5','f5','exf6']
       });
       const chessboard = new Chessboard('element', {});
@@ -387,7 +387,7 @@ describe('Board', () => {
       const data = createGameData({
         fen: '7k/4P2p/5K2/8/8/8/8/8 w - - 0 1',
         moves: ['e8=Q'],
-        uiMoves: [{"moves":["e7-e8"],"add":["q","e8"]}]
+        uiMoves: [{"piece":"P","moves":["e7-e8"],"add":["q","e8"]}]
       });
       const chessboard = new Chessboard('element', { position: data.fen });
       const board = new Board(data, chessboard);
@@ -416,9 +416,9 @@ describe('Board', () => {
       const data = createGameData({
         moves: ['e4', 'e5', 'Nf3'],
         uiMoves: [
-          {"moves":["e2-e4"]},
-          {"moves":["e7-e5"]},
-          {"moves":["g1-f3"]}
+          {"piece":"P","moves":["e2-e4"]},
+          {"piece":"p","moves":["e7-e5"]},
+          {"piece":"N","moves":["g1-f3"]}
         ]
       });
 
@@ -466,9 +466,9 @@ describe('Board', () => {
       const data = createGameData({
         moves: ['e4', 'e5', 'Nf3'],
         uiMoves: [
-          {"moves":["e2-e4"]},
-          {"moves":["e7-e5"]},
-          {"moves":["g1-f3"]}
+          {"piece":"P","moves":["e2-e4"]},
+          {"piece":"p","moves":["e7-e5"]},
+          {"piece":"N","moves":["g1-f3"]}
         ],
         sideToMove: 'black'
       });
@@ -523,9 +523,9 @@ describe('Board', () => {
       const data = createGameData({
         moves: ['e4', 'e5', 'Nf3'],
         uiMoves: [
-          {"moves":["e2-e4"]},
-          {"moves":["e7-e5"]},
-          {"moves":["g1-f3"]}
+          {"piece":"P","moves":["e2-e4"]},
+          {"piece":"p","moves":["e7-e5"]},
+          {"piece":"N","moves":["g1-f3"]}
         ]
       });
 
@@ -581,9 +581,9 @@ describe('Board', () => {
       const data = createGameData({
         moves: ['e4', 'c5', 'Nf3'],
         uiMoves: [
-          {moves:['e2-e4']},
-          {moves:['c7-c5']},
-          {moves:['g1-f3']}
+          {"piece":"P","moves":["e2-e4"]},
+          {"piece":"p","moves":["c7-c5"]},
+          {"piece":"N","moves":["g1-f3"]}
         ]
       });
       const chessboard = new Chessboard('element', {});
@@ -617,7 +617,7 @@ describe('Board', () => {
     it("handles guesses when the game move is a passing move", () => {
       const data = createGameData({
         moves: ['e4', '--', 'd4', 'e6'],
-        uiMoves: [{"moves":["e2-e4"]},{"moves":[]},{"moves":["d2-d4"]},{"moves":["e7-e6"]}]
+        uiMoves: [{"piece":"P","moves":["e2-e4"]},{"moves":[]},{"piece":"P","moves":["d2-d4"]},{"piece":"p","moves":["e7-e6"]}]
       });
       const chessboard = new Chessboard('element', {});
       const board = new Board(data, chessboard);
@@ -632,7 +632,7 @@ describe('Board', () => {
     it('correctly handles the promotion of a black pawn', () => {
       const data = createGameData({
         fen: '8/8/8/8/8/8/2pk1K2/8 b - - 0 1',
-        uiMoves: [{"moves":["c2-c1"],"add":["q","c1"]}],
+        uiMoves: [{"piece":"p","moves":["c2-c1"],"add":["q","c1"]}],
         moves: ["c1=Q"],
         startingWholeMove: 1,
         currentWholeMove: 1,
@@ -652,7 +652,25 @@ describe('Board', () => {
   describe('navigating a whole game', () => {
     it('navigates a whole game', () => {
       const data = createGameData({
-        uiMoves: [{"moves":["c2-c4"]},{"moves":["e7-e5"]},{"moves":["b1-c3"]},{"moves":["b8-c6"]},{"moves":["g1-f3"]},{"moves":["g7-g6"]},{"moves":["d2-d4"]},{"moves":["e5-d4"],"remove":["P","d4"]},{"moves":["c3-d5"]},{"moves":["f8-g7"]},{"moves":["c1-g5"]},{"moves":["g8-e7"]},{"moves":["f3-d4"],"remove":["p","d4"]},{"moves":["g7-d4"],"remove":["N","d4"]},{"moves":["d1-d4"],"remove":["b","d4"]},{"moves":["e8-g8","h8-f8"]},{"moves":["d5-f6"]},{"moves":["g8-h8"]},{"moves":["f6-g4"]}],
+        uiMoves: [{"piece":"P","moves":["c2-c4"]},
+        {"piece":"p","moves":["e7-e5"]},
+        {"piece":"N","moves":["b1-c3"]},
+        {"piece":"N","moves":["b8-c6"]},
+        {"piece":"N","moves":["g1-f3"]},
+        {"piece":"p","moves":["g7-g6"]},
+        {"piece":"P","moves":["d2-d4"]},
+        {"piece":"p","moves":["e5-d4"],"remove":["P","d4"]},
+        {"piece":"N","moves":["c3-d5"]},
+        {"piece":"B","moves":["f8-g7"]},
+        {"piece":"B","moves":["c1-g5"]},
+        {"piece":"N","moves":["g8-e7"]},
+        {"piece":"p","moves":["f3-d4"],"remove":["p","d4"]},
+        {"piece":"N","moves":["g7-d4"],"remove":["N","d4"]},
+        {"piece":"B","moves":["d1-d4"],"remove":["b","d4"]},
+        {"piece":"k","moves":["e8-g8","h8-f8"]},
+        {"piece":"N","moves":["d5-f6"]},
+        {"piece":"k","moves":["g8-h8"]},
+        {"piece":"N","moves":["f6-g4"]}],
         moves: ["c4","e5","Nc3","Nc6","Nf3","g6","d4","exd4","Nd5","Bg7","Bg5","Nge7","Nxd4","Bxd4","Qxd4","O-O","Nf6+","Kh8","Ng4+"],
         gameResult: '1-0',
         white: 'Dmitry Andreikin',
@@ -685,7 +703,7 @@ describe('Board', () => {
     it('adds engine move to game and updates UI', async () => {
       const data = createGameData({
         moves: ['e4'],
-        uiMoves: [{"moves":["e2-e4"]}]
+        uiMoves: [{"piece":"P","moves":["e2-e4"]}]
       });
 
       const chessboard = new Chessboard('element', {});
@@ -702,8 +720,7 @@ describe('Board', () => {
         ok: true,
         json: () => Promise.resolve({
           move: {
-            moves: ['e7-e5'],
-            notation: 'e5'
+            piece:"p", moves:["e7-e5"], notation:"e5"
           }
         })
       });
@@ -712,7 +729,7 @@ describe('Board', () => {
       await board.requestEngineBestMove();
       await vi.waitFor(() => {
         expect(addExtraMoveSpy).toHaveBeenCalledWith({
-          "moves":["e7-e5"],"notation":"e5"
+          piece:"p", moves:["e7-e5"], notation:"e5"
         });
         expect(moveForwardSpy).toHaveBeenCalled();
         expect(board.currentMoveIndex).toBe(2);
@@ -723,7 +740,7 @@ describe('Board', () => {
     it('handles engine errors gracefully', async () => {
       const data = createGameData({
         moves: ['e4'],
-        uiMoves: [{"moves":["e2-e4"]}]
+        uiMoves: [{"piece":"P","moves":["e2-e4"]}]
       });
 
       const chessboard = new Chessboard('element', {});
@@ -750,13 +767,13 @@ describe('Board', () => {
     it('adds an extra move to the game if none exists at the current index', () => {
       const data = createGameData({
         moves: ['e4', 'e5'],
-        uiMoves: [{"moves":["e2-e4"]},{"moves":["e7-e5"]}]
+        uiMoves: [{"piece":"P","moves":["e2-e4"]},{"piece":"p","moves":["e7-e5"]}]
       });
       const chessboard = new Chessboard('element', {});
       const board = new Board(data, chessboard);
       board.moveForward();
       board.moveForward();
-      board.addExtraMove({moves:["g1-f3"],notation:"Nf3"});
+      board.addExtraMove({piece:"N", moves:["g1-f3"],notation:"Nf3"});
       expect(board.uiMoves.length).toBe(3);
       expect(board.moves.length).toBe(3);
       expect(board.uiMoves[0].moves).toEqual(["e2-e4"]);
@@ -769,15 +786,15 @@ describe('Board', () => {
     it('replaces a extra move in the game if one exists at the current index', () => {
       const data = createGameData({
         moves: ['e4', 'e5'],
-        uiMoves: [{"moves":["e2-e4"]},{"moves":["e7-e5"]}]
+        uiMoves: [{"piece":"P","moves":["e2-e4"]},{"piece":"p","moves":["e7-e5"]}]
       });
       const chessboard = new Chessboard('element', {});
       const board = new Board(data, chessboard);
       board.moveForward();
       board.moveForward();
-      board.addExtraMove({moves:["g1-f3"],notation:"Nf3"});
+      board.addExtraMove({piece:"N", moves:["g1-f3"],notation:"Nf3"});
       board.moveBackward();
-      board.addExtraMove({moves:["d2-d4"],notation:"d4"});
+      board.addExtraMove({piece:"P", moves:["d2-d4"],notation:"d4"});
       expect(board.uiMoves.length).toBe(3);
       expect(board.moves.length).toBe(3);
       expect(board.uiMoves[2].moves).toEqual(["d2-d4"]);
@@ -788,7 +805,7 @@ describe('Board', () => {
     it('moves forward through passing moves', () => {
       const data = createGameData({
         moves: ['e4', '--', 'd4', 'e6'],
-        uiMoves: [{"moves":["e2-e4"]},{"moves":[]},{"moves":["d2-d4"]},{"moves":["e7-e6"]}]
+        uiMoves: [{"piece":"P","moves":["e2-e4"]},{"moves":[]},{"piece":"P","moves":["d2-d4"]},{"piece":"p","moves":["e7-e6"]}]
       });
       const chessboard = new Chessboard('element', {});
       const board = new Board(data, chessboard);

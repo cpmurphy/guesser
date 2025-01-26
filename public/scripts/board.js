@@ -244,7 +244,7 @@ export default class Board {
     if (!this.gameOver()) {
       const uiMove = this.uiMoves[this.currentMoveIndex];
       if (uiMove.moves.length > 0) {
-          const piece = this.board.getPiece(uiMove.moves[0].split('-')[0]);
+          const piece = this.translatePiece(uiMove.piece);
           this.updateGameState(uiMove, piece);
         if (!uiMove.remove && !uiMove.add) {
           uiMove.moves.forEach(m => {

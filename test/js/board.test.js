@@ -392,6 +392,8 @@ describe('Board', () => {
       const chessboard = new Chessboard('element', { position: data.fen });
       const board = new Board(data, chessboard);
       board.submitGuess('e7', 'e8', 'wp', 'wq', '7k/4P2p/5K2/8/8/8/8/8 w - - 0 1');
+      expect(board.gameState.halfmoveClock).toBe(0);
+      expect(board.isWhiteToMove(board.currentMoveIndex)).toBe(false);
     });
   });
 

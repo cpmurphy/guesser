@@ -4,6 +4,28 @@ export default class ChessRules {
     this.enPassant = enPassant;
     this.castlingRights = castlingRights;
     this.position = ChessRules.fenToObj(fenString);
+    this.kingPositions = {};
+  }
+
+  findKingPosition(king) {
+    if (this.kingPositions[king]) {
+      return this.kingPositions[king];
+    } else {
+      const kingSquare = this.findKingInPosition(king, this.position);
+      this.kingPositions[king] = kingSquare;
+      return kingSquare;
+    }
+  }
+
+  findKingInPosition(king, position) {
+    let kingSquare = null;
+    for (const [square, piece] of Object.entries(position)) {
+      if (king === piece) {
+        kingSquare = square;
+        break;
+      }
+    }
+    return kingSquare;
   }
 
   isLegalMove(source, target, piece, skipCheckValidation = false) {
@@ -287,13 +309,7 @@ export default class ChessRules {
   isInCheck(isWhite, position) {
     // Find the king
     const king = isWhite ? 'wk' : 'bk';
-    let kingSquare = null;
-    for (const [square, piece] of Object.entries(position)) {
-      if (piece === king) {
-        kingSquare = square;
-        break;
-      }
-    }
+    const kingSquare = this.findKingInPosition(king, position);
 
     return kingSquare && this.isSquareUnderAttack(kingSquare, isWhite, position, this.enPassant);
   }

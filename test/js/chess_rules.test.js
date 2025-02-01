@@ -316,6 +316,18 @@ describe('ChessRules', () => {
         expect(rules.isCheckmate(false)).toBe(true);
       });
 
+      it('recognizes it is possible to move out of check', () => {
+        const position = {
+          'e1': 'wk',
+          'e8': 'bk',
+          'h5': 'wq'
+        };
+        const fen = ChessRules.objToFen(position);
+        const rules = new ChessRules(fen, '-');
+
+        expect(rules.isLegalMove('e8', 'e7', 'bk')).toBe(true);
+      });
+
       it('recognizes check is not checkmate', () => {
         const position = {
           'e1': 'wk',
@@ -326,6 +338,13 @@ describe('ChessRules', () => {
         const rules = new ChessRules(fen, '-');
 
         expect(rules.isCheckmate(false)).toBe(false);
+      });
+
+      it('detects a checkmate with queen and pawns', () => {
+        const fen = '3Q2k1/8/1P4PP/8/8/8/8/3b2K1 b - - 2 51';
+        const rules = new ChessRules(fen, '-');
+
+        expect(rules.isCheckmate(false)).toBe(true);
       });
 
       it('detects a checkmate with queen and pawns', () => {

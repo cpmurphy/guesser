@@ -155,8 +155,8 @@ describe('Board', () => {
       board.addExtraMove({piece:"P", moves: ["e7-d8"], add: ['R', 'd8'], remove: ['q', 'd8'], notation: "exd8=R"});
       board.moveForward();
       expect(board.moves.length).toBe(1);
-      expect(board.uiMoves[0]).toEqual({piece:"P", moves: ["e7-d8"], add: ['R', 'd8'], remove: ['q', 'd8'], notation: "exd8=R"});
-      expect(board.moves[0]).toEqual("exd8=R");
+      expect(board.uiMoves[0]).toEqual({piece:"P", moves: ["e7-d8"], add: ['R', 'd8'], remove: ['q', 'd8'], notation: "exd8=R#"});
+      expect(board.moves[0]).toEqual("exd8=R#");
       expect(board.isWhiteToMove(board.currentMoveIndex)).toBe(false);
     });
   });
@@ -799,6 +799,28 @@ describe('Board', () => {
       expect(board.moves.length).toBe(3);
       expect(board.uiMoves[2].moves).toEqual(["d2-d4"]);
       expect(board.moves[2]).toEqual("d4");
+    });
+    it('adds # to notation when move results in checkmate', () => {
+      const data = createGameData({
+        fen: 'k7/pp6/8/8/8/8/8/4K2R w - - 0 1',
+        uiMoves: [],
+        moves: [],
+        startingWholeMove: 1,
+        currentWholeMove: 1,
+        sideToMove: 'white',
+      });
+      const chessboard = new Chessboard('element', {});
+      const board = new Board(data, chessboard);
+
+      const move = {
+        notation: 'Rh8',  // Intentionally missing the # symbol
+        moves: ['h1-h8'],
+        piece: 'R'
+      };
+
+      board.addExtraMove(move);
+
+      expect(board.moves[0]).toEqual('Rh8#');
     });
   });
   describe('passing moves', () => {

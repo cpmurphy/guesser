@@ -65,6 +65,7 @@ export default class Board {
   }
 
   initializeGameState(fen) {
+    this.board.setPosition(fen);
     this.lastPosition = this.board.getPosition();
     this.gameState = new this.GameState(fen);
     this.hideGuessResult();
@@ -676,9 +677,21 @@ export default class Board {
       this.uiMoves = this.uiMoves.slice(0, this.currentMoveIndex);
       this.moves = this.moves.slice(0, this.currentMoveIndex);
     }
+
     this.uiMoves.push(move);
     this.moves.push(move.notation);
     this.moveForward();
+
+    // Add checkmate symbol if the position is checkmate
+    if (!move.notation.endsWith('#')) {
+      const position = this.board.getPosition();
+      const chessRules = new this.ChessRules(position, this.gameState.enPassant, this.gameState.castlingRights);
+      const isWhite = this.isWhiteToMove(this.currentMoveIndex);
+      if (chessRules.isCheckmate(isWhite)) {  // Check if the opponent is in checkmate
+        move.notation += '#';
+        this.moves[this.currentMoveIndex-1] = move.notation;
+      }
+    }
   }
 
   generateCompleteFen() {

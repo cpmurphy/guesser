@@ -469,4 +469,188 @@ describe('ChessRules', () => {
       });
     });
   });
+
+  describe('Possible target squares', () => {
+    describe('possibleTargetSquaresForPawn', () => {
+      let rules;
+      
+      beforeEach(() => {
+        rules = new ChessRules('8/8/8/8/8/8/8/8', '-');
+      });
+
+      it('returns correct squares for white pawn on starting rank', () => {
+        const squares = rules.possibleTargetSquaresForPawn('e2', true);
+        expect(squares).toEqual(['e3', 'e4', 'd3', 'f3']);
+      });
+
+      it('returns correct squares for black pawn on starting rank', () => {
+        const squares = rules.possibleTargetSquaresForPawn('e7', false);
+        expect(squares).toEqual(['e6', 'e5', 'd6', 'f6']);
+      });
+
+      it('returns correct squares for white pawn not on starting rank', () => {
+        const squares = rules.possibleTargetSquaresForPawn('e3', true);
+        expect(squares).toEqual(['e4', 'd4', 'f4']);
+      });
+
+      it('returns correct squares for black pawn not on starting rank', () => {
+        const squares = rules.possibleTargetSquaresForPawn('e6', false);
+        expect(squares).toEqual(['e5', 'd5', 'f5']);
+      });
+    });
+
+    describe('possibleTargetSquaresForKnight', () => {
+      let rules;
+      
+      beforeEach(() => {
+        rules = new ChessRules('8/8/8/8/8/8/8/8', '-');
+      });
+
+      it('returns all eight squares for knight in center', () => {
+        const squares = rules.possibleTargetSquaresForKnight('e4');
+        expect(squares).toEqual(['g5', 'g3', 'c5', 'c3', 'f6', 'f2', 'd6', 'd2']);
+      });
+
+      it('returns correct squares for knight on edge', () => {
+        const squares = rules.possibleTargetSquaresForKnight('a1');
+        expect(squares).toEqual(['c2', 'b3']);
+      });
+    });
+
+    describe('possibleTargetSquaresForKing', () => {
+      let rules;
+      
+      beforeEach(() => {
+        rules = new ChessRules('8/8/8/8/8/8/8/8', '-');
+      });
+
+      it('returns all squares for king in center', () => {
+        const squares = rules.possibleTargetSquaresForKing('e4');
+        expect(squares).toContain('d3');
+        expect(squares).toContain('d4');
+        expect(squares).toContain('d5');
+        expect(squares).toContain('e3');
+        expect(squares).toContain('e5');
+        expect(squares).toContain('f3');
+        expect(squares).toContain('f4');
+        expect(squares).toContain('f5');
+        expect(squares).toHaveLength(10); // 8 adjacent squares + 2 castling squares
+      });
+
+      it('returns correct squares for king on edge', () => {
+        const squares = rules.possibleTargetSquaresForKing('a1');
+        expect(squares).toContain('a2');
+        expect(squares).toContain('b1');
+        expect(squares).toContain('b2');
+        expect(squares).toContain('c1');
+        expect(squares).toContain('g1');
+        expect(squares).toHaveLength(5); // 3 adjacent squares + 2 castling squares
+      });
+    });
+
+    describe('possibleTargetSquaresForBishop', () => {
+      let rules;
+      
+      beforeEach(() => {
+        rules = new ChessRules('8/8/8/8/8/8/8/8', '-');
+      });
+
+      it('returns all diagonal squares for bishop in center', () => {
+        const squares = rules.possibleTargetSquaresForBishop('e4');
+        // Check some key squares in each diagonal
+        expect(squares).toContain('f5');
+        expect(squares).toContain('g6');
+        expect(squares).toContain('h7');
+        expect(squares).toContain('d3');
+        expect(squares).toContain('c2');
+        expect(squares).toContain('b1');
+        expect(squares).toContain('f3');
+        expect(squares).toContain('g2');
+        expect(squares).toContain('h1');
+        expect(squares).toContain('d5');
+        expect(squares).toContain('c6');
+        expect(squares).toContain('b7');
+        expect(squares).toContain('a8');
+      });
+
+      it('returns correct squares for bishop in corner', () => {
+        const squares = rules.possibleTargetSquaresForBishop('a1');
+        expect(squares).toContain('b2');
+        expect(squares).toContain('c3');
+        expect(squares).toContain('d4');
+        expect(squares).toContain('e5');
+        expect(squares).toContain('f6');
+        expect(squares).toContain('g7');
+        expect(squares).toContain('h8');
+      });
+    });
+
+    describe('possibleTargetSquaresForRook', () => {
+      let rules;
+      
+      beforeEach(() => {
+        rules = new ChessRules('8/8/8/8/8/8/8/8', '-');
+      });
+
+      it('returns all straight squares for rook in center', () => {
+        const squares = rules.possibleTargetSquaresForRook('e4');
+        // Check some key squares in each direction
+        ['e1', 'e2', 'e3', 'e5', 'e6', 'e7', 'e8'].forEach(square => {
+          expect(squares).toContain(square);
+        });
+        ['a4', 'b4', 'c4', 'd4', 'f4', 'g4', 'h4'].forEach(square => {
+          expect(squares).toContain(square);
+        });
+      });
+
+      it('returns correct squares for rook in corner', () => {
+        const squares = rules.possibleTargetSquaresForRook('a1');
+        // Check vertical squares
+        ['a2', 'a3', 'a4', 'a5', 'a6', 'a7', 'a8'].forEach(square => {
+          expect(squares).toContain(square);
+        });
+        // Check horizontal squares
+        ['b1', 'c1', 'd1', 'e1', 'f1', 'g1', 'h1'].forEach(square => {
+          expect(squares).toContain(square);
+        });
+      });
+    });
+
+    describe('possibleTargetSquaresForQueen', () => {
+      let rules;
+      
+      beforeEach(() => {
+        rules = new ChessRules('8/8/8/8/8/8/8/8', '-');
+      });
+
+      it('returns all possible squares for queen in center', () => {
+        const squares = rules.possibleTargetSquaresForQueen('e4');
+        const bishopSquares = rules.possibleTargetSquaresForBishop('e4');
+        const rookSquares = rules.possibleTargetSquaresForRook('e4');
+        
+        // Queen moves should be union of bishop and rook moves
+        bishopSquares.forEach(square => {
+          expect(squares).toContain(square);
+        });
+        rookSquares.forEach(square => {
+          expect(squares).toContain(square);
+        });
+        expect(squares.length).toBe(new Set([...bishopSquares, ...rookSquares]).size);
+      });
+
+      it('returns correct squares for queen in corner', () => {
+        const squares = rules.possibleTargetSquaresForQueen('a1');
+        const bishopSquares = rules.possibleTargetSquaresForBishop('a1');
+        const rookSquares = rules.possibleTargetSquaresForRook('a1');
+        
+        bishopSquares.forEach(square => {
+          expect(squares).toContain(square);
+        });
+        rookSquares.forEach(square => {
+          expect(squares).toContain(square);
+        });
+        expect(squares.length).toBe(new Set([...bishopSquares, ...rookSquares]).size);
+      });
+    });
+  });
 });

@@ -405,20 +405,164 @@ export default class ChessRules {
     return (file + rank) % 2 === 0;
   }
 
-  isAnyMovePossible(isWhite) {
-    for (const [from, piece] of Object.entries(this.position)) {
-      if (piece.charAt(0) !== (isWhite ? 'w' : 'b')) {
-        continue;
-      }
-      // Check all possible destination squares
-      for (let fileNum = 0; fileNum < 8; fileNum++) {
-        for (let rankNum = 0; rankNum < 8; rankNum++) {
-          const to = String.fromCharCode('a'.charCodeAt(0) + fileNum) + (rankNum + 1);
-          if (from !== to && this.isLegalMove(from, to, piece)) {
-            return true;
-          }
+  possibleTargetSquaresForPawn(from, isWhite) {
+    const rank = parseInt(from[1]);
+    const file = from[0];
+    const direction = isWhite ? 1 : -1;
+    const startRank = isWhite ? 2 : 7;
+
+    const targetSquares = [
+      `${file}${rank + direction}`, // One square ahead
+      ...(rank === startRank ? [`${file}${rank + 2 * direction}`] : []), // Two squares if on start rank
+      `${String.fromCharCode(file.charCodeAt(0) - 1)}${rank + direction}`, // Diagonal captures
+      `${String.fromCharCode(file.charCodeAt(0) + 1)}${rank + direction}`
+    ];
+    return targetSquares;
+  }
+
+  possibleTargetSquaresForKnight(from) {
+    const fileCode = from.charCodeAt(0);
+    const r = parseInt(from[1]);
+    const targetSquares = [
+      `${String.fromCharCode(fileCode + 2)}${r + 1}`,
+      `${String.fromCharCode(fileCode + 2)}${r - 1}`,
+      `${String.fromCharCode(fileCode - 2)}${r + 1}`,
+      `${String.fromCharCode(fileCode - 2)}${r - 1}`,
+      `${String.fromCharCode(fileCode + 1)}${r + 2}`,
+      `${String.fromCharCode(fileCode + 1)}${r - 2}`,
+      `${String.fromCharCode(fileCode - 1)}${r + 2}`,
+      `${String.fromCharCode(fileCode - 1)}${r - 2}`
+    ];
+    return this.keepOnlySquaresOnBoard(targetSquares);
+  }
+    
+  keepOnlySquaresOnBoard(targetSquares) {
+    return targetSquares.filter(square => square[0] >= 'a' && square[0] <= 'h' && square[1] >= '1' && square[1] <= '8');
+  }
+
+  possibleTargetSquaresForBishop(from) {
+    const file = from.charCodeAt(0);
+    const rank = parseInt(from[1]);
+    const targetSquares = [];
+
+    // All four diagonal directions
+    const directions = [
+        [1, 1],   // up-right
+        [1, -1],  // down-right
+        [-1, 1],  // up-left
+        [-1, -1]  // down-left
+    ];
+
+    for (const [fileStep, rankStep] of directions) {
+        let currentFile = file;
+        let currentRank = rank;
+        
+        while (true) {
+            currentFile += fileStep;
+            currentRank += rankStep;
+            
+            // Check if we're still on the board
+            if (currentFile < 'a'.charCodeAt(0) || currentFile > 'h'.charCodeAt(0) ||
+                currentRank < 1 || currentRank > 8) {
+                break;
+            }
+            
+            targetSquares.push(`${String.fromCharCode(currentFile)}${currentRank}`);
         }
-      }
+    }
+
+    return targetSquares;
+  }
+
+  possibleTargetSquaresForRook(from) {
+    const file = from[0];
+    const rank = parseInt(from[1]);
+    const targetSquares = [];
+
+    // all squares in the same file
+    for (let i = 0; i < 8; i++) {
+      const newFile = String.fromCharCode('a'.charCodeAt(0) + i);
+      targetSquares.push(`${newFile}${rank}`);
+    }
+
+    // all squares in the same rank
+    for (let i = 1; i <= 8; i++) {
+      targetSquares.push(`${file}${i}`);
+    }
+
+    return targetSquares.filter(square => square !== from);
+  }
+
+  possibleTargetSquaresForQueen(from) {
+    return [
+      ...this.possibleTargetSquaresForBishop(from),
+      ...this.possibleTargetSquaresForRook(from)
+    ];
+  }
+
+  possibleTargetSquaresForKing(from) {
+    const kRank = parseInt(from[1]);
+    const kFile = from.charCodeAt(0);
+    const targetSquares = [
+      // Adjacent squares
+      ...[-1, 0, 1].flatMap(fileOffset =>
+        [-1, 0, 1].map(rankOffset =>
+          `${String.fromCharCode(kFile + fileOffset)}${kRank + rankOffset}`)),
+      // Castling squares
+      `c${kRank}`, `g${kRank}`
+    ];
+    return this.keepOnlySquaresOnBoard(targetSquares).filter(square => square !== from);
+  }
+
+  isAnyMovePossible(isWhite) {
+    // Get all squares with pieces of the current player's color
+    const playerPieces = Object.entries(this.position)
+        .filter(([_, piece]) => piece.charAt(0) === (isWhite ? 'w' : 'b'));
+
+    for (const [from, piece] of playerPieces) {
+        const pieceType = piece.charAt(1);
+
+        // Get potential target squares based on piece type
+        let targetSquares;
+
+        switch (pieceType) {
+            case 'p':
+              targetSquares = this.possibleTargetSquaresForPawn(from, isWhite);
+                break;
+
+            case 'n':
+              targetSquares = this.possibleTargetSquaresForKnight(from);
+                break;
+
+            case 'b':
+              targetSquares = this.possibleTargetSquaresForBishop(from);
+                break;
+
+            case 'r':
+              targetSquares = this.possibleTargetSquaresForRook(from);
+                break;
+
+            case 'q':
+              targetSquares = this.possibleTargetSquaresForQueen(from);
+                break;
+
+            case 'k':
+              targetSquares = this.possibleTargetSquaresForKing(from);
+                break;
+        }
+
+        // Filter valid squares and check if any moves are legal
+        const validSquares = targetSquares.filter(square => {
+            const file = square[0];
+            const rank = parseInt(square[1]);
+            return file >= 'a' && file <= 'h' && rank >= 1 && rank <= 8 && from !== square;
+        });
+
+        for (const to of validSquares) {
+            if (this.isLegalMove(from, to, piece)) {
+                return true;
+            }
+        }
     }
 
     return false;

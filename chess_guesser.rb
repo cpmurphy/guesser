@@ -16,12 +16,11 @@ require_relative 'lib/asset_version'
 
 class ChessGuesser < Sinatra::Base
   def self.discover_supported_locales
-    # Find all yml files in i18n directory
     i18n_path = File.expand_path("i18n/*.yml")
     Dir.glob(i18n_path).map do |file|
       # Extract locale from filename (e.g., "en.yml" -> :en)
       basename = File.basename(file, '.yml')
-      
+
       # Handle two-part locales (e.g., "pt-br.yml" -> :"pt-BR")
       if basename.include?('-')
         language, region = basename.split('-', 2)
@@ -39,7 +38,6 @@ class ChessGuesser < Sinatra::Base
 
   use SecureHeaders::Middleware
 
-  # Configure SecureHeaders
   SecureHeaders::Configuration.default do |config|
     config.csp = {
       default_src: %w('self'),
@@ -55,7 +53,6 @@ class ChessGuesser < Sinatra::Base
       base_uri: %w('self'),
       upgrade_insecure_requests: true
     }
-    # You can add other security headers here
     config.x_frame_options = "DENY"
     config.x_content_type_options = "nosniff"
     config.x_xss_protection = "1; mode=block"
@@ -89,7 +86,7 @@ class ChessGuesser < Sinatra::Base
   def extract_locale_from_accept_language_header
     I18n.default_locale = :en
     return I18n.default_locale unless request.env['HTTP_ACCEPT_LANGUAGE']
-    
+
     # Parse Accept-Language header and get ordered list of locales
     accepted_languages = request.env['HTTP_ACCEPT_LANGUAGE'].split(',')
       .map { |l| l.split(';q=') }
@@ -110,6 +107,7 @@ class ChessGuesser < Sinatra::Base
     move_judge = MoveJudge.new
     @evaluator = GuessEvaluator.new(move_judge)
     I18n.load_path << Dir[File.expand_path("i18n/*.yml")]
+    @valid_pgn_basenames = build_builtin_allowlist
   end
 
   def t(key)
@@ -122,18 +120,25 @@ class ChessGuesser < Sinatra::Base
     haml :game_selection, locals: { builtin_pgns: builtin_pgns }
   end
 
+  def build_builtin_allowlist
+    # Create a allowlist of valid basenames from the actual files
+    Dir.glob('data/builtins/*-games.pgn').map { |file|
+      File.basename(file, '-games.pgn')
+    }.freeze
+  end
+
   def gather_builtins
-    file_map = Dir.glob('data/builtins/*.pgn').inject({}) do |map, file|
-      basename = File.basename(file, '.pgn')
+    file_map = Dir.glob('data/builtins/*-games.pgn').inject({}) do |map, file|
+      basename = File.basename(file, '-games.pgn')
       # Convert filename to translation key
       translation_key = basename.gsub('-', '_')
       description = t("builtins.#{translation_key}")
       game_count = PgnSummary.new(File.open(file, encoding: Encoding::ISO_8859_1)).load.size
-      map[basename] = [file, description, game_count]
+      map[basename] = [basename, file, description, game_count]
       map
     end
-    index = 0
-    file_map.values.sort_by { |item| item[1] }.map { |item| item.unshift(index); index += 1; item }
+
+    file_map.values.sort_by { |item| item[1] }
   end
 
   def build_table(summary)
@@ -183,9 +188,10 @@ class ChessGuesser < Sinatra::Base
     haml :game, locals: game_state
   end
 
-  get '/builtin/:index' do
-    builtin_pgns = gather_builtins
-    file_path = builtin_pgns[params[:index].to_i][1]
+  get '/builtin/:basename' do |basename|
+    halt 404 unless @valid_pgn_basenames.include?(basename)
+
+    file_path = File.join('data/builtins', "#{basename}-games.pgn")
     if File.exist?(file_path)
       summary = PgnSummary.new(File.open(file_path, encoding: Encoding::ISO_8859_1))
       summary.load
@@ -193,15 +199,17 @@ class ChessGuesser < Sinatra::Base
       if File.exist?(json_path)
         summary.add_analysis(JSON.parse(File.read(json_path)))
       end
-      haml :games, locals: { summary: summary, path_prefix: "builtin/#{params[:index].to_i}" }
+      haml :games, locals: { summary: summary, path_prefix: "builtin/#{basename}" }
     else
       status 404
       "File not found"
     end
   end
 
-  get '/builtin/:builtin_index/:game_index' do
-    game_state = builtin_game_state(params[:builtin_index].to_i, params[:game_index].to_i)
+  get '/builtin/:basename/:game_index' do |basename, game_index|
+    halt 404 unless @valid_pgn_basenames.include?(basename)
+
+    game_state = builtin_game_state(basename, game_index.to_i)
     if params[:move]
       game_state[:current_whole_move] = params[:move].to_i
     end
@@ -238,8 +246,8 @@ class ChessGuesser < Sinatra::Base
     end
   end
 
-  def builtin_game_state(builtin_index, game_index)
-    game = builtin_game(builtin_index, game_index)
+  def builtin_game_state(basename, game_index)
+    game = builtin_game(basename, game_index)
     build_game_state(game)
   end
 
@@ -286,9 +294,10 @@ class ChessGuesser < Sinatra::Base
     }
   end
 
-  def builtin_game(builtin_index, game_index)
-    builtin_pgns = gather_builtins
-    file_path = builtin_pgns[builtin_index][1]
+  def builtin_game(basename, game_index)
+    halt 404 unless @valid_pgn_basenames.include?(basename)
+
+    file_path = File.join('data/builtins', "#{basename}-games.pgn")
     summary = PgnSummary.new(File.open(file_path, encoding: Encoding::ISO_8859_1))
     summary.load
     games = PGN.parse(summary.game_at(game_index))
@@ -340,9 +349,12 @@ class ChessGuesser < Sinatra::Base
   end
 
   def game_for_path(path)
-    game = if path.include?('builtin')
-      builtin_index, game_index = path.split('/').select { |part| part.match?(/^\d+$/) }.map(&:to_i)
-      builtin_game(builtin_index, game_index)
+    if path.include?('builtin')
+      parts = path.split('/')
+      basename = parts[-2]
+      game_index = parts[-1].to_i
+      halt 404 unless @valid_pgn_basenames.include?(basename)
+      builtin_game(basename, game_index)
     else
       uploaded_index = path.split('/').last.to_i
       uploaded_game(uploaded_index)

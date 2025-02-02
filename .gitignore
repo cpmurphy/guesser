@@ -26,8 +26,8 @@ data/builtins/master-games.json
 data/builtins/staunton-games.pgn
 data/builtins/anderssen-games.pgn
 data/builtins/anderssen-games.json
-data/builtins/mcdonnel-games.pgn
-data/builtins/mcdonnel-games.json
+data/builtins/mcdonnell-games.pgn
+data/builtins/mcdonnell-games.json
 
 # throwaway scripts
 bin/first_mistake_finder.rb

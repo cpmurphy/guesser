@@ -17,9 +17,9 @@
       #builtin_selection_container
         %h3= t(:choose_from_built_in_games)
         %ul.game-list
-          - builtin_pgns.each do |(index, file, description, game_count)|
+          - builtin_pgns.each do |(basename, file, description, game_count)|
             %li
-              %a.btn{href: "/builtin/#{index}"} #{description} (#{I18n.t(:games, count: game_count)})
+              %a.btn{href: "/builtin/#{basename}"} #{description} (#{I18n.t(:games, count: game_count)})
 
     %form#pgn_upload_form.upload-form{action: "/upload_pgn", method: "post", enctype: "multipart/form-data"}
       %h3= t('upload.title')

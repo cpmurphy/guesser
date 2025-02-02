@@ -85,8 +85,8 @@ pt-BR:
       still_good: Seu lance ainda foi bom.
       reasonable: Seu lance ainda leva a uma posição razoável.
   builtins:
-    master_games: "500 Partidas de Mestres"
-    nykterstein_games: "Algumas Partidas do Dr. Nykterstein"
-    mcdonnel_games: "Alexander McDonnell"
-    staunton_games: "Howard Staunton"
-    anderssen_games: "Adolf Anderssen"
+    master: "500 Partidas de Mestres"
+    nykterstein: "Algumas Partidas do Dr. Nykterstein"
+    mcdonnell: "Alexander McDonnell"
+    staunton: "Howard Staunton"
+    anderssen: "Adolf Anderssen"

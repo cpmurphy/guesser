@@ -87,8 +87,8 @@ ru:
       still_good: Ваш ход всё равно хороший.
       reasonable: Ваш ход всё ещё ведёт к приемлемой позиции.
   builtins:
-    master_games: "500 мастерских партий"
-    nykterstein_games: "Несколько партий доктора Никтерштейна"
-    mcdonnel_games: "Александр Макдоннелл"
-    staunton_games: "Говард Стонтон"
-    anderssen_games: "Адольф Андерсен"
+    master: "500 мастерских партий"
+    nykterstein: "Несколько партий доктора Никтерштейна"
+    mcdonnell: "Александр Макдоннелл"
+    staunton: "Говард Стонтон"
+    anderssen: "Адольф Андерсен"

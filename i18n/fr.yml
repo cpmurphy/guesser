@@ -76,8 +76,8 @@ fr:
       still_good: Votre coup était quand même bon.
       reasonable: Votre coup mène toujours à une position raisonnable.
   builtins:
-    master_games: "500 Parties de Maîtres"
-    nykterstein_games: "Quelques Parties du Dr Nykterstein"
-    mcdonnel_games: "Alexander McDonnell"
-    staunton_games: "Howard Staunton"
-    anderssen_games: "Adolf Anderssen"
+    master: "500 Parties de Maîtres"
+    nykterstein: "Quelques Parties du Dr Nykterstein"
+    mcdonnell: "Alexander McDonnell"
+    staunton: "Howard Staunton"
+    anderssen: "Adolf Anderssen"

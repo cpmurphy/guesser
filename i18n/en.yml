@@ -76,8 +76,8 @@ en:
       still_good: Your move was still good.
       reasonable: Your move still leaves you with a reasonable position.
   builtins:
-    master_games: "500 Master Games"
-    nykterstein_games: "Some Dr Nykterstein Games"
-    mcdonnel_games: "Alexander McDonnell"
-    staunton_games: "Howard Staunton"
-    anderssen_games: "Adolf Anderssen"
+    master: "500 Master Games"
+    nykterstein: "Some Dr Nykterstein Games"
+    mcdonnell: "Alexander McDonnell"
+    staunton: "Howard Staunton"
+    anderssen: "Adolf Anderssen"

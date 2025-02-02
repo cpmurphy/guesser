@@ -39,8 +39,8 @@ export default class MoveLocalizer {
           'piece.K': 'R',
           'piece.Q': 'D',
           'piece.R': 'T',
-          'piece.B': 'L',
-          'piece.N': 'S',
+          'piece.B': 'F',
+          'piece.N': 'C',
           'piece.P': '',
         },
         nb: {
@@ -52,11 +52,11 @@ export default class MoveLocalizer {
           'piece.P': '',
         },
         'pt-BR': {
-          'piece.K': 'K',
+          'piece.K': 'R',
           'piece.Q': 'D',
           'piece.R': 'T',
-          'piece.B': 'L',
-          'piece.N': 'S',
+          'piece.B': 'B',
+          'piece.N': 'C',
           'piece.P': '',
         },
         ru: {

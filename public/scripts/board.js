@@ -690,6 +690,7 @@ export default class Board {
       if (chessRules.isCheckmate(isWhite)) {  // Check if the opponent is in checkmate
         move.notation += '#';
         this.moves[this.currentMoveIndex-1] = move.notation;
+        this.updateLastMoveDisplay();
       }
     }
   }

@@ -138,7 +138,7 @@ class ChessGuesser < Sinatra::Base
       map
     end
 
-    file_map.values.sort_by { |item| item[1] }
+    file_map.values.sort_by { |item| item[2] }
   end
 
   def build_table(summary)

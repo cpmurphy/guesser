@@ -46,7 +46,7 @@ ru:
   game:
     white: Белые
     black: Чёрные
-    versus: против
+    versus: –
     last_move: Последний ход
     controls:
       fast_rewind: В начало

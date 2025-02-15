@@ -45,6 +45,7 @@ docker rm chess_guesser || true
 # now run the image using regular docker
 docker run -d --name chess_guesser -p 3000:3000 \
   -e RACK_ENV=production \
+ --restart=unless-stopped \
  --log-driver json-file \
  --log-opt max-size=10m \
  --log-opt max-file=3 chess_guesser

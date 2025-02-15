@@ -263,7 +263,7 @@ class ChessGuesser < Sinatra::Base
   end
 
   def translate_player_name(name, locale)
-    return name unless locale.to_s == 'ru'
+    return name unless name == "NN" || locale.to_s == 'ru'
     I18n.t("players.#{name}", default: name, locale: locale)
   end
 

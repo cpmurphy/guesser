@@ -66,4 +66,33 @@ class PgnSummary
       game[:analysis] = analysis[index]['analysis']
     end
   end
+
+  def translate_player_name(name, locale)
+    return name unless locale.to_s == 'ru'
+    I18n.t("players.#{name}", default: name, locale: locale)
+  end
+
+  def translated_game_at(index, locale)
+    game = game_at(index)
+    return game unless locale.to_s == 'ru'
+
+    # Translate player names in game headers
+    @games[index].each do |key, value|
+      if ['White', 'Black'].include?(key)
+        game = game.gsub(/\[#{key} "#{value}"\]/, "[#{key} \"#{translate_player_name(value, locale)}\"]")
+      end
+    end
+    game
+  end
+
+  def games_with_translated_names(locale)
+    return @games unless locale.to_s == 'ru'
+
+    @games.map do |game|
+      game_copy = game.dup
+      game_copy['White'] = translate_player_name(game['White'], locale)
+      game_copy['Black'] = translate_player_name(game['Black'], locale)
+      game_copy
+    end
+  end
 end

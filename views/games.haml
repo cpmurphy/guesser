@@ -21,7 +21,7 @@
             %th= t('games.list.columns.critical_moment')
             %th= t('games.list.columns.action')
         %tbody
-          - summary.games.each_with_index do |game, index|
+          - summary.games_with_translated_names(@locale).each_with_index do |game, index|
             %tr
               %td{"data-label" => t('games.list.columns.white')}= game['White']
               %td{"data-label" => t('games.list.columns.black')}= game['Black']

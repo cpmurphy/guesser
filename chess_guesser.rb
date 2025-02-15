@@ -247,6 +247,7 @@ class ChessGuesser < Sinatra::Base
   end
 
   def builtin_game_state(basename, game_index)
+    file_path = File.join('data/builtins', "#{basename}-games.pgn")
     game = builtin_game(basename, game_index)
     build_game_state(game)
   end
@@ -261,6 +262,11 @@ class ChessGuesser < Sinatra::Base
     PGN.parse(pgn).first
   end
 
+  def translate_player_name(name, locale)
+    return name unless locale.to_s == 'ru'
+    I18n.t("players.#{name}", default: name, locale: locale)
+  end
+
   def build_game_state(game)
     moves = game.moves.map(&:notation)
     move_translator = MoveTranslator.new
@@ -269,10 +275,14 @@ class ChessGuesser < Sinatra::Base
     white_player = game.tags['White']
     if !white_player || white_player.empty?
       white_player = t('game.white')
+    else
+      white_player = translate_player_name(white_player, @locale)
     end
     black_player = game.tags['Black']
     if !black_player || black_player.empty?
       black_player = t('game.black')
+    else
+      black_player = translate_player_name(black_player, @locale)
     end
     if game.starting_position
       move_translator.load_game_from_fen(game.starting_position.to_fen.to_s)

@@ -92,3 +92,300 @@ ru:
     mcdonnell: "Александр Макдоннелл"
     staunton: "Говард Стонтон"
     anderssen: "Адольф Андерсен"
+  players:
+    "1st Fusiliers": "1-й фузилёрный полк"  # Military unit
+    "Abraham Baratz": "Абрахам Барац"
+    "Adhemar Da Silva Rocha": "Адемар да Силва Роша"
+    "Adolf Albin": "Адольф Альбин"  # Known chess player
+    "Adolf Anderssen": "Адольф Андерсен"  # Already correct
+    "Adolf Staehelin": "Адольф Штелин"
+    "Akiba Rubinstein": "Акиба Рубинштейн"  # Famous chess player
+    "Albert Becker": "Альберт Беккер"  # Austrian master
+    "Albert Clerc": "Альберт Клерк"
+    "Alexander Alekhine": "Александр Алехин"  # World champion
+    "Alexander Beaufort Meek": "Александр Бофорт Мик"
+    "Alexander Flamberg": "Александр Фламберг"
+    "Alexander Fritz": "Александр Фриц"
+    "Alexander Halprin": "Александр Гальприн"
+    "Alexander Koblents": "Александр Кобленц"
+    "Alexander McDonnell": "Александр Макдоннелл"  # Already correct
+    "Alexander Petrov": "Александр Петров"  # Russian chess player
+    "Alexey Sergeevich Selezniev": "Алексей Сергеевич Селезнев"  # Russian master
+    "Alexey Sergeevich Selezniev": "Алексей Сергеевич Селезнев"  # Russian name
+    "Alfred Brinckmann": "Альфред Бринкман"
+    "Alfred Brodie": "Альфред Броди"
+    "Amos Burn": "Амос Берн"  # English master
+    "Andre Lilienthal": "Андре Лилиенталь"  # Hungarian-Soviet grandmaster
+    "Andre Muffang": "Андре Мюффан"
+    "Andres Clemente Vazquez": "Андрес Клементе Васкес"  # Mexican master
+    "Anthony Santasiere": "Энтони Сантасиере"  # American master
+    "Aron Nimzowitsch": "Арон Нимцович"  # Famous chess theorist
+    "Arthur Hakansson": "Артур Хоканссон"
+    "Arthur Reynolds": "Артур Рейнольдс"
+    "Arthur William Dake": "Артур Дейк"  # American grandmaster
+    "August Konrad Haida": "Август Конрад Гайда"  # Austrian master
+    "Augustus Mongredien": "Август Монгредьен"
+    "Baldur Hoenlinger": "Бальдур Хёнлингер"
+    "Baron Tassilo von Heydebrand und der Lasa": "Барон Тассило фон Хейдебранд унд дер Лаза"  # German master
+    "Bernhard Horwitz": "Бернгард Горвиц"  # German master
+    "Berthold Englisch": "Бертольд Энглиш"  # Austrian master
+    "Borislav Kostic": "Борислав Костич"  # Serbian grandmaster
+    "Bristol CC": "Бристольский шахматный клуб"  # Chess club
+    "Carl Friedrich von Jaenisch": "Карл Фридрих фон Яниш"  # Russian theorist
+    "Carlos Torre Repetto": "Карлос Торре Репетто"  # Mexican grandmaster
+    "Carl Schlechter": "Карл Шлехтер"  # Famous chess player
+    "Carl Theodor Goering": "Карл Теодор Геринг"
+    "Cecil Valentine De Vere": "Сесил Валентайн Де Вер"  # English master
+    "Charles Edward Ranken": "Чарльз Эдвард Ранкен"
+    "chessmaster2006": "chessmaster2006"  # Keep Latin for online handles
+    "Chesstoday": "Chesstoday"  # Keep Latin for online handles
+    "ChessWeeb": "ChessWeeb"  # Keep Latin for online handles
+    "City of Berne": "Город Берн"  # City name
+    "City of Bombay": "Город Бомбей"
+    "City of Budapest": "Город Будапешт"  # City name
+    "City of Edinburgh": "Город Эдинбург"  # City name
+    "City of Lille": "Город Лилль"
+    "City of St. Petersburg": "Город Санкт-Петербург"  # Russian city
+    "Conel Hugh O'Donel Alexander": "Конел Хью О'Донел Александер"  # British master
+    "Curt von Bardeleben": "Курт фон Барделебен"  # German master
+    "Daniel Harrwitz": "Даниель Гарвиц"  # German master
+    "Daniel Noteboom": "Даниэль Нотебом"  # Dutch master
+    "David Janowski": "Давид Яновский"  # Famous chess player
+    "David Przepiorka": "Давид Пшепюрка"  # Polish master
+    "D Hermann": "Д. Герман"
+    "DrNykterstein": "Доктор Никтерштейн"  # Chess.com handle
+    "Edgar Colle": "Эдгар Колле"  # Belgian master
+    "Edmund Thorold": "Эдмунд Торольд"
+    "Edward Lasker": "Эдуард Ласкер"  # German-American master
+    "Edward Lowe": "Эдвард Лоу"
+    "Edward Mackenzie Jackson": "Эдвард Маккензи Джексон"
+    "Edwin Ziegler Adams": "Эдвин Зиглер Адамс"
+    "Eero Einar Book": "Ээро Эйнар Бёк"  # Finnish master
+    "Efim Bogoljubov": "Ефим Боголюбов"  # Russian chess player
+    "Elijah Williams": "Элайджа Уильямс"  # English master
+    "Emanuel Lasker": "Эмануил Ласкер"  # World champion
+    "Emil Schallopp": "Эмиль Шаллоп"
+    "Emmanuel Schiffers": "Эммануил Шифферс"  # Russian master
+    "Endre Steiner": "Эндре Штейнер"  # Hungarian master
+    "Erich Cohn": "Эрих Кон"
+    "Erich Eliskases": "Эрих Элисказес"  # Austrian-Argentine grandmaster
+    "Erich Weinitschke": "Эрих Вайнички"
+    "Erik Ruben Lundin": "Эрик Рубен Лундин"
+    "Ernst Falkbeer": "Эрнст Фалькбеер"  # Austrian master
+    "Ernst Gruenfeld": "Эрнст Грюнфельд"  # Austrian grandmaster
+    "Ernst Ludwig Klein": "Эрнст Людвиг Кляйн"
+    "Esteban Canal": "Эстебан Каналь"  # Peruvian master
+    "Eugene Aleksandrovich Znosko-Borovsky": "Евгений Александрович Зноско-Боровский"  # Russian chess player
+    "Eugene Delmar": "Юджин Дельмар"
+    "F Alexander Hoffmann": "Ф. Александр Гофман"
+    "Fedor Parfenovich Bohatirchuk": "Фёдор Парфенович Богатырчук"  # Russian chess player
+    "Francis Edward Hamond": "Фрэнсис Эдвард Хаммонд"
+    "Francis Joseph Lee": "Фрэнсис Джозеф Ли"  # English master
+    "Frank James Marshall": "Фрэнк Маршалл"  # American champion
+    "Fred Dewhirst Yates": "Фред Дьюхёрст Йейтс"  # English master
+    "Fred Reinfeld": "Фред Райнфельд"
+    "Fricis Apsenieks": "Фрицис Апсениекс"  # Latvian master
+    "Friedrich Saemisch": "Фридрих Земиш"  # German master
+    "Fritz Englund": "Фриц Энглунд"
+    "Fritz Riemann": "Фриц Риман"
+    "Fyodor Ivanovich Dus Chotimirsky": "Фёдор Иванович Дуз-Хотимирский"  # Russian chess player
+    "George Alan Thomas": "Джордж Алан Томас"  # English master
+    "George Alcock MacDonnell": "Джордж Алкок Макдоннелл"  # English master
+    "George Edward Wainwright": "Джордж Эдвард Уэйнрайт"
+    "George Henry Mackenzie": "Джордж Генри Маккензи"  # Scottish-American master
+    "George Nelson Treysman": "Джордж Нельсон Трейсман"
+    "Georges Koltanowski": "Джордж Колтановский"  # Belgian-American master
+    "George Walker & Allies": "Джордж Уокер и союзники"
+    "Georg Marco": "Георг Марко"  # Austrian master
+    "Georg Rotlewi": "Георг Ротлеви"  # Polish master
+    "Georg Salwe": "Георг Сальве"
+    "Georgy Lisitsin": "Георгий Лисицын"
+    "Geza Maroczy": "Геза Мароци"  # Hungarian chess player
+    "Geza Nagy": "Геза Надь"
+    "Gheorghe Gica Alexandrescu": "Георге Гика Александреску"
+    "Gideon Stahlberg": "Гидеон Штальберг"  # Swedish grandmaster
+    "Giovanni Martinolich": "Джованни Мартинолич"
+    "Gosta Stoltz": "Йёста Штольц"  # Swedish master
+    "Grigory Levenfish": "Григорий Левенфиш"  # Russian chess player
+    "Gustaf Nyholm": "Густав Нюхольм"
+    "Gustav Richard Neumann": "Густав Рихард Нейман"  # German master
+    "Gvein": "Gvein"  # Online handle
+    "Gyula Breyer": "Дьюла Брейер"  # Hungarian master
+    "Hans Fahrni": "Ганс Фарни"
+    "Hans Mueller": "Ганс Мюллер"  # Austrian master
+    "Harald Malmgren": "Харальд Мальмгрен"
+    "Harksen": "Харксен"
+    "Harry Golombek": "Гарри Голомбек"  # British master
+    "Harry Kline": "Гарри Клайн"
+    "Harry Nelson Pillsbury": "Гарри Нельсон Пильсбери"  # American master
+    "Heinrich Wolf": "Генрих Вольф"  # Austrian master
+    "Henry Edward Bird": "Генри Бёрд"  # English master
+    "Henry Ernest Atkins": "Генри Эрнест Аткинс"  # British master
+    "Henry Seymour Conway": "Генри Сеймур Конвей"
+    "Henry Thomas Buckle": "Генри Томас Бакл"
+    "Henry William Birkmyre Gifford": "Генри Уильям Биркмайр Гиффорд"
+    "Herbert William Trenchard": "Герберт Уильям Тренчард"
+    "Hermanis Karlovich Mattison": "Герман Карлович Матисон"  # Latvian master
+    "Hermann Pollmaecher": "Герман Полльмехер"
+    "Herman Steiner": "Герман Штейнер"  # Hungarian-American master
+    "hitter1999": "hitter1999"  # Keep Latin for online handles
+    "H Munk": "Г. Мунк"
+    "Horatio Caro": "Горацио Каро"
+    "Howard Staunton / Captain Kennedy": "Говард Стонтон / Капитан Кеннеди"
+    "Howard Staunton / NN": "Говард Стонтон / Неизвестный"
+    "Howard Staunton / Thomas Barnes": "Говард Стонтон / Томас Барнс"
+    "Howard Staunton": "Говард Стонтон"  # Already correct
+    "Hugh Alexander Kennedy": "Хью Александр Кеннеди"
+    "Ignatz von Kolisch": "Игнац фон Колиш"  # Hungarian master
+    "Ignazio Calvi": "Игнацио Кальви"  # Italian master
+    "Ilia Abramovich Kan": "Илья Абрамович Кан"  # Russian master
+    "Ilya Shumov": "Илья Шумов"  # Russian master
+    "Isaac Kashdan": "Исаак Кашдан"  # American grandmaster
+    "Isaak Appel": "Исаак Аппель"
+    "Isidor Gunsberg": "Исидор Гунсберг"  # Famous chess player
+    "Israel Albert Horowitz": "Исраэль Альберт Горовиц"  # American master
+    "Jackson Whipps Showalter": "Джексон Уиппс Шоуолтер"  # American champion
+    "Jacob Schumer": "Яков Шумер"
+    "Jacques Mieses": "Жак Мизес"  # German-British master
+    "Jacques Schwarz": "Жак Шварц"
+    "Jakob Rosanes": "Яков Розанес"
+    "James Macrae Aitken": "Джеймс Макрей Эйткен"
+    "James Mason": "Джеймс Мейсон"
+    "James McConnell": "Джеймс Макконнелл"
+    "James Moore Hanham": "Джеймс Мур Ханэм"
+    "Jean Dufresne": "Жан Дюфрен"
+    "Jean Taubenhaus": "Жан Таубенхаус"
+    "Jindrich Engel": "Йиндржих Энгель"
+    "Johannes Turn": "Йоханнес Турн"
+    "Johannes Zukertort": "Иоганн Цукерторт"  # Polish master
+    "Johann Hermann Bauer": "Иоганн Герман Бауер"  # Austrian master
+    "Johann Jacob Loewenthal": "Иоганн Якоб Лёвенталь"  # Hungarian master
+    "Johann Loewenthal / J Cunningham": "Иоганн Лёвенталь / Дж. Каннингем"
+    "Johann Loewenthal / John Owen": "Иоганн Лёвенталь / Джон Оуэн"
+    "Johann Nepomuk Berger": "Иоганн Непомук Бергер"  # Austrian theorist
+    "John Cochrane": "Джон Кокрейн"  # Scottish master
+    "John Finan Barry": "Джон Финан Барри"
+    "John Lindsay McCutcheon": "Джон Линдси Маккатчен"
+    "John Owen": "Джон Оуэн"
+    "John William Schulten": "Джон Уильям Шультен"
+    "Jorgen Moeller": "Йёрген Мёллер"  # Danish master
+    "Joseph Henry Blackburne": "Джозеф Генри Блэкберн"  # English master
+    "Joseph Henry Blake": "Джозеф Генри Блейк"
+    "Jose Raul Capablanca": "Хосе Рауль Капабланка"  # World champion
+    "Juan Corzo": "Хуан Корсо"
+    "Jules Arnous de Riviere": "Жюль Арну де Ривьер"
+    "Julius Perlis": "Юлиус Перлис"  # Austrian master
+    "Karel Hromadka": "Карел Громадка"  # Czech master
+    "Karl August Walbrodt": "Карл Август Вальбродт"
+    "Karl Gilg": "Карл Гильг"
+    "Karl Mayet": "Карл Майет"
+    "Karl Pitschel": "Карл Пичель"
+    "Karoly Sterk": "Карой Штерк"
+    "Kozelek": "Козелек"
+    "Kurt Paul Otto Joseph Richter": "Курт Пауль Отто Йозеф Рихтер"
+    "Lajos Asztalos": "Лайош Асталош"
+    "Lajos Steiner": "Лайош Штейнер"  # Hungarian-Australian master
+    "L de Rives": "Л. де Рив"
+    "Leo Fleischmann Forgacs": "Лео Флейшман Форгач"  # Hungarian master
+    "Lionel Adalbert Bagration Felix Kieseritzky": "Лионель Кизерицкий"  # Baltic German master
+    "Lodewijk Prins": "Лодевейк Принс"  # Dutch master
+    "London Chess Club": "Лондонский шахматный клуб"  # Chess club
+    "Louis Charles Mahe De La Bourdonnais": "Луи Шарль де Лабурдонне"  # French master
+    "Louis Paulsen": "Луи Паульсен"  # German master
+    "Louis van Vliet": "Луи ван Влит"
+    "Ludwig Bledow": "Людвиг Бледов"
+    "Ludwig Engels": "Людвиг Энгельс"  # German master
+    "Ludwig Rellstab": "Людвиг Рельштаб"
+    "Mario Monticelli": "Марио Монтичелли"  # Italian master
+    "Marmaduke Wyvill": "Мармадьюк Уайвилл"
+    "Martin Severin From": "Мартин Северин Фром"  # Danish master
+    "Max Bluemich": "Макс Блюмих"
+    "Max Euwe": "Макс Эйве"  # World champion
+    "Max Harmonist": "Макс Гармонист"
+    "Maximilian Fleissig": "Максимилиан Флейсиг"
+    "Max Weiss": "Макс Вайс"
+    "Mikhail Botvinnik": "Михаил Ботвинник"  # World champion
+    "Mikhail Chigorin": "Михаил Чигорин"  # Russian chess player
+    "Mikhail M Yudovich Sr.": "Михаил Михайлович Юдович ст."  # Russian chess player
+    "Milan Vidmar": "Милан Видмар"  # Slovenian grandmaster
+    "Mirko Schreiber": "Мирко Шрайбер"
+    "Mir Sultan Khan": "Мир Султан Хан"  # Indian chess player
+    "Morphy / Barnes": "Морфи / Барнс"
+    "Nicolas Rossolimo": "Николай Россолимо"  # French-American grandmaster
+    "Nikolai Nikolaevich Riumin": "Николай Николаевич Рюмин"
+    "NN": "Неизвестный"  # Unknown player
+    "Norman Tweed Whitaker": "Норман Твид Уитакер"
+    "OhanyanEminChess": "OhanyanEminChess"  # Keep Latin for online handles
+    "Oldrich Duras": "Олдржих Дурас"  # Czech master
+    "Oscar Gelbfuhs": "Оскар Гельбфукс"
+    "Oskar Naegeli": "Оскар Негели"
+    "Ossip Bernstein": "Осип Бернштейн"  # Russian-French grandmaster
+    "Paris Chess Club": "Парижский шахматный клуб"  # Chess club
+    "Paul Felix Schmidt": "Пауль Феликс Шмидт"
+    "Paul F Johner": "Пауль Ф. Йонер"
+    "Paul Keres": "Пауль Керес"  # Estonian chess player
+    "Paul Keres": "Пауль Керес"  # Estonian grandmaster
+    "Paul Morphy": "Пол Морфи"  # American chess player
+    "Paul Rudolf von Bilguer": "Пауль Рудольф фон Бильгер"
+    "Paul Saladin Leonhardt": "Пауль Саладин Леонгардт"
+    "Petar Trifunovic": "Петар Трифунович"  # Yugoslav grandmaster
+    "Peter Arsenievich Romanovsky": "Пётр Арсеньевич Романовский"  # Russian chess player
+    "Philip Stuart Milner-Barry": "Филип Стюарт Милнер-Барри"  # British master
+    "Pierre Charles Fournier de Saint Amant": "Пьер Сент-Аман"  # French master
+    "Ramon Rey Ardid": "Рамон Рей Ардид"  # Spanish master
+    "RebeccaHarris": "RebeccaHarris"  # Keep Latin for online handles
+    "Reginald Pryce Michell": "Реджинальд Прайс Митчелл"
+    "Reuben Fine": "Рубен Файн"  # American grandmaster
+    "Richard Clewin Griffith": "Ричард Клюин Гриффит"
+    "Richard Reti": "Рихард Рети"  # Famous chess player
+    "Richard Schurig": "Рихард Шуриг"
+    "Richard Teichmann": "Рихард Тейхман"  # German master
+    "Robert Franz Sr.": "Роберт Франц ст."
+    "Roberto Grau": "Роберто Грау"
+    "Rudolf Rezso Charousek": "Рудольф Харузек"  # Hungarian master
+    "Rudolf Spielmann": "Рудольф Шпильман"  # Famous chess player
+    "Rudolf Swiderski": "Рудольф Свидерский"
+    "Salo Landau": "Сало Ландау"
+    "Salomon Flohr": "Саломон Флор"  # Czech-Soviet grandmaster
+    "Samuel D Factor": "Самуэль Д. Фактор"
+    "Samuel Lipschutz": "Самуэль Липшюц"
+    "Samuel Reshevsky": "Самуэль Решевский"  # Famous chess player
+    "Samuel Rosenthal": "Самуэль Розенталь"
+    "Samuel Standidge Boden": "Самуэль Стэндидж Боден"
+    "Savielly Tartakower": "Савелий Тартаковер"  # Famous chess player
+    "Serafino Dubois": "Серафино Дюбуа"
+    "Sergey Nikolaevich von Freymann": "Сергей Николаевич фон Фрейман"  # Russian chess player
+    "Siegbert Tarrasch": "Зигберт Тарраш"  # Famous chess theorist
+    "Simon Winawer": "Симон Винавер"  # Famous chess player
+    "Staunton / Owen": "Стонтон / Оуэн"
+    "Stefano Rosselli del Turco": "Стефано Росселли дель Турко"  # Italian master
+    "Stella": "Стелла"
+    "Theodore Lichtenhein": "Теодор Лихтенхайн"
+    "Theodore Tylor": "Теодор Тайлор"
+    "Theodor von Scheve": "Теодор фон Шеве"
+    "ThiesHeinemann": "ThiesHeinemann"
+    "Think_Fast_Move_Fast": "Think_Fast_Move_Fast"  # Keep Latin for online handles
+    "Thomas Bowdler": "Томас Баудлер"
+    "Thomas Francis Lawrence": "Томас Фрэнсис Лоуренс"
+    "Vasily Panov": "Василий Панов"  # Russian chess player
+    "Vasja Pirc": "Васья Пирц"
+    "Vera Menchik": "Вера Менчик"  # Famous female chess player
+    "Victor Berger": "Виктор Бергер"
+    "Victor Leonard Wahltuch": "Виктор Леонард Вальтух"
+    "Vienna Chess Club": "Венский шахматный клуб"  # Chess club
+    "Viktor Arsentievich Goglidze": "Виктор Арсеньевич Гоглидзе"  # Georgian chess player
+    "Vitaly Chekhover": "Виталий Чеховер"
+    "Vladas Mikenas": "Владас Микенас"  # Lithuanian grandmaster
+    "Vladimir Alatortsev": "Владимир Алаторцев"  # Russian chess player
+    "Vladimir Petrov": "Владимир Петров"  # Russian chess player
+    "Vsevolod Rauzer": "Всеволод Раузер"  # Russian chess player
+    "Walter John": "Вальтер Йон"
+    "Wilhelm Hanstein": "Вильгельм Ганштейн"
+    "Wilhelm Steinitz": "Вильгельм Стейниц"  # World champion
+    "William Ewart Napier": "Уильям Эварт Нейпир"
+    "William Henry Krause Pollock": "Уильям Генри Краузе Поллок"
+    "William Ward": "Уильям Уорд"
+    "William Wayte": "Уильям Уэйт"
+    "William Winter": "Уильям Уинтер"
+    "Wolf Meyer Popert": "Вольф Мейер Поперт"
+    "WowFlow": "WowFlow"  # Keep Latin for online handles

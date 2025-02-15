@@ -68,13 +68,13 @@ class PgnSummary
   end
 
   def translate_player_name(name, locale)
-    return name unless locale.to_s == 'ru'
+    return name unless translated_name_available?(name, locale)
     I18n.t("players.#{name}", default: name, locale: locale)
   end
 
   def translated_game_at(index, locale)
     game = game_at(index)
-    return game unless locale.to_s == 'ru'
+    return game unless locale.to_s == 'ru' || either_player_nn?(game)
 
     # Translate player names in game headers
     @games[index].each do |key, value|
@@ -86,13 +86,27 @@ class PgnSummary
   end
 
   def games_with_translated_names(locale)
-    return @games unless locale.to_s == 'ru'
+    return @games unless locale.to_s == 'ru' || any_game_with_anonymous_player?(@games)
 
     @games.map do |game|
       game_copy = game.dup
       game_copy['White'] = translate_player_name(game['White'], locale)
       game_copy['Black'] = translate_player_name(game['Black'], locale)
       game_copy
+    end
+  end
+
+  def translated_name_available?(name, locale)
+    name == "NN" || locale.to_s == 'ru'
+  end
+
+  def either_player_nn?(game)
+    game['White'] == 'NN' || game['Black'] == 'NN'
+  end
+
+  def any_game_with_anonymous_player?(games)
+    games.any? do |game|
+      either_player_nn?(game)
     end
   end
 end

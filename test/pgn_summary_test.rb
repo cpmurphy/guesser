@@ -65,4 +65,22 @@ class PgnSummaryTest < Minitest::Test
     assert_equal 19, @summary.games[0][:analysis]["last_critical_moment"]["move_number"]
     assert_equal 28, @summary.games[9][:analysis]["last_critical_moment"]["move_number"]
   end
+
+  def test_games_with_translated_names
+    I18n.load_path << Dir[File.expand_path("i18n/nb.yml")]
+    pgn_data = %q([Event ""]
+[Site ""]
+[Date "2024.12.01"]
+[Round ""]
+[White "NN"]
+[Black "Joe Schmo"]
+[Result "1-0"]
+
+1.e4 f6 2.d4 g5 3.Qh5# 1-0)
+    summary = PgnSummary.new(StringIO.new(pgn_data))
+    summary.load
+    games = summary.games_with_translated_names(:nb)
+    assert_equal "Ukjent", games[0]["White"]
+    assert_equal "Joe Schmo", games[0]["Black"]
+  end
 end

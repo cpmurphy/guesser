@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require_relative 'analyzer'
 
 class MoveJudge
@@ -16,7 +18,7 @@ class MoveJudge
     good_move ||= guess_score > game_score
 
     best_score = best_eval[:score]
-    if !good_move
+    unless good_move
       if best_score > 200
         good_move = guess_score >= best_score * 0.75
       elsif best_score > 100 && best_score <= 200
@@ -29,8 +31,7 @@ class MoveJudge
     { good_move: good_move,
       best_eval: best_eval.merge(score: best_score),
       guess_eval: guess_eval.merge(score: guess_score),
-      game_eval: game_eval.merge(score: game_score)
-    }
+      game_eval: game_eval.merge(score: game_score) }
   end
 
   def evaluate_standalone(old_fen, guessed_move_uci)
@@ -40,8 +41,6 @@ class MoveJudge
     best_score = best_eval[:score]
     { good_move: guess_score >= best_score * 0.75,
       best_eval: best_eval.merge(score: best_score),
-      guess_eval: guess_eval.merge(score: guess_score)
-    }
+      guess_eval: guess_eval.merge(score: guess_score) }
   end
-
 end

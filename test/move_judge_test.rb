@@ -1,9 +1,11 @@
+# frozen_string_literal: true
+
 require 'minitest/autorun'
 require_relative '../lib/move_judge'
 
 class MoveJudgeTest < Minitest::Test
   def setup
-    @fen = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"
+    @fen = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1'
   end
 
   def test_good_move_over_500_cp
@@ -89,8 +91,8 @@ class MoveJudgeTest < Minitest::Test
   def test_good_move_not_within_30_cp_of_best_move_when_over_100
     mock_analyzer = Minitest::Mock.new
     mock_analyzer.expect :evaluate_best_move, { score: 484 }, [@fen]
-    mock_analyzer.expect :evaluate_move, { score: -331 }, [@fen, 'a2a3']  # Guess move
-    mock_analyzer.expect :evaluate_move, { score: -87 }, [@fen, 'b1c3']  # Game move
+    mock_analyzer.expect :evaluate_move, { score: -331 }, [@fen, 'a2a3'] # Guess move
+    mock_analyzer.expect :evaluate_move, { score: -87 }, [@fen, 'b1c3'] # Game move
 
     judge = MoveJudge.new(mock_analyzer)
     result = judge.compare_moves(@fen, 'a2a3', 'b1c3')
@@ -105,7 +107,7 @@ class MoveJudgeTest < Minitest::Test
   def test_not_good_move
     mock_analyzer = Minitest::Mock.new
     mock_analyzer.expect :evaluate_best_move, { score: 32 }, [@fen]
-    mock_analyzer.expect :evaluate_move, { score: 10 }, [@fen, 'h2h4']    # Guess move
+    mock_analyzer.expect :evaluate_move, { score: 10 }, [@fen, 'h2h4'] # Guess move
     mock_analyzer.expect :evaluate_move, { score: -32 }, [@fen, 'e2e4']  # Game move
 
     judge = MoveJudge.new(mock_analyzer)
@@ -122,7 +124,7 @@ class MoveJudgeTest < Minitest::Test
     mock_analyzer = Minitest::Mock.new
     mock_analyzer.expect :evaluate_best_move, { score: 32 }, [@fen]
     mock_analyzer.expect :evaluate_move, { score: 10 }, [@fen, 'e7e8n']  # Guess move
-    mock_analyzer.expect :evaluate_move, { score: -32 }, [@fen, 'e7e8q']  # Game move
+    mock_analyzer.expect :evaluate_move, { score: -32 }, [@fen, 'e7e8q'] # Game move
 
     judge = MoveJudge.new(mock_analyzer)
     result = judge.compare_moves(@fen, 'e7e8n', 'e7e8q')

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # The MoveTranslator class translates chess moves from Portable Game Notation (PGN)
 # to a more detailed representation that includes the source and destination squares,
 # as well as information about captures and promotions.
@@ -34,15 +36,15 @@ class MoveTranslator
     'a2' => 'P', 'b2' => 'P', 'c2' => 'P', 'd2' => 'P', 'e2' => 'P', 'f2' => 'P', 'g2' => 'P', 'h2' => 'P',
     'a7' => 'p', 'b7' => 'p', 'c7' => 'p', 'd7' => 'p', 'e7' => 'p', 'f7' => 'p', 'g7' => 'p', 'h7' => 'p',
     'a8' => 'r', 'b8' => 'n', 'c8' => 'b', 'd8' => 'q', 'e8' => 'k', 'f8' => 'b', 'g8' => 'n', 'h8' => 'r'
-  }
+  }.freeze
 
   def initialize
     @board = STARTING_POSITION.dup
     @current_player = :white
     @last_move = nil
-    @white_castle_moves_allowed = "KQ"
-    @black_castle_moves_allowed = "kq"
-    @en_passant_target = "-"
+    @white_castle_moves_allowed = 'KQ'
+    @black_castle_moves_allowed = 'kq'
+    @en_passant_target = '-'
     @halfmove_clock = 0
     @fullmove_number = 1
   end
@@ -59,12 +61,12 @@ class MoveTranslator
       result = handle_castling(pgn_move)
       @halfmove_clock += 1
     when /^([KQRBN])?([a-h])?([1-8])?(x)?([a-h][1-8])(=[QRBN])?(\+|#)?$/
-      piece = $1 || 'P'
-      file_hint = $2
-      rank_hint = $3
-      capture = $4
-      to = $5
-      promotion = $6
+      piece = ::Regexp.last_match(1) || 'P'
+      file_hint = ::Regexp.last_match(2)
+      rank_hint = ::Regexp.last_match(3)
+      capture = ::Regexp.last_match(4)
+      to = ::Regexp.last_match(5)
+      promotion = ::Regexp.last_match(6)
 
       if piece == 'P' || capture
         @halfmove_clock = 0
@@ -82,9 +84,7 @@ class MoveTranslator
       raise "Invalid move: #{pgn_move}"
     end
 
-    if @current_player == :black
-      @fullmove_number += 1
-    end
+    @fullmove_number += 1 if @current_player == :black
     update_en_passant_status(result)
     @last_move = result
     switch_player
@@ -106,28 +106,24 @@ class MoveTranslator
     capture = @board[to] ? true : false
 
     # For pawns, check if it's an en passant capture
-    if piece.upcase == 'P' && from[0] != to[0] && !@board[to]
-      capture = true
-    end
+    capture = true if piece.upcase == 'P' && from[0] != to[0] && !@board[to]
 
     result = { piece: piece, moves: ["#{from}-#{to}"] }
 
     # Generate PGN notation
     notation = if piece.upcase == 'P'
-      if capture
-        "#{from[0]}x#{to}"
-      else
-        to
-      end
-    else
-      piece_char = piece.upcase
-      "#{piece_char}#{capture ? 'x' : ''}#{to}"
-    end
+                 if capture
+                   "#{from[0]}x#{to}"
+                 else
+                   to
+                 end
+               else
+                 piece_char = piece.upcase
+                 "#{piece_char}#{capture ? 'x' : ''}#{to}"
+               end
 
     # Add promotion if applicable
-    if promotion
-      notation += "=#{promotion.upcase}"
-    end
+    notation += "=#{promotion.upcase}" if promotion
 
     # Handle capture
     if capture
@@ -145,11 +141,11 @@ class MoveTranslator
 
     # Handle promotion
     if promotion
-      if @current_player == :white
-        promoted_piece = promotion.upcase
-      else
-        promoted_piece = promotion.downcase
-      end
+      promoted_piece = if @current_player == :white
+                         promotion.upcase
+                       else
+                         promotion.downcase
+                       end
       result[:add] = [promoted_piece, to]
     end
 
@@ -158,13 +154,13 @@ class MoveTranslator
   end
 
   def board_as_fen
-    fen = ""
-    for file in (1..8).to_a.reverse
+    fen = ''
+    (1..8).to_a.reverse.each do |file|
       empty_count = 0
-      for rank in ('a'..'h')
+      ('a'..'h').each do |rank|
         square = "#{rank}#{file}"
         if @board[square]
-          if empty_count > 0
+          if empty_count.positive?
             fen += empty_count.to_s
             empty_count = 0
           end
@@ -173,12 +169,10 @@ class MoveTranslator
           empty_count += 1
         end
       end
-      if empty_count > 0
-        fen += empty_count.to_s
-      end
+      fen += empty_count.to_s if empty_count.positive?
       fen += '/' unless file == 1
     end
-    castling_rights = (@white_castle_moves_allowed.length > 0 || @black_castle_moves_allowed.length > 0) ? " #{@white_castle_moves_allowed}#{@black_castle_moves_allowed}" : " -"
+    castling_rights = @white_castle_moves_allowed.length.positive? || @black_castle_moves_allowed.length.positive? ? " #{@white_castle_moves_allowed}#{@black_castle_moves_allowed}" : ' -'
     fen + " #{@current_player == :white ? 'w' : 'b'}#{castling_rights} #{@en_passant_target} #{@halfmove_clock} #{@fullmove_number}"
   end
 
@@ -187,7 +181,7 @@ class MoveTranslator
     @board = {}
 
     # Split the FEN string into its components
-    position, active_color, castling, en_passant, halfmove, fullmove = fen.split(' ')
+    position, active_color, castling, en_passant, halfmove, fullmove = fen.split
 
     # Populate the board
     rank = 8
@@ -221,11 +215,9 @@ class MoveTranslator
     @fullmove_number = fullmove.to_i
   end
 
-
-
   private
 
-  def moves_into_check?(square, to, piece)
+  def moves_into_check?(square, to, _piece)
     # temporarily move the piece to the square and see if the king is in check
     @board[to] = @board[square]
     @board.delete(square)
@@ -244,23 +236,20 @@ class MoveTranslator
 
   def opponent_attacks_square?(square)
     # check if the square is under attack by an opposing piece
-    if @current_player == :white
-      opposing_pieces = @board.select { |_, piece| piece =~ /[pnbrq]/ }
-      opposing_pieces.each do |current_square, piece|
-        return true if valid_move?(current_square, square, piece)
-      end
-    else
-      opposing_pieces = @board.select { |_, piece| piece =~ /[PNBRQ]/ }
-      opposing_pieces.each do |current_square, piece|
-        return true if valid_move?(current_square, square, piece)
-      end
+    opposing_pieces = if @current_player == :white
+                        @board.select { |_, piece| piece =~ /[pnbrq]/ }
+                      else
+                        @board.select { |_, piece| piece =~ /[PNBRQ]/ }
+                      end
+    opposing_pieces.each do |current_square, piece|
+      return true if valid_move?(current_square, square, piece)
     end
     false
   end
 
   def find_source_square(piece, capture, to, file_hint, rank_hint)
     piece = piece.downcase if @current_player == :black
-    candidates = @board.select { |square, p| p == piece }
+    candidates = @board.select { |_square, p| p == piece }
 
     if piece.upcase == 'P'
       candidates = handle_pawn_move(candidates, capture, to, file_hint)
@@ -271,11 +260,15 @@ class MoveTranslator
 
     candidates.select! { |square, _| valid_move?(square, to, piece) }
 
+    candidates.reject! { |square, piece| moves_into_check?(square, to, piece) } if candidates.size > 1
     if candidates.size > 1
-      candidates.reject! { |square, piece| moves_into_check?(square, to, piece) }
+      raise "Ambiguous move for #{annotation_for(piece, file_hint, rank_hint, capture,
+                                                 to)}: could be #{candidates.inspect}"
     end
-    raise "Ambiguous move for #{annotation_for(piece, file_hint, rank_hint, capture, to)}: could be #{candidates.inspect}" if candidates.size > 1
-    raise "No valid source square found for #{annotation_for(piece, file_hint, rank_hint, capture, to)} FEN #{board_as_fen}" if candidates.empty?
+    if candidates.empty?
+      raise "No valid source square found for #{annotation_for(piece, file_hint, rank_hint, capture,
+                                                               to)} FEN #{board_as_fen}"
+    end
 
     candidates.keys.first
   end
@@ -292,21 +285,17 @@ class MoveTranslator
     direction = @current_player == :white ? 1 : -1
 
     if capture # capture move
-      if file_hint
-        candidates.select! { |square, _| square[0] == file_hint }
-      end
+      candidates.select! { |square, _| square[0] == file_hint } if file_hint
       candidates.select! { |square, _| (square[1].to_i - to_rank.to_i).abs == 1 }
     else # non-capture move
       candidates.select! { |square, _| square[0] == to_file }
-      if @current_player == :white
-        allowed_destination_rank = '4'
-      else
-        allowed_destination_rank = '5'
-      end
+      allowed_destination_rank = if @current_player == :white
+                                   '4'
+                                 else
+                                   '5'
+                                 end
       allowed_from_ranks = [(to_rank.to_i - direction).to_s]
-      if to_rank == allowed_destination_rank
-        allowed_from_ranks << (to_rank.to_i - 2 * direction).to_s
-      end
+      allowed_from_ranks << (to_rank.to_i - (2 * direction)).to_s if to_rank == allowed_destination_rank
 
       candidates.select! { |square, _| allowed_from_ranks.include?(square[1]) }
     end
@@ -378,27 +367,32 @@ class MoveTranslator
     file_diff = (from_file.ord - to_file.ord).abs
     rank_diff = (to_rank.to_i - from_rank.to_i) * direction
 
-    if file_diff == 0 # Moving forward
+    if file_diff.zero? # Moving forward
       if rank_diff == 1
-        return !@board[to] # Destination must be empty
+        !@board[to] # Destination must be empty
       elsif rank_diff == 2
-        return false unless ((@current_player == :white && from_rank == '2') || (@current_player == :black && from_rank == '7'))
+        unless (@current_player == :white && from_rank == '2') || (@current_player == :black && from_rank == '7')
+          return false
+        end
+
         middle_square = "#{from_file}#{from_rank.to_i + direction}"
-        return !@board[middle_square] && !@board[to] # Both squares must be empty
+        !@board[middle_square] && !@board[to] # Both squares must be empty
       else
-        return false
+        false
       end
     elsif file_diff == 1 && rank_diff == 1 # Capture or en passant
       return true if @board[to] # Regular capture
-      return valid_en_passant?(from, to) # Check for en passant
+
+      valid_en_passant?(from, to) # Check for en passant
     else
-      return false
+      false
     end
   end
 
   def valid_en_passant?(from, to)
     direction = @current_player == :white ? 1 : -1
     return false unless @last_move && @last_move[:moves].size == 1
+
     last_from, last_to = @last_move[:moves][0].split('-')
 
     # Check if the last move was a two-square pawn move
@@ -450,6 +444,7 @@ class MoveTranslator
 
     while current_file.chr != to_file || current_rank.to_s != to_rank
       return false if @board["#{current_file.chr}#{current_rank}"]
+
       current_file += file_direction
       current_rank += rank_direction
     end
@@ -468,9 +463,7 @@ class MoveTranslator
     return true if file_diff <= 1 && rank_diff <= 1
 
     # Castling
-    if file_diff == 2 && rank_diff == 0
-      return valid_castling?(from, to)
-    end
+    return valid_castling?(from, to) if file_diff == 2 && rank_diff.zero?
 
     false
   end
@@ -503,12 +496,15 @@ class MoveTranslator
 
   def handle_castling(pgn_move)
     rank = @current_player == :white ? '1' : '8'
+    king_from = "e#{rank}"
     if pgn_move =~ /^O-O[+#]?$/ # Kingside castling
-      king_from, king_to = "e#{rank}", "g#{rank}"
-      rook_from, rook_to = "h#{rank}", "f#{rank}"
+      king_to = "g#{rank}"
+      rook_from = "h#{rank}"
+      rook_to = "f#{rank}"
     else # O-O-O, Queenside castling
-      king_from, king_to = "e#{rank}", "c#{rank}"
-      rook_from, rook_to = "a#{rank}", "d#{rank}"
+      king_to = "c#{rank}"
+      rook_from = "a#{rank}"
+      rook_to = "d#{rank}"
     end
 
     # Move king and rook
@@ -536,17 +532,13 @@ class MoveTranslator
     # Handle capture
     if capture || (@board[to] && piece.upcase == 'P' && from[0] != to[0])
       captured_piece = @board[to]
-      if !captured_piece
-        if @current_player == :white
-          captured_piece = 'p'
-        else
-          captured_piece = 'P'
-        end
-      end
+      captured_piece ||= if @current_player == :white
+                           'p'
+                         else
+                           'P'
+                         end
       captured_square = to
-      if piece.upcase == 'P' && capture && !@board[to] # En passant
-        captured_square = "#{to[0]}#{from[1].to_i}"
-      end
+      captured_square = "#{to[0]}#{from[1].to_i}" if piece.upcase == 'P' && capture && !@board[to] # En passant
       result[:remove] = [captured_piece, captured_square]
       @board.delete(captured_square)
     end
@@ -554,9 +546,7 @@ class MoveTranslator
     # Handle promotion
     if promotion
       promoted_piece = promotion[-1]
-      if @current_player != :white
-        promoted_piece = promoted_piece.downcase
-      end
+      promoted_piece = promoted_piece.downcase if @current_player != :white
       @board[to] = promoted_piece
       result[:add] = [promoted_piece, to]
     else
@@ -573,13 +563,13 @@ class MoveTranslator
 
   def update_en_passant_status(ui_move)
     move = ui_move[:moves][0]
-    if @current_player == :white && move =~ /^[a-h]2-[a-h]4$/
-      @en_passant_target = move.sub(/^([a-h]).*/, "\\13")
-    elsif @current_player == :black && move =~ /^[a-h]7-[a-h]5$/
-      @en_passant_target = move.sub(/^([a-h]).*/, "\\16")
-    else
-      @en_passant_target = '-'
-    end
+    @en_passant_target = if @current_player == :white && move =~ /^[a-h]2-[a-h]4$/
+                           move.sub(/^([a-h]).*/, '\\13')
+                         elsif @current_player == :black && move =~ /^[a-h]7-[a-h]5$/
+                           move.sub(/^([a-h]).*/, '\\16')
+                         else
+                           '-'
+                         end
   end
 
   def update_castling_status(piece, from)
@@ -591,29 +581,29 @@ class MoveTranslator
       end
     elsif piece == 'R'
       if from == 'h1' && @white_castle_moves_allowed
-        if @white_castle_moves_allowed.length > 1
-          @white_castle_moves_allowed = 'Q'
-        else
-          @white_castle_moves_allowed = ''
-        end
+        @white_castle_moves_allowed = if @white_castle_moves_allowed.length > 1
+                                        'Q'
+                                      else
+                                        ''
+                                      end
       elsif from == 'a1' && @white_castle_moves_allowed
-        if @white_castle_moves_allowed.length > 1
-          @white_castle_moves_allowed = 'K'
-        else
-          @white_castle_moves_allowed = ''
-        end
+        @white_castle_moves_allowed = if @white_castle_moves_allowed.length > 1
+                                        'K'
+                                      else
+                                        ''
+                                      end
       elsif from == 'h8' && @black_castle_moves_allowed
-        if @black_castle_moves_allowed.length > 1
-          @black_castle_moves_allowed = 'q'
-        else
-          @black_castle_moves_allowed = ''
-        end
+        @black_castle_moves_allowed = if @black_castle_moves_allowed.length > 1
+                                        'q'
+                                      else
+                                        ''
+                                      end
       elsif from == 'a8' && @black_castle_moves_allowed
-        if @black_castle_moves_allowed.length > 1
-          @black_castle_moves_allowed = 'k'
-        else
-          @black_castle_moves_allowed = ''
-        end
+        @black_castle_moves_allowed = if @black_castle_moves_allowed.length > 1
+                                        'k'
+                                      else
+                                        ''
+                                      end
       end
     end
   end

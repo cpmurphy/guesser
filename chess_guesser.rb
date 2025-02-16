@@ -1,10 +1,11 @@
+# frozen_string_literal: true
+
 require 'tempfile'
 require 'sinatra'
 require 'json'
 require 'pgn'
 require 'secure_headers'
 require 'i18n'
-
 
 require_relative 'lib/analyzer'
 require_relative 'lib/move_judge'
@@ -16,7 +17,8 @@ require_relative 'lib/asset_version'
 
 class ChessGuesser < Sinatra::Base
   def self.discover_supported_locales
-    i18n_path = File.expand_path("i18n/*.yml")
+    I18n.load_path << Dir[File.expand_path('i18n/*.yml')]
+    i18n_path = File.expand_path('i18n/*.yml')
     Dir.glob(i18n_path).map do |file|
       # Extract locale from filename (e.g., "en.yml" -> :en)
       basename = File.basename(file, '.yml')
@@ -40,43 +42,41 @@ class ChessGuesser < Sinatra::Base
 
   SecureHeaders::Configuration.default do |config|
     config.csp = {
-      default_src: %w('self'),
-      script_src: %w('self' 'unsafe-inline' 'unsafe-eval'),
-      style_src: %w('self' 'unsafe-inline'),
-      img_src: %w('self' data:),
-      connect_src: %w('self'),
-      font_src: %w('self'),
-      object_src: %w('none'),
-      frame_src: %w('none'),
-      frame_ancestors: %w('none'),
-      form_action: %w('self'),
-      base_uri: %w('self'),
+      default_src: %w['self'],
+      script_src: %w['self' 'unsafe-inline' 'unsafe-eval'],
+      style_src: %w['self' 'unsafe-inline'],
+      img_src: %w['self' data:],
+      connect_src: %w['self'],
+      font_src: %w['self'],
+      object_src: %w['none'],
+      frame_src: %w['none'],
+      frame_ancestors: %w['none'],
+      form_action: %w['self'],
+      base_uri: %w['self'],
       upgrade_insecure_requests: true
     }
-    config.x_frame_options = "DENY"
-    config.x_content_type_options = "nosniff"
-    config.x_xss_protection = "1; mode=block"
-    config.x_download_options = "noopen"
-    config.x_permitted_cross_domain_policies = "none"
-    config.referrer_policy = %w(strict-origin-when-cross-origin)
+    config.x_frame_options = 'DENY'
+    config.x_content_type_options = 'nosniff'
+    config.x_xss_protection = '1; mode=block'
+    config.x_download_options = 'noopen'
+    config.x_permitted_cross_domain_policies = 'none'
+    config.referrer_policy = %w[strict-origin-when-cross-origin]
   end
 
   before do
-    if request.post?
-      if request.content_length.to_i > 1024*1024  # 1MB limit
-        halt 413, { error: 'Request entity too large' }.to_json
-      end
+    if request.post? && (request.content_length.to_i > 1024 * 1024)
+      halt 413, { error: 'Request entity too large' }.to_json # 1MB limit
     end
   end
 
   before do
     # First try cookie
     @locale = if request.cookies['locale']
-      request.cookies['locale'].to_sym
-    else
-      # Fall back to browser Accept-Language header
-      extract_locale_from_accept_language_header
-    end
+                request.cookies['locale'].to_sym
+              else
+                # Fall back to browser Accept-Language header
+                extract_locale_from_accept_language_header
+              end
     I18n.locale = @locale
     @move_localizer = MoveLocalizer.new(@locale)
   end
@@ -89,10 +89,10 @@ class ChessGuesser < Sinatra::Base
 
     # Parse Accept-Language header and get ordered list of locales
     accepted_languages = request.env['HTTP_ACCEPT_LANGUAGE'].split(',')
-      .map { |l| l.split(';q=') }
-      .map { |l| [l[0].split('-')[0], (l[1] || '1').to_f] }
-      .sort_by { |_, q| -q }
-      .map { |locale, _| locale.to_sym }
+                                .map { |l| l.split(';q=') }
+                                .map { |l| [l[0].split('-')[0], (l[1] || '1').to_f] }
+                                .sort_by { |_, q| -q }
+                                .map { |locale, _| locale.to_sym }
 
     # Find first supported locale from the accepted languages
     preferred_locale = accepted_languages.find { |locale| SUPPORTED_LOCALES.include?(locale) }
@@ -106,7 +106,6 @@ class ChessGuesser < Sinatra::Base
     super
     move_judge = MoveJudge.new
     @evaluator = GuessEvaluator.new(move_judge)
-    I18n.load_path << Dir[File.expand_path("i18n/*.yml")]
     @valid_pgn_basenames = build_builtin_allowlist
   end
 
@@ -122,20 +121,19 @@ class ChessGuesser < Sinatra::Base
 
   def build_builtin_allowlist
     # Create a allowlist of valid basenames from the actual files
-    Dir.glob('data/builtins/*-games.pgn').map { |file|
+    Dir.glob('data/builtins/*-games.pgn').map do |file|
       File.basename(file, '-games.pgn')
-    }.freeze
+    end.freeze
   end
 
   def gather_builtins
-    file_map = Dir.glob('data/builtins/*-games.pgn').inject({}) do |map, file|
+    file_map = Dir.glob('data/builtins/*-games.pgn').each_with_object({}) do |file, map|
       basename = File.basename(file, '-games.pgn')
       # Convert filename to translation key
       translation_key = basename.gsub('-', '_')
       description = t("builtins.#{translation_key}")
       game_count = PgnSummary.new(File.open(file, encoding: Encoding::ISO_8859_1)).load.size
       map[basename] = [basename, file, description, game_count]
-      map
     end
 
     file_map.values.sort_by { |item| item[2] }
@@ -179,12 +177,8 @@ class ChessGuesser < Sinatra::Base
 
   get '/uploaded/games/:id' do
     game_state = uploaded_game_state(params[:id].to_i)
-    if params[:move]
-      game_state[:current_whole_move] = params[:move].to_i
-    end
-    if params[:side]
-      game_state[:side_to_move] = params[:side]
-    end
+    game_state[:current_whole_move] = params[:move].to_i if params[:move]
+    game_state[:side_to_move] = params[:side] if params[:side]
     haml :game, locals: game_state
   end
 
@@ -196,13 +190,11 @@ class ChessGuesser < Sinatra::Base
       summary = PgnSummary.new(File.open(file_path, encoding: Encoding::ISO_8859_1))
       summary.load
       json_path = file_path.gsub('.pgn', '.json')
-      if File.exist?(json_path)
-        summary.add_analysis(JSON.parse(File.read(json_path)))
-      end
+      summary.add_analysis(JSON.parse(File.read(json_path))) if File.exist?(json_path)
       haml :games, locals: { summary: summary, path_prefix: "builtin/#{basename}" }
     else
       status 404
-      "File not found"
+      'File not found'
     end
   end
 
@@ -210,12 +202,8 @@ class ChessGuesser < Sinatra::Base
     halt 404 unless @valid_pgn_basenames.include?(basename)
 
     game_state = builtin_game_state(basename, game_index.to_i)
-    if params[:move]
-      game_state[:current_whole_move] = params[:move].to_i
-    end
-    if params[:side]
-      game_state[:side_to_move] = params[:side]
-    end
+    game_state[:current_whole_move] = params[:move].to_i if params[:move]
+    game_state[:side_to_move] = params[:side] if params[:side]
     haml :game, locals: game_state
   end
 
@@ -236,7 +224,7 @@ class ChessGuesser < Sinatra::Base
     if summary
       session['summary'] = summary
       if summary.load.length == 1
-        redirect "/uploaded/games/0"
+        redirect '/uploaded/games/0'
       else
         redirect '/uploaded/games'
       end
@@ -247,7 +235,7 @@ class ChessGuesser < Sinatra::Base
   end
 
   def builtin_game_state(basename, game_index)
-    file_path = File.join('data/builtins', "#{basename}-games.pgn")
+    File.join('data/builtins', "#{basename}-games.pgn")
     game = builtin_game(basename, game_index)
     build_game_state(game)
   end
@@ -263,7 +251,8 @@ class ChessGuesser < Sinatra::Base
   end
 
   def translate_player_name(name, locale)
-    return name unless name == "NN" || locale.to_s == 'ru'
+    return name unless name == 'NN' || locale.to_s == 'ru'
+
     I18n.t("players.#{name}", default: name, locale: locale)
   end
 
@@ -273,17 +262,17 @@ class ChessGuesser < Sinatra::Base
     side_with_first_move = game.starting_position ? game.starting_position.player : 'white'
     starting_move = 1
     white_player = game.tags['White']
-    if !white_player || white_player.empty?
-      white_player = t('game.white')
-    else
-      white_player = translate_player_name(white_player, @locale)
-    end
+    white_player = if !white_player || white_player.empty?
+                     t('game.white')
+                   else
+                     translate_player_name(white_player, @locale)
+                   end
     black_player = game.tags['Black']
-    if !black_player || black_player.empty?
-      black_player = t('game.black')
-    else
-      black_player = translate_player_name(black_player, @locale)
-    end
+    black_player = if !black_player || black_player.empty?
+                     t('game.black')
+                   else
+                     translate_player_name(black_player, @locale)
+                   end
     if game.starting_position
       move_translator.load_game_from_fen(game.starting_position.to_fen.to_s)
       starting_move = game.starting_position.fullmove
@@ -316,7 +305,7 @@ class ChessGuesser < Sinatra::Base
 
   post '/set_guess_mode' do
     mode = params['mode']
-    if ['white', 'black', 'both'].include?(mode)
+    if %w[white black both].include?(mode)
       session['guess_mode'] = mode
       { success: true }.to_json
     else
@@ -334,13 +323,11 @@ class ChessGuesser < Sinatra::Base
       translator = MoveTranslator.new
       translator.load_game_from_fen(guess['guessed_move']['oldPos'])
       guessed_move = guess['guessed_move']['source'] + guess['guessed_move']['target']
-      if guess['guessed_move']['promotion']
-        guessed_move += guess['guessed_move']['promotion']
-      end
+      guessed_move += guess['guessed_move']['promotion'] if guess['guessed_move']['promotion']
       move = translator.translate_uci_move(guessed_move)
       return [move.merge({ result: 'game_over' })].to_json
     end
-    old_fen = game.positions[current_move].to_fen
+    game.positions[current_move].to_fen
     guessed_move = guess['guessed_move']
     number_of_moves = game.moves.length
     ui_game_move = guess['game_move']['moves'][0]
@@ -351,7 +338,7 @@ class ChessGuesser < Sinatra::Base
   end
 
   def active_color(current_move)
-    if current_move % 2 == 0
+    if current_move.even?
       'white'
     else
       'black'
@@ -395,9 +382,9 @@ class ChessGuesser < Sinatra::Base
         }.to_json
       else
         status 400
-        { error: "No valid move found" }.to_json
+        { error: 'No valid move found' }.to_json
       end
-    rescue => e
+    rescue StandardError => e
       status 500
       { error: "Engine error: #{e.message}" }.to_json
     end
@@ -415,12 +402,12 @@ class ChessGuesser < Sinatra::Base
     end
 
     def supported_locales_with_names
-      SUPPORTED_LOCALES.map do |locale|
+      SUPPORTED_LOCALES.to_h do |locale|
         [locale, I18n.t('language_name', locale: locale)]
-      end.to_h
+      end
     end
   end
 
   # start the server if ruby file executed directly
-  run! if app_file == $0
+  run! if app_file == $PROGRAM_NAME
 end

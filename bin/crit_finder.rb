@@ -1,4 +1,6 @@
 #! /usr/bin/env ruby
+# frozen_string_literal: true
+
 require 'pgn'
 require_relative '../lib/analyzer'
 require_relative '../lib/move_translator'
@@ -10,13 +12,13 @@ class CriticalMomentFinder
 
   def initialize(game)
     @game = game
-    @analyzer = Analyzer.new()
+    @analyzer = Analyzer.new
     @positions = generate_positions
   end
 
   def analyze_game
     winner = deduce_winner
-    return { result: "The ending position was about equal. No critical moment found." } if winner == :draw
+    return { result: 'The ending position was about equal. No critical moment found.' } if winner == :draw
 
     scores, last_critical_moment = find_last_critical_moment(winner)
     first_serious_mistake = find_first_serious_mistake(scores, winner)
@@ -40,9 +42,7 @@ class CriticalMomentFinder
     loser_moves = winner == :black ? :even : :odd
     critical_index = move_index
 
-    if move_index % 2 == 1 && loser_moves == :even || move_index % 2 == 0 && loser_moves == :odd
-      move_index -= 1
-    end
+    move_index -= 1 if move_index.odd? && loser_moves == :even || move_index.even? && loser_moves == :odd
 
     while move_index >= 0
       analysis = @analyzer.evaluate_best_move(@positions[move_index])
@@ -76,25 +76,23 @@ class CriticalMomentFinder
     first_mistake = nil
     reverse_scores = scores.reverse
     reverse_scores.each_with_index do |score, index|
-      next if index == 0 # Skip the first score as we need a previous score to compare
+      next if index.zero? # Skip the first score as we need a previous score to compare
 
       score_diff = score - reverse_scores[index - 1]
-      if score_diff >= SERIOUS_MISTAKE_DROP
-        move_index = @game.moves.length - (2 * (scores.length - index))
-        loser_moves = winner == :black ? :even : :odd
-        if move_index % 2 == 1 && loser_moves == :even || move_index % 2 == 0 && loser_moves == :odd
-          move_index += 1
-        end
-        move_number = (move_index / 2) + 1
-        first_mistake = {
-          score_after: score,
-          score_before: reverse_scores[index - 1],
-          move_number: move_number,
-          move: @game.moves[move_index].notation,
-          side: (winner == :white) ? 'black' : 'white'
-        }
-        break
-      end
+      next unless score_diff >= SERIOUS_MISTAKE_DROP
+
+      move_index = @game.moves.length - (2 * (scores.length - index))
+      loser_moves = winner == :black ? :even : :odd
+      move_index += 1 if move_index.odd? && loser_moves == :even || move_index.even? && loser_moves == :odd
+      move_number = (move_index / 2) + 1
+      first_mistake = {
+        score_after: score,
+        score_before: reverse_scores[index - 1],
+        move_number: move_number,
+        move: @game.moves[move_index].notation,
+        side: winner == :white ? 'black' : 'white'
+      }
+      break
     end
     first_mistake
   end
@@ -109,7 +107,7 @@ class CriticalMomentFinder
 
     if final_score.abs < 50
       :draw
-    elsif final_score > 0
+    elsif final_score.positive?
       is_black_to_move ? :black : :white
     else
       is_black_to_move ? :white : :black
@@ -119,9 +117,7 @@ class CriticalMomentFinder
   def generate_positions
     positions = []
     translator = MoveTranslator.new
-    if @game.starting_position
-      translator.load_game_from_fen(@game.starting_position.to_fen.to_s)
-    end
+    translator.load_game_from_fen(@game.starting_position.to_fen.to_s) if @game.starting_position
     @game.moves.each do |move|
       translator.translate_move(move.notation)
       positions << translator.board_as_fen
@@ -132,7 +128,7 @@ end
 
 # Command line interface
 if ARGV.empty?
-  puts "Usage: ruby crit_finder.rb <pgn_file>"
+  puts 'Usage: ruby crit_finder.rb <pgn_file>'
   exit
 end
 

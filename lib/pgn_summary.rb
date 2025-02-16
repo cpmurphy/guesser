@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class PgnSummary
   def initialize(file)
     @file = file
@@ -11,9 +13,10 @@ class PgnSummary
     @games = []
     pos = 0
     @file.rewind
-    while line = @file.gets
+    while (line = @file.gets)
       line = line.encode('ISO-8859-1', 'cp1252', invalid: :replace, undef: :replace, replace: '')
-      if state == :start
+      case state
+      when :start
         if line =~ /^\s*\[/
           headers = {}
           headers['pos'] = pos
@@ -22,14 +25,14 @@ class PgnSummary
         elsif line =~ /^\s*\d+\./
           state = :game
         end
-      elsif state == :headers
+      when :headers
         if line =~ /^\s*\[/
           headers.merge!(parse_header(line))
         elsif line =~ /^\s*$/
           @games.push(headers)
           state = :start
         end
-      elsif state == :game
+      when :game
         if line =~ /^\s*$/
           state = :start
           pos = @file.pos
@@ -41,27 +44,25 @@ class PgnSummary
 
   def game_at(index)
     @file.pos = @games[index]['pos']
-    if index < @games.length - 1
-      end_pos = @games[index + 1]['pos']
-    else
-      end_pos = @file.size
-    end
+    end_pos = if index < @games.length - 1
+                @games[index + 1]['pos']
+              else
+                @file.size
+              end
     read_len = end_pos - @file.pos
     game = @file.read(read_len)
-    game = game.encode('ISO-8859-1', 'cp1252', invalid: :replace, undef: :replace, replace: '')
-    game
+    game.encode('ISO-8859-1', 'cp1252', invalid: :replace, undef: :replace, replace: '')
   end
 
   def parse_header(line)
-    line.scan(/\[(.*?)\s*("(.*?)")\s*\]/).map do |key, value|
-      [key.strip, value.gsub(/"/, '')]
-    end.to_h
+    line.scan(/\[(.*?)\s*("(.*?)")\s*\]/).to_h do |key, value|
+      [key.strip, value.gsub('"', '')]
+    end
   end
 
   def add_analysis(analysis)
-    if analysis.size != @games.size
-      raise "Analysis size #{analysis.size} does not match game size #{@games.size}"
-    end
+    raise "Analysis size #{analysis.size} does not match game size #{@games.size}" if analysis.size != @games.size
+
     @games.each_with_index do |game, index|
       game[:analysis] = analysis[index]['analysis']
     end
@@ -69,6 +70,7 @@ class PgnSummary
 
   def translate_player_name(name, locale)
     return name unless translated_name_available?(name, locale)
+
     I18n.t("players.#{name}", default: name, locale: locale)
   end
 
@@ -78,7 +80,7 @@ class PgnSummary
 
     # Translate player names in game headers
     @games[index].each do |key, value|
-      if ['White', 'Black'].include?(key)
+      if %w[White Black].include?(key)
         game = game.gsub(/\[#{key} "#{value}"\]/, "[#{key} \"#{translate_player_name(value, locale)}\"]")
       end
     end
@@ -97,7 +99,7 @@ class PgnSummary
   end
 
   def translated_name_available?(name, locale)
-    name == "NN" || locale.to_s == 'ru'
+    name == 'NN' || locale.to_s == 'ru'
   end
 
   def either_player_nn?(game)

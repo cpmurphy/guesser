@@ -1,4 +1,5 @@
 #!/usr/bin/env ruby
+# frozen_string_literal: true
 
 require_relative '../lib/pgn_summary'
 
@@ -12,7 +13,7 @@ def sort_by_date!(games)
 end
 
 if ARGV.empty?
-  puts "Usage: ruby sort_pgn.rb input.pgn output.pgn"
+  puts 'Usage: ruby sort_pgn.rb input.pgn output.pgn'
   exit 1
 end
 
@@ -32,4 +33,4 @@ games.each do |game|
 end
 
 input_file.close
-output_file.close 
+output_file.close

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class GuessEvaluator
   def initialize(move_judge)
     @move_judge = move_judge
@@ -50,10 +52,8 @@ class GuessEvaluator
     target = guessed_move['target']
 
     # Check if promotion is needed
-    if needs_promotion?(source, target, guessed_move['piece'])
-      unless guessed_move['promotion']
-        return { result: 'needs_promotion', source: source, target: target }
-      end
+    if needs_promotion?(source, target, guessed_move['piece']) && !guessed_move['promotion']
+      return { result: 'needs_promotion', source: source, target: target }
     end
 
     # Get the moves to compare
@@ -64,27 +64,27 @@ class GuessEvaluator
     game_move_uci = convert_to_uci(ui_game_move, game_move)
     guessed_move_uci = "#{source}#{target}#{guessed_move['promotion'] || ''}"
 
-    if game_move_uci == '--'
-      judgment = @move_judge.evaluate_standalone(old_fen, guessed_move_uci)
-    else
-      # Compare the moves
-      judgment = @move_judge.compare_moves(old_fen, guessed_move_uci, game_move_uci)
-    end
+    judgment = if game_move_uci == '--'
+                 @move_judge.evaluate_standalone(old_fen, guessed_move_uci)
+               else
+                 # Compare the moves
+                 @move_judge.compare_moves(old_fen, guessed_move_uci, game_move_uci)
+               end
 
     build_evaluation(judgment, guessed_move_uci, game_move_uci, game_move, game, current_move, number_of_moves)
   end
 
   def needs_promotion?(source, target, piece)
     return false unless piece.end_with?('p')
+
     source_rank = source[1].to_i
     target_rank = target[1].to_i
     (source_rank == 7 && target_rank == 8) || (source_rank == 2 && target_rank == 1)
   end
 
   def convert_to_uci(ui_move, pgn_move)
-    if pgn_move == '--'
-      return pgn_move
-    end
+    return pgn_move if pgn_move == '--'
+
     uci = ui_move.sub('-', '')
     uci += pgn_move.split('=').last.downcase if pgn_move.include?('=')
     uci
@@ -114,9 +114,7 @@ class GuessEvaluator
   end
 
   def move_forward(current_move, number_of_moves)
-    if current_move < number_of_moves
-      current_move += 1
-    end
+    current_move += 1 if current_move < number_of_moves
     current_move
   end
 
@@ -124,7 +122,7 @@ class GuessEvaluator
     number_of_moves = game.moves.length
     {
       fen: game.positions[current_move].to_fen,
-      move: current_move > 0 ? game.moves[current_move - 1].notation : nil,
+      move: current_move.positive? ? game.moves[current_move - 1].notation : nil,
       move_number: current_move + 1,
       total_moves: number_of_moves
     }

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'rake/testtask'
 
 desc 'Run tests'
@@ -9,54 +11,54 @@ end
 
 desc 'Run UI tests'
 task :ui_test do
-  sh "npm run test_once"
+  sh 'npm run test_once'
 end
 
 desc 'Run a smoke test'
 Rake::TestTask.new(:smoke) do |t|
-  t.libs << "test"
+  t.libs << 'test'
   t.test_files = FileList['test/smoke_test.rb']
   t.warning = false
 end
 
 desc 'Run all the tests'
-task :test_all => [:test, :ui_test, :smoke]
+task test_all: %i[test ui_test smoke]
 
 desc 'Install npm dependencies'
 task :npm_install do
   unless File.exist?('node_modules')
-    puts "Installing npm dependencies..."
-    sh "npm install"
+    puts 'Installing npm dependencies...'
+    sh 'npm install'
   end
 end
 
 desc 'Copy 3rd party dependencies'
 task copy_deps: [:npm_install] do
-  puts "Copying 3rd party dependencies..."
-  sh "npm run copy-all"
+  puts 'Copying 3rd party dependencies...'
+  sh 'npm run copy-all'
 end
 
-task default: [:copy_deps, :test_all]
+task default: %i[copy_deps test_all]
 
 task :clean do
-  for dir in %w(./public/scripts/3rdparty ./public/3rdparty-assets)
+  %w[./public/scripts/3rdparty ./public/3rdparty-assets].each do |dir|
     sh "rm -rf #{dir}/*"
   end
 end
 
 desc 'Build Docker image'
 task docker_build: [:copy_deps] do
-  puts "Building Docker image..."
-  sh "docker build -t chess_guesser ."
+  puts 'Building Docker image...'
+  sh 'docker build -t chess_guesser .'
 end
 
 desc 'Run Docker container'
 task :docker_run do
-  puts "Running Docker container..."
-  sh "docker run -p 3000:3000 chess_guesser"
+  puts 'Running Docker container...'
+  sh 'docker run -p 3000:3000 chess_guesser'
 end
 
-desc "Update asset manifest with new version"
+desc 'Update asset manifest with new version'
 task :bump_version do
   require 'json'
   require 'time'

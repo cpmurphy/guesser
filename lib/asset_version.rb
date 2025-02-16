@@ -1,11 +1,13 @@
+# frozen_string_literal: true
+
 class AssetVersion
   class << self
     def version
       @version ||= if production?
-        production_version
-      else
-        development_version
-      end
+                     production_version
+                   else
+                     development_version
+                   end
     end
 
     private
@@ -16,6 +18,7 @@ class AssetVersion
 
     def manifest_version
       return unless File.exist?(manifest_path)
+
       @manifest_version ||= JSON.parse(File.read(manifest_path))['version']
     rescue JSON::ParserError
       nil
@@ -34,11 +37,11 @@ class AssetVersion
     end
 
     def root_path
-      File.expand_path('../..', __FILE__)
+      File.expand_path('..', __dir__)
     end
 
     def production?
       ENV['RACK_ENV'] == 'production'
     end
   end
-end 
+end

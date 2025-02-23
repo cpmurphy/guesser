@@ -30,18 +30,39 @@ module ChessGuesser
     private
 
     def extract_locale_from_accept_language_header
+      set_default_locale
+      return I18n.default_locale unless accept_language_header
+
+      accepted_languages = parse_accept_language_header
+      find_preferred_locale(accepted_languages)
+    end
+
+    def set_default_locale
       I18n.default_locale = :en
-      return I18n.default_locale unless request.env['HTTP_ACCEPT_LANGUAGE']
+    end
 
-      accepted_languages = request.env['HTTP_ACCEPT_LANGUAGE'].split(',')
-                                  .map { |l| l.split(';q=') }
-                                  .map { |l| [l[0].split('-')[0], (l[1] || '1').to_f] }
-                                  .sort_by { |_, q| -q }
-                                  .map { |locale, _| locale.to_sym }
+    def accept_language_header
+      request.env['HTTP_ACCEPT_LANGUAGE']
+    end
 
+    def parse_accept_language_header
+      accept_language_header
+        .split(',')
+        .map { |lang| parse_language_entry(lang) }
+        .sort_by { |_, quality| -quality }
+        .map { |locale, _| locale.to_sym }
+    end
+
+    def parse_language_entry(entry)
+      language, quality = entry.split(';q=')
+      base_language = language.split('-')[0]
+      quality_value = (quality || '1').to_f
+      [base_language, quality_value]
+    end
+
+    def find_preferred_locale(accepted_languages)
       preferred_locale = accepted_languages.find { |locale| SUPPORTED_LOCALES.include?(locale) }
-
       preferred_locale || I18n.default_locale
     end
   end
-end 
+end

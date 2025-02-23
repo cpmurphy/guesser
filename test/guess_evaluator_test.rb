@@ -10,6 +10,7 @@ class GuessEvaluatorTest < Minitest::Test
     @evaluator = GuessEvaluator.new(@move_judge)
   end
 
+  # rubocop:disable Minitest/MultipleAssertions
   def test_handle_incorrect_guess
     game = create_game_with_one_move
     guess = create_guess('h2', 'h4')
@@ -78,6 +79,7 @@ class GuessEvaluatorTest < Minitest::Test
 
     @move_judge.verify
   end
+  # rubocop:enable Minitest/MultipleAssertions
 
   def test_needs_promotion_for_white_pawn
     assert @evaluator.send(:needs_promotion?, 'e7', 'e8', 'wp')
@@ -103,6 +105,7 @@ class GuessEvaluatorTest < Minitest::Test
     assert_equal 'e8', result[0][:target]
   end
 
+  # rubocop:disable Style/OpenStructUse
   def test_handle_guess_with_passing_move
     game = OpenStruct.new(
       moves: [OpenStruct.new(notation: '--')],
@@ -146,6 +149,7 @@ class GuessEvaluatorTest < Minitest::Test
       ]
     )
   end
+  # rubocop:enable Style/OpenStructUse
 
   def create_guess(source, target)
     {

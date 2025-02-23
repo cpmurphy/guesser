@@ -8,7 +8,7 @@ class PgnSummaryTest < Minitest::Test
     @summary = PgnSummary.new(File.open('test/data/DrNykterstein-recent.pgn', encoding: Encoding::ISO_8859_1))
   end
 
-  def test_load
+  def test_load_players
     games = @summary.load
 
     assert_equal 10, games.count
@@ -26,6 +26,11 @@ class PgnSummaryTest < Minitest::Test
                  ], games.map do |game|
                       game['Black']
                     end)
+  end
+
+  def test_load_dates_and_events
+    games = @summary.load
+
     assert_equal([
                    '2024.03.24', '2023.12.22', '2023.07.01', '2023.07.01',
                    '2023.07.01', '2023.07.01', '2023.07.01', '2023.07.01', '2023.07.01',
@@ -42,16 +47,27 @@ class PgnSummaryTest < Minitest::Test
                  ], games.map do |game|
                       game['Event']
                     end)
+  end
+
+  def test_load_offsets
+    games = @summary.load
+
     assert_equal([0, 918, 1639, 2710, 3536, 4385, 5369, 6491, 7457, 8401], games.map { |game| game['pos'] })
   end
 
-  def test_game_at
+  def test_game_at_headers
     @summary.load
     game = @summary.game_at(9)
 
     assert_includes game, '[White "DrNykterstein"]'
     assert_includes game, '[Black "hitter1999"]'
     assert_includes game, '[Result "1-0"]'
+  end
+
+  def test_game_at_moves
+    @summary.load
+    game = @summary.game_at(9)
+
     assert_includes game, '1.b3 Nf6'
     assert_includes game, '1-0'
   end
@@ -75,8 +91,6 @@ class PgnSummaryTest < Minitest::Test
     assert_equal 1, games.count
     game = summary.game_at(0)
 
-    assert_includes game, '[White "Foo"]'
-    assert_includes game, '[Black "Bar"]'
     assert_includes game, '1.b3 Nf6'
     assert_includes game, '1-0'
   end

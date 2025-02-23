@@ -8,36 +8,64 @@ class PgnSummary
 
   attr_reader :games
 
+  private
+
+  def process_line(line, state, pos)
+    case state
+    when :start
+      handle_start_state(line, pos)
+    when :headers
+      handle_headers_state(line)
+    when :game
+      handle_game_state(line, pos)
+    else
+      [state, pos]
+    end
+  end
+
+  def handle_start_state(line, pos)
+    if line =~ /^\s*\[/
+      @current_headers = { 'pos' => pos }
+      @current_headers.merge!(parse_header(line))
+      [:headers, pos]
+    elsif line =~ /^\s*\d+\./
+      [:game, pos]
+    else
+      [:start, pos]
+    end
+  end
+
+  def handle_headers_state(line)
+    if line =~ /^\s*\[/
+      @current_headers.merge!(parse_header(line))
+      [:headers, @current_headers['pos']]
+    elsif line =~ /^\s*$/
+      @games.push(@current_headers)
+      [:start, @current_headers['pos']]
+    else
+      [:headers, @current_headers['pos']]
+    end
+  end
+
+  def handle_game_state(line, pos)
+    if line =~ /^\s*$/
+      [:start, @file.pos]
+    else
+      [:game, pos]
+    end
+  end
+
+  public
+
   def load
     state = :start
     @games = []
     pos = 0
     @file.rewind
+
     while (line = @file.gets)
       line = line.encode('ISO-8859-1', 'cp1252', invalid: :replace, undef: :replace, replace: '')
-      case state
-      when :start
-        if line =~ /^\s*\[/
-          headers = {}
-          headers['pos'] = pos
-          headers.merge!(parse_header(line))
-          state = :headers
-        elsif line =~ /^\s*\d+\./
-          state = :game
-        end
-      when :headers
-        if line =~ /^\s*\[/
-          headers.merge!(parse_header(line))
-        elsif line =~ /^\s*$/
-          @games.push(headers)
-          state = :start
-        end
-      when :game
-        if line =~ /^\s*$/
-          state = :start
-          pos = @file.pos
-        end
-      end
+      state, pos = process_line(line, state, pos)
     end
     @games
   end

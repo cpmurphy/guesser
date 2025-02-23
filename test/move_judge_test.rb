@@ -8,6 +8,7 @@ class MoveJudgeTest < Minitest::Test
     @fen = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1'
   end
 
+  # rubocop:disable Minitest/MultipleAssertions
   def test_good_move_over_500_cp
     mock_analyzer = Minitest::Mock.new
     mock_analyzer.expect :evaluate_best_move, { score: 400 }, [@fen]
@@ -135,4 +136,5 @@ class MoveJudgeTest < Minitest::Test
     assert_equal 32, result[:best_eval][:score]
     mock_analyzer.verify
   end
+  # rubocop:enable Minitest/MultipleAssertions
 end

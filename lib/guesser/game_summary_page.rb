@@ -34,4 +34,4 @@ module ChessGuesser
       end
     end
   end
-end 
+end

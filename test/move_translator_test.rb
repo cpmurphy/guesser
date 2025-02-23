@@ -83,15 +83,21 @@ class MoveTranslatorTest < Minitest::Test
   end
 
   def test_promotion_to_queen
-    @translator.instance_variable_set(:@board, { 'a7' => 'P', 'a8' => nil })
-    @translator.instance_variable_set(:@current_player, :white)
+    board = Translator::Board.new
+    @translator = MoveTranslator.new(board)
+    board.squares['a7'] = 'P'
+    board.squares['a8'] = nil
+    board.current_player = :white
 
     assert_equal({ piece: 'P', moves: ['a7-a8'], add: %w[Q a8] }, @translator.translate_move('a8=Q'))
   end
 
   def test_promotion_to_knight
-    @translator.instance_variable_set(:@board, { 'a7' => 'P', 'a8' => nil })
-    @translator.instance_variable_set(:@current_player, :white)
+    board = Translator::Board.new
+    @translator = MoveTranslator.new(board)
+    board.squares['a7'] = 'P'
+    board.squares['a8'] = nil
+    board.current_player = :white
 
     assert_equal({ piece: 'P', moves: ['a7-a8'], add: %w[N a8] }, @translator.translate_move('a8=N'))
   end
@@ -107,6 +113,7 @@ class MoveTranslatorTest < Minitest::Test
     assert_equal('r1bqk2r/ppp2ppp/1bnp1n2/8/2BPP3/5N1P/PP3PP1/RNBQ1RK1 b kq - 2 8', @translator.board_as_fen)
   end
 
+  # rubocop:disable Naming/VariableNumber
   def test_position_to_fen_after_e4
     @translator.translate_move('e4')
     # it is correct to populate the en passant target even if no enemy pawn can actually take it
@@ -118,6 +125,7 @@ class MoveTranslatorTest < Minitest::Test
 
     assert_equal('rnbqkbnr/pppp1ppp/8/4p3/4P3/8/PPPP1PPP/RNBQKBNR w KQkq e6 0 2', @translator.board_as_fen)
   end
+  # rubocop:enable Naming/VariableNumber
 
   def test_position_to_fen_after_white_bong_cloud
     @translator.translate_moves(%w[e4 e5 Ke2])

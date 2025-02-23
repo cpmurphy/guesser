@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module ChessGuesser
   module SecureHeadersConfiguration
     SecureHeaders::Configuration.default do |config|

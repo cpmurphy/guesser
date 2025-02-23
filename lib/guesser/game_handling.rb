@@ -21,40 +21,54 @@ module ChessGuesser
     end
 
     def build_game_state(game, locale)
-      moves = game.moves.map(&:notation)
-      move_translator = MoveTranslator.new
-      side_with_first_move = game.starting_position ? game.starting_position.player : 'white'
-      starting_move = 1
-      white_player = game.tags['White']
-      white_player = if !white_player || white_player.empty?
-                      t('game.white')
-                  else
-                      translate_player_name(white_player, locale)
-                  end
-      black_player = game.tags['Black']
-      black_player = if !black_player || black_player.empty?
-                      t('game.black')
-                  else
-                      translate_player_name(black_player, locale)
-                  end
-      if game.starting_position
-      move_translator.load_game_from_fen(game.starting_position.to_fen.to_s)
-      starting_move = game.starting_position.fullmove
-      end
+      move_translator = initialize_move_translator(game)
+      moves = extract_moves(game)
+      starting_move = determine_starting_move(game)
+
       {
         locale: locale,
         fen: game.positions.first.to_fen,
         moves: moves,
-        ui_moves: moves.map { |move| move_translator.translate_move(move) },
+        ui_moves: translate_moves(moves, move_translator),
         starting_whole_move: starting_move,
         current_whole_move: starting_move,
-        side_to_move: side_with_first_move,
-        white: white_player,
-        black: black_player,
+        side_to_move: determine_side_to_move(game),
+        white: process_player_name(game.tags['White'], 'white', locale),
+        black: process_player_name(game.tags['Black'], 'black', locale),
         date: game.tags['Date'],
         event: game.tags['Event'],
         result: game.result
       }
+    end
+
+    private
+
+    def initialize_move_translator(game)
+      translator = MoveTranslator.new
+      translator.load_game_from_fen(game.starting_position.to_fen.to_s) if game.starting_position
+      translator
+    end
+
+    def extract_moves(game)
+      game.moves.map(&:notation)
+    end
+
+    def translate_moves(moves, translator)
+      moves.map { |move| translator.translate_move(move) }
+    end
+
+    def determine_starting_move(game)
+      game.starting_position ? game.starting_position.fullmove : 1
+    end
+
+    def determine_side_to_move(game)
+      game.starting_position ? game.starting_position.player : 'white'
+    end
+
+    def process_player_name(player_name, default_key, locale)
+      return t("game.#{default_key}") if !player_name || player_name.empty?
+
+      translate_player_name(player_name, locale)
     end
 
     def translate_player_name(name, locale)
@@ -111,7 +125,7 @@ module ChessGuesser
       uploaded_index = path.split('/').last.to_i
       uploaded_game(uploaded_index)
     end
- 
+
     def summary_from_upload(params)
       if params[:upload_method] == 'file'
         if params[:pgn_file] && (tempfile = params[:pgn_file][:tempfile])

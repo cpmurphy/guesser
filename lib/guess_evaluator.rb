@@ -6,11 +6,17 @@ class GuessEvaluator
   end
 
   # Parameters:
-  # guessed_move: the guessed move, a hash with source (e.g. "e2"); target (e.g. "e4"); piece (e.g. "wq" for white queen)
+  # guessed_move: the guessed move, a hash with
+  #   :source (e.g. "e2")
+  #   :target (e.g. "e4")
+  #   :piece (e.g. "wq" for white queen)
+  #   :promotion (e.g. "q" for queen)
   # current_move: the current move, a zero-based index
   # ui_game_move: the UI game move, a string with source square and target square separated by a dash (e.g. "e2-e4")
   # number_of_moves: the number of moves in the game, an integer
-  # game: the game, an object with a moves method that returns an array of moves and a positions method that returns an array of positions
+  # game: the game, an object with a moves method that
+  #   returns an array of moves
+  #   and a positions method that returns an array of positions
   #
   # Returns: an array with
   #   i) the evaluation of the guess
@@ -45,6 +51,18 @@ class GuessEvaluator
     response
   end
 
+  # Struct to hold evaluation parameters
+  EvaluationParams = Struct.new(
+    :judgment,
+    :guessed_move_uci,
+    :game_move_uci,
+    :game_move,
+    :game,
+    :current_move,
+    :number_of_moves,
+    keyword_init: true
+  )
+
   private
 
   def evaluate_guess(guessed_move, current_move, ui_game_move, number_of_moves, game)
@@ -52,26 +70,57 @@ class GuessEvaluator
     target = guessed_move['target']
 
     # Check if promotion is needed
-    if needs_promotion?(source, target, guessed_move['piece']) && !guessed_move['promotion']
-      return { result: 'needs_promotion', source: source, target: target }
-    end
+    promotion_check = check_promotion(source, target, guessed_move)
+    return promotion_check if promotion_check
 
-    # Get the moves to compare
-    old_fen = game.positions[current_move].to_fen
+    # Get moves and convert to UCI format
+    moves = prepare_moves(guessed_move, game, current_move, ui_game_move)
+
+    # Get judgment
+    judgment = evaluate_moves(moves[:game_move_uci], moves[:guessed_move_uci], game.positions[current_move].to_fen)
+
+    # Build and return evaluation
+    build_evaluation(create_evaluation_params(
+                       judgment, moves, game, current_move, number_of_moves
+                     ))
+  end
+
+  def check_promotion(source, target, guessed_move)
+    return unless needs_promotion?(source, target, guessed_move['piece']) && !guessed_move['promotion']
+
+    { result: 'needs_promotion', source: source, target: target }
+  end
+
+  def prepare_moves(guessed_move, game, current_move, ui_game_move)
     game_move = game.moves[current_move].notation
-
-    # Convert moves to UCI format
     game_move_uci = convert_to_uci(ui_game_move, game_move)
-    guessed_move_uci = "#{source}#{target}#{guessed_move['promotion'] || ''}"
+    guessed_move_uci = "#{guessed_move['source']}#{guessed_move['target']}#{guessed_move['promotion'] || ''}"
 
-    judgment = if game_move_uci == '--'
-                 @move_judge.evaluate_standalone(old_fen, guessed_move_uci)
-               else
-                 # Compare the moves
-                 @move_judge.compare_moves(old_fen, guessed_move_uci, game_move_uci)
-               end
+    {
+      game_move: game_move,
+      game_move_uci: game_move_uci,
+      guessed_move_uci: guessed_move_uci
+    }
+  end
 
-    build_evaluation(judgment, guessed_move_uci, game_move_uci, game_move, game, current_move, number_of_moves)
+  def evaluate_moves(game_move_uci, guessed_move_uci, fen)
+    if game_move_uci == '--'
+      @move_judge.evaluate_standalone(fen, guessed_move_uci)
+    else
+      @move_judge.compare_moves(fen, guessed_move_uci, game_move_uci)
+    end
+  end
+
+  def create_evaluation_params(judgment, moves, game, current_move, number_of_moves)
+    EvaluationParams.new(
+      judgment: judgment,
+      guessed_move_uci: moves[:guessed_move_uci],
+      game_move_uci: moves[:game_move_uci],
+      game_move: moves[:game_move],
+      game: game,
+      current_move: current_move,
+      number_of_moves: number_of_moves
+    )
   end
 
   def needs_promotion?(source, target, piece)
@@ -90,26 +139,41 @@ class GuessEvaluator
     uci
   end
 
-  def build_evaluation(judgment, guessed_move_uci, game_move_uci, game_move, game, current_move, number_of_moves)
-    if judgment[:good_move]
-      current_move = move_forward(current_move, number_of_moves)
+  def build_evaluation(params)
+    evaluation = base_evaluation(params)
+    evaluation.merge!(result_specific_attributes(params))
+    evaluation.merge!(state_for_current_move(params.game, move_position(params)))
+    evaluation
+  end
+
+  def base_evaluation(params)
+    {
+      game_move: params.game_move,
+      best_eval: params.judgment[:best_eval],
+      guess_eval: params.judgment[:guess_eval],
+      game_eval: params.judgment[:game_eval]
+    }
+  end
+
+  def result_specific_attributes(params)
+    if params.judgment[:good_move]
       {
         result: 'correct',
-        same_as_game: guessed_move_uci == game_move_uci,
-        game_move: game_move,
-        best_eval: judgment[:best_eval],
-        guess_eval: judgment[:guess_eval],
-        game_eval: judgment[:game_eval]
-      }.merge(state_for_current_move(game, current_move))
+        same_as_game: params.guessed_move_uci == params.game_move_uci
+      }
     else
       {
         result: 'incorrect',
-        same_as_game: false,
-        game_move: game_move,
-        best_eval: judgment[:best_eval],
-        guess_eval: judgment[:guess_eval],
-        game_eval: judgment[:game_eval]
-      }.merge(state_for_current_move(game, current_move))
+        same_as_game: false
+      }
+    end
+  end
+
+  def move_position(params)
+    if params.judgment[:good_move]
+      move_forward(params.current_move, params.number_of_moves)
+    else
+      params.current_move
     end
   end
 

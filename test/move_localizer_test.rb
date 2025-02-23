@@ -41,11 +41,16 @@ class MoveLocalizerTest < Minitest::Test
     assert_equal 'O-O-O', localizer.localize_move('O-O-O')[:text]
   end
 
-  def test_english_castling_with_check
+  def test_english_castling_short_with_check
     localizer = MoveLocalizer.new(:en)
 
     assert_equal 'O-O+', localizer.localize_move('O-O+')[:text]
     assert_equal 'O-O#', localizer.localize_move('O-O#')[:text]
+  end
+
+  def test_english_castling_long_with_check
+    localizer = MoveLocalizer.new(:en)
+
     assert_equal 'O-O-O+', localizer.localize_move('O-O-O+')[:text]
     assert_equal 'O-O-O#', localizer.localize_move('O-O-O#')[:text]
   end

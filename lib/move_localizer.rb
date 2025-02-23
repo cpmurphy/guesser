@@ -8,41 +8,16 @@ class MoveLocalizer
   CHECK = '+'
   CHECKMATE = '#'
 
+  STANDARD_MOVE_REGEX = /^([KQRBN])?([a-h])?([1-8])?(x)?([a-h][1-8])(=[QRBN])?([+#])?$/
+  CASTLING_REGEX = /^O-O(-O)?([+#])?$/
+
   def initialize(locale)
     @locale = locale
   end
 
   def localize_move(algebraic)
-    # Convert English algebraic notation to move_info
     move_info = move_info_from_algebraic(algebraic)
-
-    # Convert move_info to localized notation
-    piece = move_info[:piece]
-    piece_letter = if piece && piece.upcase != 'P'
-                     I18n.t("chess.pieces.#{piece.upcase}", locale: @locale)
-                   else
-                     ''
-                   end
-
-    if move_info[:castling]
-      text = algebraic
-    else
-      # For regular moves, maintain algebraic notation format
-      file_hint = localize_disambiguation(move_info[:file_hint]) # Use the original disambiguation if any
-      capture = move_info[:capture] ? CAPTURE : ''
-      to = localize_to(move_info[:to])
-      promotion = if move_info[:promotion]
-                    "#{PROMOTION}#{I18n.t("chess.pieces.#{move_info[:promotion].upcase}",
-                                          locale: @locale)}"
-                  else
-                    ''
-                  end
-      check = move_info[:check] ? CHECK : ''
-      checkmate = move_info[:checkmate] ? CHECKMATE : ''
-
-      text = "#{piece_letter}#{file_hint}#{capture}#{to}#{promotion}#{check}#{checkmate}"
-    end
-
+    text = move_info[:castling] ? algebraic : build_localized_move(move_info)
     { text: text }
   end
 
@@ -64,49 +39,85 @@ class MoveLocalizer
     to
   end
 
-  STANDARD_MOVE_REGEX = /^([KQRBN])?([a-h])?([1-8])?(x)?([a-h][1-8])(=[QRBN])?([+#])?$/
-  CASTLING_REGEX = /^O-O(-O)?([+#])?$/
-
   def move_info_from_algebraic(algebraic)
-    # Handle castling first
-    match = CASTLING_REGEX.match(algebraic)
-    if match
-      castling = match[1] ? 'queenside' : 'kingside'
-      check = match[2] == '+'
-      checkmate = match[2] == '#'
-      return {
-        castling: castling,
-        check: check,
-        checkmate: checkmate
-      }
-    end
+    return parse_castling_move(algebraic) if CASTLING_REGEX.match?(algebraic)
 
-    # Parse the move components
+    parse_standard_move(algebraic)
+  end
+
+  def parse_castling_move(algebraic)
+    match = CASTLING_REGEX.match(algebraic)
+    {
+      castling: match[1] ? 'queenside' : 'kingside',
+      check: match[2] == '+',
+      checkmate: match[2] == '#'
+    }
+  end
+
+  def parse_standard_move(algebraic)
     match = STANDARD_MOVE_REGEX.match(algebraic)
     raise "Invalid algebraic notation: #{algebraic}" unless match
 
-    piece = match[1] || 'P'
-    file_hint = match[2]
-    rank_hint = match[3]
-    capture = match[4] == 'x'
-    to = match[5]
-    promotion = match[6]&.sub('=', '')
-    check = match[7] == '+'
-    checkmate = match[7] == '#'
+    move_components = extract_move_components(match)
+    move_components[:file_hint] = build_disambiguation(move_components)
+    move_components
+  end
 
-    # Keep original disambiguation (if any)
-    disambiguation = ''
-    disambiguation += file_hint if file_hint
-    disambiguation += rank_hint if rank_hint
-
+  def extract_move_components(match)
     {
-      piece: piece,
-      file_hint: disambiguation,
-      to: to,
-      capture: capture,
-      promotion: promotion,
-      check: check,
-      checkmate: checkmate
+      piece: match[1] || 'P',
+      to: match[5],
+      capture: match[4] == 'x',
+      promotion: extract_promotion(match[6]),
+      check: match[7] == '+',
+      checkmate: match[7] == '#',
+      file_hint: match[2],
+      rank_hint: match[3]
     }
+  end
+
+  def extract_promotion(promotion_string)
+    promotion_string&.sub('=', '')
+  end
+
+  def build_disambiguation(components)
+    disambiguation = ''
+    disambiguation += components[:file_hint] if components[:file_hint]
+    disambiguation += components[:rank_hint] if components[:rank_hint]
+    disambiguation
+  end
+
+  def build_localized_move(move_info)
+    [
+      get_piece_letter(move_info[:piece]),
+      localize_disambiguation(move_info[:file_hint]),
+      get_capture_symbol(move_info[:capture]),
+      localize_to(move_info[:to]),
+      build_promotion(move_info[:promotion]),
+      build_check_symbols(move_info)
+    ].join
+  end
+
+  def get_piece_letter(piece)
+    return '' unless piece && piece.upcase != 'P'
+
+    I18n.t("chess.pieces.#{piece.upcase}", locale: @locale)
+  end
+
+  def get_capture_symbol(capture)
+    capture ? CAPTURE : ''
+  end
+
+  def build_promotion(promotion)
+    return '' unless promotion
+
+    "#{PROMOTION}#{I18n.t("chess.pieces.#{promotion.upcase}", locale: @locale)}"
+  end
+
+  def build_check_symbols(move_info)
+    return CHECKMATE if move_info[:checkmate]
+    return CHECK if move_info[:check]
+
+    ''
   end
 end

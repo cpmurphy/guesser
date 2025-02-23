@@ -92,7 +92,7 @@ class GuesserApp < Sinatra::Base
   get '/builtin/:basename/:game_index' do |basename, game_index|
     halt 404 unless @valid_pgn_basenames.include?(basename)
 
-    game_state = builtin_game_state(basename, game_index.to_i, @locale)
+    game_state = builtin_game_state(@valid_pgn_basenames, basename, game_index.to_i, @locale)
     game_state[:current_whole_move] = params[:move].to_i if params[:move]
     game_state[:side_to_move] = params[:side] if params[:side]
     haml :game, locals: game_state

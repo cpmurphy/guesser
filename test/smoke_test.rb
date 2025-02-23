@@ -9,17 +9,17 @@ class SmokeTest < Minitest::Test
 
   def app
     # Configure for testing
-    ChessGuesser.set :environment, :test
-    ChessGuesser.set :public_folder, File.expand_path('../public', __dir__)
+    GuesserApp.set :environment, :test
+    GuesserApp.set :public_folder, File.expand_path('../public', __dir__)
 
     # Mock session data that would normally be set by SecureHeaders
-    ChessGuesser.class_eval do
+    GuesserApp.class_eval do
       before do
         session['secure_headers_request_config'] = nil
       end
     end
 
-    ChessGuesser
+    GuesserApp
   end
 
   def test_home_page_loads

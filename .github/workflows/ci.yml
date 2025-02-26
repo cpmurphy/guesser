@@ -38,7 +38,7 @@ jobs:
           bundler-cache: true
 
       - name: Run tests
-        run: rake
+        run: bundle install && rake
 
       - name: Keep screenshots from failed system tests
         uses: actions/upload-artifact@v4

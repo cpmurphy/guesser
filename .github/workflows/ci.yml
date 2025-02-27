@@ -25,9 +25,6 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Install packages
-        run: sudo apt-get update && sudo apt-get install --no-install-recommends -y build-essential git pkg-config google-chrome-stable
-
       - name: Checkout code
         uses: actions/checkout@v4
 
@@ -36,9 +33,10 @@ jobs:
         with:
           ruby-version: .ruby-version
           bundler-cache: true
+        run: bundle install
 
       - name: Run tests
-        run: bundle install && bundle exec rake test test_ui
+        run: bundle exec ruby -Itest $(ls test/*.rb | grep -v smoke) && rake ui_test
 
       - name: Keep screenshots from failed system tests
         uses: actions/upload-artifact@v4

@@ -8,7 +8,7 @@ class AnalyzerTest < Minitest::Test
   def setup
     @mock_engine = Minitest::Mock.new
     Stockfish::Engine.stub :new, @mock_engine do
-      @analyzer = Analyzer.new
+      @analyzer = Analyzer.new(@mock_engine)
     end
   end
 

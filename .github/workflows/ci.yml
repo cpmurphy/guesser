@@ -43,7 +43,7 @@ jobs:
         run: |
           bundle install
           bundle exec ruby -Itest $(ls test/*.rb | grep -v smoke)
-          npm install && npm run test_once
+          rake npm_install copy_deps ui_test
 
       - name: Keep screenshots from failed system tests
         uses: actions/upload-artifact@v4

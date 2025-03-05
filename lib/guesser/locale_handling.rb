@@ -3,7 +3,7 @@
 module ChessGuesser
   module LocaleHandling
     def self.discover_supported_locales
-      I18n.load_path << Dir[File.expand_path('i18n/*.yml')]
+      I18n.load_path = Dir[File.expand_path('i18n/*.yml')]
       i18n_path = File.expand_path('i18n/*.yml')
       Dir.glob(i18n_path).map do |file|
         basename = File.basename(file, '.yml')

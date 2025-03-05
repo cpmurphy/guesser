@@ -5,8 +5,8 @@ require_relative '../lib/move_localizer'
 require 'i18n'
 
 class MoveLocalizerTest < Minitest::Test
-  def setup
-    I18n.load_path << Dir[File.expand_path('i18n/*.yml')]
+  def before_setup
+    I18n.load_path = Dir[File.expand_path('i18n/*.yml')]
     I18n.default_locale = :en
   end
 

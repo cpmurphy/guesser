@@ -136,7 +136,7 @@ class PgnSummaryTest < Minitest::Test
   end
 
   def test_games_with_translated_names
-    I18n.load_path << Dir[File.expand_path('i18n/nb.yml')]
+    I18n.load_path = Dir[File.expand_path('i18n/nb.yml')]
     pgn_data = '[Event ""]
 [Site ""]
 [Date "2024.12.01"]

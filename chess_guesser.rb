@@ -45,6 +45,7 @@ class GuesserApp < Sinatra::Base
 
   def initialize
     super
+    initialize_supported_locales
     move_judge = MoveJudge.new
     @evaluator = GuessEvaluator.new(move_judge)
     @valid_pgn_basenames = build_builtin_allowlist

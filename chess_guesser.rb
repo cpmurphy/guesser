@@ -25,8 +25,6 @@ class GuesserApp < Sinatra::Base
   include ChessGuesser::GameHandling
   include ChessGuesser::GameSummaryPage
 
-  SUPPORTED_LOCALES = ChessGuesser::LocaleHandling.discover_supported_locales
-
   enable :sessions
   set :session_store, Rack::Session::Pool
 
@@ -182,12 +180,6 @@ class GuesserApp < Sinatra::Base
   helpers do
     def asset_path(path)
       "/#{path}?v=#{settings.asset_version}"
-    end
-
-    def supported_locales_with_names
-      SUPPORTED_LOCALES.to_h do |locale|
-        [locale, I18n.t('language_name', locale: locale)]
-      end
     end
   end
 

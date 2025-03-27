@@ -2,19 +2,23 @@
 
 module ChessGuesser
   module LocaleHandling
-    def self.discover_supported_locales
-      I18n.load_path = Dir[File.expand_path('i18n/*.yml')]
-      i18n_path = File.expand_path('i18n/*.yml')
-      Dir.glob(i18n_path).map do |file|
-        basename = File.basename(file, '.yml')
+    def supported_locales
+      if @supported_locales
+        @supported_locales
+      else
+        I18n.load_path = Dir[File.expand_path('i18n/*.yml')]
+        i18n_path = File.expand_path('i18n/*.yml')
+        @supported_locales = Dir.glob(i18n_path).map do |file|
+          basename = File.basename(file, '.yml')
 
-        if basename.include?('-')
-          language, region = basename.split('-', 2)
-          :"#{language}-#{region.upcase}"
-        else
-          basename.to_sym
-        end
-      end.freeze
+          if basename.include?('-')
+            language, region = basename.split('-', 2)
+            :"#{language}-#{region.upcase}"
+          else
+            basename.to_sym
+          end
+        end.freeze
+      end
     end
 
     def choose_locale
@@ -24,6 +28,12 @@ module ChessGuesser
       else
         # Fall back to browser Accept-Language header
         extract_locale_from_accept_language_header
+      end
+    end
+
+    def supported_locales_with_names
+      supported_locales.to_h do |locale|
+        [locale, I18n.t('language_name', locale: locale)]
       end
     end
 
@@ -61,7 +71,7 @@ module ChessGuesser
     end
 
     def find_preferred_locale(accepted_languages)
-      preferred_locale = accepted_languages.find { |locale| SUPPORTED_LOCALES.include?(locale) }
+      preferred_locale = accepted_languages.find { |locale| supported_locales.include?(locale) }
       preferred_locale || I18n.default_locale
     end
   end

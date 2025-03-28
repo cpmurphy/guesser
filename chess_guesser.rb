@@ -11,6 +11,7 @@ require_relative 'lib/guesser/locale_handling'
 require_relative 'lib/guesser/game_handling'
 require_relative 'lib/guesser/game_summary_page'
 require_relative 'lib/guesser/secure_headers_configuration'
+require_relative 'lib/guesser/guess_handling'
 
 require_relative 'lib/analyzer'
 require_relative 'lib/move_judge'
@@ -24,6 +25,7 @@ class GuesserApp < Sinatra::Base
   include ChessGuesser::LocaleHandling
   include ChessGuesser::GameHandling
   include ChessGuesser::GameSummaryPage
+  include ChessGuesser::GuessHandling
 
   enable :sessions
   set :session_store, Rack::Session::Pool
@@ -57,7 +59,6 @@ class GuesserApp < Sinatra::Base
 
   get '/' do
     builtin_pgns = gather_builtins
-
     haml :game_selection, locals: { builtin_pgns: builtin_pgns }
   end
 
@@ -124,26 +125,7 @@ class GuesserApp < Sinatra::Base
   end
 
   post '/guess' do
-    guess = JSON.parse(request.body.read)
-    path = guess['path']
-    game = game_for_path(@valid_pgn_basenames, path)
-    current_move = guess['current_move'].to_i - 1
-    if current_move >= game.moves.length
-      translator = MoveTranslator.new
-      translator.load_game_from_fen(guess['guessed_move']['oldPos'])
-      guessed_move = guess['guessed_move']['source'] + guess['guessed_move']['target']
-      guessed_move += guess['guessed_move']['promotion'] if guess['guessed_move']['promotion']
-      move = translator.translate_uci_move(guessed_move)
-      return [move.merge({ result: 'game_over' })].to_json
-    end
-    game.positions[current_move].to_fen
-    guessed_move = guess['guessed_move']
-    number_of_moves = game.moves.length
-    ui_game_move = guess['game_move']['moves'][0]
-
-    response = @evaluator.handle_guess(guessed_move, current_move, ui_game_move, number_of_moves, game)
-
-    response.to_json
+    handle_guess_request
   end
 
   post '/engine_move' do

@@ -15,13 +15,13 @@ module ChessGuesser
             language, region = basename.split('-', 2)
             :"#{language}-#{region.upcase}"
           else
-              basename.to_sym
+            basename.to_sym
           end
         end.freeze
       end
     end
 
-    alias_method :initialize_supported_locales, :supported_locales
+    alias initialize_supported_locales supported_locales
 
     def choose_locale
       # First try cookie
@@ -77,5 +77,4 @@ module ChessGuesser
       preferred_locale || I18n.default_locale
     end
   end
-
 end

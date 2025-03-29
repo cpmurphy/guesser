@@ -2,33 +2,23 @@
 
 module ChessGuesser
   module GuessHandling
-    def handle_guess_request
-      content_type :json
+    def handle_guess_request(guess)
+      validate_guess_structure(guess)
 
-      begin
-        # Parse and validate JSON structure
-        guess = JSON.parse(request.body.read)
-        validate_guess_structure(guess)
+      # Get and validate game
+      path = guess['path']
+      game = game_for_path(@valid_pgn_basenames, path)
+      halt 404, { error: 'Game not found' }.to_json unless game
 
-        # Get and validate game
-        path = guess['path']
-        game = game_for_path(@valid_pgn_basenames, path)
-        halt 404, { error: 'Game not found' }.to_json unless game
-
-        # Validate and process current move
-        current_move = guess['current_move'].to_i - 1
-        if current_move >= game.moves.length
-          handle_beyond_game_move(guess['guessed_move'])
-        else
-          handle_normal_move(game, current_move, guess)
-        end
-      rescue JSON::ParserError
-        status 400
-        { error: 'Invalid JSON format' }.to_json
-      rescue StandardError => e
-        status 500
-        { error: "Server error: #{e.message}" }.to_json
+      # Validate and process current move
+      current_move = guess['current_move'].to_i - 1
+      if current_move >= game.moves.length
+        handle_beyond_game_move(guess['guessed_move'])
+      else
+        handle_normal_move(game, current_move, guess)
       end
+    ensure
+      @evaluator&.close
     end
 
     private

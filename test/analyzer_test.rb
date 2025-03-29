@@ -7,6 +7,7 @@ require_relative '../lib/analyzer'
 class AnalyzerTest < Minitest::Test
   def setup
     @mock_engine = Minitest::Mock.new
+    mock_engine_configuration
     Stockfish::Engine.stub :new, @mock_engine do
       @analyzer = Analyzer.new(@mock_engine)
     end
@@ -42,7 +43,7 @@ class AnalyzerTest < Minitest::Test
   def test_evaluate_move_returns_move_with_score_and_notation
     @mock_engine.expect :multipv, nil, [1]
     @mock_engine.expect :execute, nil, ['position fen mock_fen moves h6h3']
-    @mock_engine.expect :execute, standard_analysis, ['go depth 14']
+    @mock_engine.expect :execute, standard_analysis, ["go depth #{Analyzer::DEFAULT_DEPTH} nodes #{Analyzer::MAX_NODES}"]
     result = @analyzer.evaluate_move('mock_fen', 'h6h3')
 
     assert_includes result.keys, :score
@@ -91,7 +92,55 @@ class AnalyzerTest < Minitest::Test
     end
   end
 
+  def test_engine_error_handling
+    @mock_engine.expect :multipv, nil, [3]
+    @mock_engine.expect :analyze, nil do |fen, kw|
+      fen == 'mock_fen' && kw[:depth].is_a?(Integer)
+    end
+    @mock_engine.expect :execute, nil, ['quit']
+
+    error = assert_raises(Analyzer::EngineError) do
+      @analyzer.best_moves('mock_fen')
+    end
+
+    assert_match(/Engine error/, error.message)
+  end
+
+  def test_engine_cleanup
+    @mock_engine.expect :execute, nil, ['quit']
+    @analyzer.close
+
+    assert_nil @analyzer.instance_variable_get(:@engine)
+  end
+
+  def test_custom_configuration
+    mock_engine = Minitest::Mock.new
+    mock_engine_configuration_for(mock_engine)
+    custom_options = {
+      timeout: 10,
+      depth: 20,
+      max_nodes: 2_000_000
+    }
+    Stockfish::Engine.stub :new, mock_engine do
+      analyzer = Analyzer.new('stockfish', custom_options)
+
+      assert_equal 10, analyzer.instance_variable_get(:@timeout)
+      assert_equal 20, analyzer.instance_variable_get(:@depth)
+      assert_equal 2_000_000, analyzer.instance_variable_get(:@max_nodes)
+    end
+  end
+
   private
+
+  def mock_engine_configuration
+    mock_engine_configuration_for(@mock_engine)
+  end
+
+  def mock_engine_configuration_for(engine)
+    engine.expect :execute, nil, ["setoption name MultiPV value #{Analyzer::DEFAULT_MULTIPV}"]
+    engine.expect :execute, nil, ['setoption name Hash value 128']
+    engine.expect :execute, nil, ['setoption name Threads value 1']
+  end
 
   def mock_analysis_result(analysis_string)
     @mock_engine.expect :analyze, analysis_string do |fen, kw|
@@ -109,8 +158,8 @@ class AnalyzerTest < Minitest::Test
 
   def mate_in_n_analysis
     "info depth 18 seldepth 4 multipv 1 score mate 2 nodes 9700 nps 1212500 hashfull 0 tbhits 0 time 8 pv h7h5 g4h3 f5f3\n" \
-      "info depth 18 seldepth 4 multipv 2 score mate 2 nodes 9700 nps 1212500 hashfull 0 tbhits 0 time 8 pv f5e5 g4f4 a8f8\n" \
-      "info depth 18 seldepth 6 multipv 3 score mate 3 nodes 9700 nps 1212500 hashfull 0 tbhits 0 time 8 pv a8f8 d1c2 h7h5 g4h3 f5f3\n" \
+      "info depth 18 seldepth 4 multipv 2 score mate 3 nodes 9700 nps 1212500 hashfull 0 tbhits 0 time 8 pv h7h5 g4h3 f5f3\n" \
+      "info depth 18 seldepth 4 multipv 3 score mate 4 nodes 9700 nps 1212500 hashfull 0 tbhits 0 time 8 pv h7h5 g4h3 f5f3\n" \
       'bestmove h7h5 ponder g4h3'
   end
   # rubocop:enable Minitest/MultipleAssertions

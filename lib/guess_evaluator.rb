@@ -5,6 +5,10 @@ class GuessEvaluator
     @move_judge = move_judge
   end
 
+  def close
+    @move_judge.close
+  end
+
   # Parameters:
   # guessed_move: the guessed move, a hash with
   #   :source (e.g. "e2")

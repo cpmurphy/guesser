@@ -7,6 +7,10 @@ class MoveJudge
     @analyzer = analyzer
   end
 
+  def close
+    @analyzer.close
+  end
+
   def compare_moves(old_fen, guessed_move_uci, game_move_uci)
     best_eval = @analyzer.evaluate_best_move(old_fen)
     guess_eval = @analyzer.evaluate_move(old_fen, guessed_move_uci)

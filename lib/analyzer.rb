@@ -1,12 +1,14 @@
 # frozen_string_literal: true
 
 require 'stockfish'
+require 'timeout'
 
-# A thin wrapper that uses the stockfish engine to analyse the position
-class Analyzer
-  def initialize(engine_path = 'stockfish')
-    @engine = Stockfish::Engine.new(engine_path)
-  end
+# A class to parse Stockfish analysis output
+class AnalysisParser
+  CENTIPAWN_PATTERN = /multipv (\d+) score cp (-?\d+) .* pv (\w+)((\s(\w+))*)/
+  MATE_PATTERN = /multipv (\d+) score mate (-?\d+) .* pv (\w+)((\s(\w+))*)/
+  IMMEDIATE_MATE_PATTERN = /info depth 0 score mate 0/
+  IMMEDIATE_DRAW_PATTERN = /info depth 0 score cp 0/
 
   # Extract the top moves and their corresponding ponder moves
   #
@@ -17,40 +19,17 @@ class Analyzer
   # info depth 14 seldepth 14 multipv 3 score cp 0 nodes 110505 nps 2166764 hashfull 30 tbhits 0 time 51 pv e1f1 d5f4 f1f4 e5f4 h7h3 e6e5 e3f4 e5f6 h3h4 f6e6 h4h3 e6f6
   # bestmove h6h3 ponder e6f7"
   # rubocop:enable Layout/LineLength
-  def best_moves(fen, multipv = 3)
-    @engine.multipv(multipv)
-    analysis = @engine.analyze(fen, depth: 14)
-
-    parse_analysis(analysis)
-  end
-
-  def evaluate_move(fen, move)
-    move_str = move ? "moves #{move}" : ''
-    @engine.execute("position fen #{fen} #{move_str}")
-    analysis = @engine.execute('go depth 14')
-    parse_analysis(analysis)[0]
-  end
-
-  def evaluate_best_move(fen)
-    best_moves(fen, 1)[0]
-  end
-
-  CENTIPAWN_PATTERN = /multipv (\d+) score cp (-?\d+) .* pv (\w+)((\s(\w+))*)/
-  MATE_PATTERN = /multipv (\d+) score mate (-?\d+) .* pv (\w+)((\s(\w+))*)/
-  IMMEDIATE_MATE_PATTERN = /info depth 0 score mate 0/
-  IMMEDIATE_DRAW_PATTERN = /info depth 0 score cp 0/
-
-  private
-
-  def parse_analysis(analysis)
+  def parse(analysis)
     analysis.split("\n").each_with_object([]) do |line, moves|
       next unless line.start_with?('info')
 
-      parse_analysis_line(line, moves)
+      parse_line(line, moves)
     end
   end
 
-  def parse_analysis_line(line, moves)
+  private
+
+  def parse_line(line, moves)
     return parse_centipawn_score(line, moves) if line.match?(CENTIPAWN_PATTERN)
     return parse_mate_score(line, moves) if line.match?(MATE_PATTERN)
     return moves << { score: -1000 } if line.match?(IMMEDIATE_MATE_PATTERN)
@@ -86,5 +65,95 @@ class Analyzer
 
   def add_variation(move_data, variation_string)
     move_data[:variation] = variation_string.split.map(&:strip) if variation_string
+  end
+end
+
+# A thin wrapper that uses the stockfish engine to analyse the position
+class Analyzer
+  DEFAULT_TIMEOUT = 5 # seconds
+  DEFAULT_DEPTH = 14
+  DEFAULT_MULTIPV = 3
+  MAX_NODES = 1_000_000
+
+  class EngineError < StandardError; end
+  class TimeoutError < EngineError; end
+
+  def initialize(engine_path = 'stockfish', options = {})
+    @parser = AnalysisParser.new
+    @engine_path = engine_path
+    @timeout = options.fetch(:timeout, DEFAULT_TIMEOUT)
+    @depth = options.fetch(:depth, DEFAULT_DEPTH)
+    @max_nodes = options.fetch(:max_nodes, MAX_NODES)
+    initialize_engine
+  end
+
+  def best_moves(fen, multipv = DEFAULT_MULTIPV)
+    ensure_engine_running
+    @engine.multipv(multipv)
+
+    analysis = with_timeout do
+      @engine.analyze(fen, depth: @depth)
+    end
+
+    @parser.parse(analysis)
+  rescue TimeoutError
+    raise TimeoutError, "Analysis timed out after #{@timeout} seconds"
+  rescue StandardError => e
+    handle_engine_error(e)
+  end
+
+  def evaluate_move(fen, move)
+    ensure_engine_running
+    move_str = move ? "moves #{move}" : ''
+    @engine.execute("position fen #{fen} #{move_str}")
+
+    analysis = with_timeout do
+      @engine.execute("go depth #{@depth} nodes #{@max_nodes}")
+    end
+
+    @parser.parse(analysis)[0]
+  rescue TimeoutError
+    raise TimeoutError, "Move evaluation timed out after #{@timeout} seconds"
+  rescue StandardError => e
+    handle_engine_error(e)
+  end
+
+  def evaluate_best_move(fen)
+    best_moves(fen, 1)[0]
+  end
+
+  def close
+    @engine&.execute('quit')
+    @engine = nil
+  end
+
+  private
+
+  def initialize_engine
+    @engine = Stockfish::Engine.new(@engine_path)
+    configure_engine
+  rescue StandardError => e
+    raise EngineError, "Failed to initialize Stockfish engine: #{e.message}"
+  end
+
+  def configure_engine
+    @engine.execute("setoption name MultiPV value #{DEFAULT_MULTIPV}")
+    @engine.execute('setoption name Hash value 128')
+    @engine.execute('setoption name Threads value 1')
+  end
+
+  def ensure_engine_running
+    return if @engine
+
+    initialize_engine
+  end
+
+  def with_timeout(&block)
+    Timeout.timeout(@timeout, &block)
+  end
+
+  def handle_engine_error(error)
+    close
+    raise EngineError, "Engine error: #{error.message}"
   end
 end

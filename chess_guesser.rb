@@ -125,7 +125,25 @@ class GuesserApp < Sinatra::Base
   end
 
   post '/guess' do
-    handle_guess_request
+    content_type :json
+
+    begin
+      # Parse and validate JSON structure
+      guess = JSON.parse(request.body.read)
+      handle_guess_request(guess)
+    rescue JSON::ParserError
+      status 400
+      { error: 'Invalid JSON format' }.to_json
+    rescue Analyzer::TimeoutError => e
+      status 408
+      { error: e.message }.to_json
+    rescue Analyzer::EngineError => e
+      status 503
+      { error: e.message }.to_json
+    rescue StandardError => e
+      status 500
+      { error: "Server error: #{e.message}" }.to_json
+    end
   end
 
   post '/engine_move' do
@@ -148,9 +166,17 @@ class GuesserApp < Sinatra::Base
         status 400
         { error: 'No valid move found' }.to_json
       end
+    rescue Analyzer::TimeoutError => e
+      status 408
+      { error: e.message }.to_json
+    rescue Analyzer::EngineError => e
+      status 503
+      { error: e.message }.to_json
     rescue StandardError => e
       status 500
       { error: "Engine error: #{e.message}" }.to_json
+    ensure
+      analyzer&.close
     end
   end
 

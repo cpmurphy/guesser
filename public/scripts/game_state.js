@@ -1,5 +1,6 @@
 export default class GameState {
-    constructor(fen) {
+    constructor(fen, chessRules) {
+      this.ChessRules = chessRules;
       const fenParts = fen.split(' ');
       this.castlingRightsHistory = [];
       this.enPassantHistory = [];
@@ -7,6 +8,7 @@ export default class GameState {
       this.enPassant = fenParts[3];
       this.halfmoveClock = parseInt(fenParts[4]);
       this.changeIndex = 0;
+      this.sideWithFirstMove = this.extractSideFromFen(fen);
     }
 
     update(piece, from, to, capturedPiece) {
@@ -98,4 +100,51 @@ export default class GameState {
         }
       }
     }
+
+    extractSideFromFen(fen) {
+      if (fen) {
+        return fen.split(' ')[1].toLowerCase() == 'w' ? 'white' : 'black';
+      }
+      return 'white';
+    }
+
+    isWhiteToMove(moveIndex) {
+      const isFirstMoveWhite = this.sideWithFirstMove === 'white';
+      return (moveIndex % 2 === 0) === isFirstMoveWhite;
+    }
+
+    isGameTerminated(position) {
+      const chessRules = new this.ChessRules(position, this.enPassant, this.castlingRights);
+
+      const isWhite = this.isWhiteToMove(this.currentMoveIndex);
+      if (chessRules.isCheckmate(isWhite)) {
+        return true;
+      }
+
+      if (chessRules.isStalemate(isWhite)) {
+        return true;
+      }
+
+      if (chessRules.isInsufficientMaterial()) {
+        return true;
+      }
+
+      if (this.halfMoveClock >= 99) { // 50 moves = 100 half moves
+        return true;
+      }
+
+      return false;
+    }
+
+    isLegalMove(position, from, to, piece) {
+      const chessRules = new this.ChessRules(position, this.enPassant, this.castlingRights);
+      return chessRules.isLegalMove(from, to, piece);
+    }
+
+    isCheckmate(position, moveIndex) {
+      const isWhite = this.isWhiteToMove(moveIndex);
+      const chessRules = new this.ChessRules(position, this.enPassant, this.castlingRights);
+      return chessRules.isCheckmate(isWhite);
+    }
+
   }

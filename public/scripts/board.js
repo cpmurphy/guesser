@@ -67,7 +67,7 @@ export default class Board {
   initializeGameState(fen) {
     this.board.setPosition(fen);
     this.lastPosition = this.board.getPosition();
-    this.gameState = new this.GameState(fen);
+    this.gameState = new this.GameState(fen, this.ChessRules);
     this.hideGuessResult();
     this.initializeButtonStates(false);
   }
@@ -82,7 +82,6 @@ export default class Board {
     this.uiMoves = data.uiMoves;
     this.startingWholeMove = data.startingWholeMove;
     this.currentWholeMove = data.currentWholeMove;
-    this.sideWithFirstMove = this.extractSideFromFen(data.fen);
     this.sideToMove = data.sideToMove;
     this.fen = data.fen;
     this.gameResult = data.gameResult;
@@ -93,7 +92,7 @@ export default class Board {
     if (data.currentWholeMove && data.currentWholeMove > this.startingWholeMove) {
       const moveIncrement = this.sideToMove === 'white' ? 0 : 1;
       const moveIndex = (data.currentWholeMove - this.startingWholeMove) * 2 + moveIncrement;
-      if (!this.isWhiteToMove(moveIndex)) {
+      if (!this.gameState.isWhiteToMove(moveIndex)) {
         this.flipBoard();
       }
       this.goToMoveIndex(moveIndex);
@@ -111,7 +110,7 @@ export default class Board {
     }
 
     const isWhitePiece = piece.charAt(0) === 'w';
-    const isWhiteToMove = this.isWhiteToMove(this.currentMoveIndex);
+    const isWhiteToMove = this.gameState.isWhiteToMove(this.currentMoveIndex);
 
     // Only allow moving pieces if:
     // 1. It's the correct color's turn
@@ -140,8 +139,7 @@ export default class Board {
       return false;
     }
 
-    const chessRules = new this.ChessRules(position, this.gameState.enPassant, this.gameState.castlingRights);
-    if (!chessRules.isLegalMove(from, to, piece)) {
+    if (!this.isLegalMove(from, to, piece)) {
       return false;
     }
     this.lastPosition = position;
@@ -161,16 +159,12 @@ export default class Board {
     return true;
   }
 
-  extractSideFromFen(fen) {
-    if (fen) {
-      return fen.split(' ')[1].toLowerCase() == 'w' ? 'white' : 'black';
-    }
-    return 'white';
+  isLegalMove(from, to, piece) {
+    return this.gameState.isLegalMove(this.board.getPosition(), from, to, piece);
   }
 
   isWhiteToMove(moveIndex) {
-    const isFirstMoveWhite = this.sideWithFirstMove === 'white';
-    return (moveIndex % 2 === 0) === isFirstMoveWhite;
+    return this.gameState.isWhiteToMove(moveIndex);
   }
 
   position(fen) {
@@ -339,7 +333,7 @@ export default class Board {
   }
 
   pawnForCurrentMove() {
-    if (this.isWhiteToMove(this.currentMoveIndex)) {
+    if (this.gameState.isWhiteToMove(this.currentMoveIndex)) {
       return this.PIECE.wp;
     } else {
       return this.PIECE.bp;
@@ -418,10 +412,10 @@ export default class Board {
   isPieceAvailableToMove(piece) {
     const currentGuessMode = this.guessMode();
     const pieceColor = piece.charAt(0);
-    if (pieceColor === 'w' && !this.isWhiteToMove(this.currentMoveIndex)) {
+    if (pieceColor === 'w' && !this.gameState.isWhiteToMove(this.currentMoveIndex)) {
       return false;
     }
-    if (pieceColor === 'b' && this.isWhiteToMove(this.currentMoveIndex)) {
+    if (pieceColor === 'b' && this.gameState.isWhiteToMove(this.currentMoveIndex)) {
       return false;
     }
     return currentGuessMode === 'both' ||
@@ -599,10 +593,10 @@ export default class Board {
   }
 
   setLastMoveDisplay(moveIndex, moveNotation) {
-    const moveOffset = this.sideWithFirstMove == 'black' ? moveIndex + 1 : moveIndex;
+    const moveOffset = this.gameState.isWhiteToMove(moveIndex) ? moveIndex + 1 : moveIndex;
     const wholeMoveNumber = Math.floor(moveOffset / 2) + this.startingWholeMove;
     const localizedMove = this.moveLocalizer.localize(moveNotation);
-    this.lastMoveElement.textContent = `${wholeMoveNumber}${this.isWhiteToMove(moveIndex) ? '.' : '...'} ${localizedMove}`;
+    this.lastMoveElement.textContent = `${wholeMoveNumber}${this.gameState.isWhiteToMove(moveIndex) ? '.' : '...'} ${localizedMove}`;
   }
 
   setupExportFenButton() {
@@ -684,10 +678,7 @@ export default class Board {
 
     // Add checkmate symbol if the position is checkmate
     if (!move.notation.endsWith('#')) {
-      const position = this.board.getPosition();
-      const chessRules = new this.ChessRules(position, this.gameState.enPassant, this.gameState.castlingRights);
-      const isWhite = this.isWhiteToMove(this.currentMoveIndex);
-      if (chessRules.isCheckmate(isWhite)) {  // Check if the opponent is in checkmate
+      if (this.isCheckmate()) {
         move.notation += '#';
         this.moves[this.currentMoveIndex-1] = move.notation;
         this.updateLastMoveDisplay();
@@ -695,9 +686,13 @@ export default class Board {
     }
   }
 
+  isCheckmate() {
+    return this.gameState.isCheckmate(this.board.getPosition(), this.currentMoveIndex);
+  }
+
   generateCompleteFen() {
     const piecePlacement = this.board.getPosition();
-    const activeColor = this.isWhiteToMove(this.currentMoveIndex) ? 'w' : 'b';
+    const activeColor = this.gameState.isWhiteToMove(this.currentMoveIndex) ? 'w' : 'b';
     // Calculate the full move number
     const fullmoveNumber = Math.floor(this.currentMoveIndex / 2) + this.startingWholeMove;
 
@@ -800,27 +795,7 @@ export default class Board {
   }
 
   isGameTerminated() {
-    const position = this.board.getPosition();
-    const chessRules = new this.ChessRules(position, this.gameState.enPassant, this.gameState.castlingRights);
-
-    const isWhite = this.isWhiteToMove(this.currentMoveIndex);
-    if (chessRules.isCheckmate(isWhite)) {
-      return true;
-    }
-
-    if (chessRules.isStalemate(isWhite)) {
-      return true;
-    }
-
-    if (chessRules.isInsufficientMaterial()) {
-      return true;
-    }
-
-    if (this.gameState.halfMoveClock >= 100) { // 50 moves = 100 half moves
-      return true;
-    }
-
-    return false;
+    return this.gameState.isGameTerminated(this.board.getPosition());
   }
 
 }

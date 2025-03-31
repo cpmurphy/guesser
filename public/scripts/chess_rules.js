@@ -1,20 +1,12 @@
 export default class ChessRules {
-  constructor(fenString, enPassant, castlingRights = 'KQkq') {
-    this.fenString = fenString;
-    this.enPassant = enPassant;
-    this.castlingRights = castlingRights;
-    this.position = ChessRules.fenToObj(fenString);
-    this.kingPositions = {};
+  constructor() {
+    this.enPassant = '-';
+    this.castlingRights = 'KQkq';
   }
 
-  findKingPosition(king) {
-    if (this.kingPositions[king]) {
-      return this.kingPositions[king];
-    } else {
-      const kingSquare = this.findKingInPosition(king, this.position);
-      this.kingPositions[king] = kingSquare;
-      return kingSquare;
-    }
+  setCurrentState(enPassant, castlingRights) {
+    this.enPassant = enPassant;
+    this.castlingRights = castlingRights;
   }
 
   findKingInPosition(king, position) {
@@ -28,7 +20,18 @@ export default class ChessRules {
     return kingSquare;
   }
 
-  isLegalMove(source, target, piece, skipCheckValidation = false) {
+  isLegalMoveWithFen(fen, source, target, piece, skipCheckValidation = false) {
+    if (typeof fen !== 'string') {
+      throw new Error('fen must be a string');
+    }
+    const position = ChessRules.fenToObj(fen);
+    return this.isLegalMove(position, source, target, piece, skipCheckValidation);
+  }
+
+  isLegalMove(position, source, target, piece, skipCheckValidation = false) {
+    if (typeof position !== 'object') {
+      throw new Error('position must be an object');
+    }
     const pieceType = piece.charAt(1).toLowerCase();
     const isWhite = piece.charAt(0) === 'w';
     const sourceRank = parseInt(source.charAt(1));
@@ -39,14 +42,14 @@ export default class ChessRules {
     const rankDiff = Math.abs(targetRank - sourceRank);
 
     // First check if the destination square has a piece of the same color
-    const destPiece = this.position[target];
+    const destPiece = position[target];
     if (destPiece && destPiece[0] === piece[0]) {  // Compare first letter ('w' or 'b')
       return false;
     }
 
     // Only check for check if not skipping validation
-    if (!skipCheckValidation && this.isInCheck(isWhite, this.position)) {
-      const testPosition = { ...this.position };
+    if (!skipCheckValidation && this.isInCheck(isWhite, position)) {
+      const testPosition = { ...position };
       delete testPosition[source];
       testPosition[target] = piece;
       if (this.isInCheck(isWhite, testPosition)) {
@@ -56,17 +59,17 @@ export default class ChessRules {
 
     switch (pieceType) {
       case 'p': // Pawn
-        return this.isLegalPawnMove(source, target, isWhite, fileDiff, rankDiff, this.position, this.enPassant);
+        return this.isLegalPawnMove(source, target, isWhite, fileDiff, rankDiff, position, this.enPassant);
       case 'n': // Knight
         return this.isLegalKnightMove(fileDiff, rankDiff);
       case 'b': // Bishop
-        return this.isLegalBishopMove(source, target, fileDiff, rankDiff, this.position);
+        return this.isLegalBishopMove(source, target, fileDiff, rankDiff, position);
       case 'r': // Rook
-        return this.isLegalRookMove(source, target, fileDiff, rankDiff, this.position);
+        return this.isLegalRookMove(source, target, fileDiff, rankDiff, position);
       case 'q': // Queen
-        return this.isLegalQueenMove(source, target, fileDiff, rankDiff, this.position);
+        return this.isLegalQueenMove(source, target, fileDiff, rankDiff, position);
       case 'k': // King
-        return this.isLegalKingMove(fileDiff, rankDiff, source, target, piece, this.position, this.castlingRights, skipCheckValidation);
+        return this.isLegalKingMove(fileDiff, rankDiff, source, target, piece, position, this.castlingRights, skipCheckValidation);
       default:
         return false;
     }
@@ -361,16 +364,19 @@ export default class ChessRules {
     return true;
   }
 
-  isCheckmate(isWhite) {
-    return this.isInCheck(isWhite, this.position) && !this.isAnyMovePossible(isWhite);
+  isCheckmate(fen, isWhite) {
+    const position = ChessRules.fenToObj(fen);
+    return this.isInCheck(isWhite, position) && !this.isAnyMovePossible(position, isWhite);
   }
 
-  isStalemate(isWhite) {
-    return !this.isInCheck(isWhite, this.position) && !this.isAnyMovePossible(isWhite);
+  isStalemate(fen, isWhite) {
+    const position = ChessRules.fenToObj(fen);
+    return !this.isInCheck(isWhite, position) && !this.isAnyMovePossible(position, isWhite);
   }
 
-  isInsufficientMaterial() {
-    const pieces = Object.values(this.position);
+  isInsufficientMaterial(fen) {
+    const position = ChessRules.fenToObj(fen);
+    const pieces = Object.values(position);
 
     // Count pieces
     const pieceCount = pieces.length;
@@ -389,7 +395,7 @@ export default class ChessRules {
       const bishops = pieces.filter(p => p.endsWith('b'));
       if (bishops.length === 2) {
         // Check if bishops are on same colored squares
-        const bishopSquares = Object.entries(this.position)
+        const bishopSquares = Object.entries(position)
           .filter(([_, piece]) => piece.endsWith('b'))
           .map(([square, _]) => this.isLightSquare(square));
         return bishopSquares[0] === bishopSquares[1];
@@ -435,7 +441,7 @@ export default class ChessRules {
     ];
     return this.keepOnlySquaresOnBoard(targetSquares);
   }
-    
+
   keepOnlySquaresOnBoard(targetSquares) {
     return targetSquares.filter(square => square[0] >= 'a' && square[0] <= 'h' && square[1] >= '1' && square[1] <= '8');
   }
@@ -456,17 +462,17 @@ export default class ChessRules {
     for (const [fileStep, rankStep] of directions) {
         let currentFile = file;
         let currentRank = rank;
-        
+
         while (true) {
             currentFile += fileStep;
             currentRank += rankStep;
-            
+
             // Check if we're still on the board
             if (currentFile < 'a'.charCodeAt(0) || currentFile > 'h'.charCodeAt(0) ||
                 currentRank < 1 || currentRank > 8) {
                 break;
             }
-            
+
             targetSquares.push(`${String.fromCharCode(currentFile)}${currentRank}`);
         }
     }
@@ -514,9 +520,14 @@ export default class ChessRules {
     return this.keepOnlySquaresOnBoard(targetSquares).filter(square => square !== from);
   }
 
-  isAnyMovePossible(isWhite) {
+  isAnyMovePossibleInFen(fen, isWhite) {
+    const position = ChessRules.fenToObj(fen);
+    return this.isAnyMovePossible(position, isWhite);
+  }
+
+  isAnyMovePossible(position, isWhite) {
     // Get all squares with pieces of the current player's color
-    const playerPieces = Object.entries(this.position)
+    const playerPieces = Object.entries(position)
         .filter(([_, piece]) => piece.charAt(0) === (isWhite ? 'w' : 'b'));
 
     for (const [from, piece] of playerPieces) {
@@ -559,7 +570,7 @@ export default class ChessRules {
         });
 
         for (const to of validSquares) {
-            if (this.isLegalMove(from, to, piece)) {
+            if (this.isLegalMove(position, from, to, piece)) {
                 return true;
             }
         }

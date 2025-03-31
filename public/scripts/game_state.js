@@ -1,6 +1,5 @@
 export default class GameState {
-    constructor(fen, chessRules) {
-      this.ChessRules = chessRules;
+    constructor(fen, ChessRules) {
       const fenParts = fen.split(' ');
       this.castlingRightsHistory = [];
       this.enPassantHistory = [];
@@ -9,6 +8,8 @@ export default class GameState {
       this.halfmoveClock = parseInt(fenParts[4]);
       this.changeIndex = 0;
       this.sideWithFirstMove = this.extractSideFromFen(fen);
+      this.chessRules = new ChessRules();
+      this.chessRules.setCurrentState(this.enPassant, this.castlingRights);
     }
 
     update(piece, from, to, capturedPiece) {
@@ -113,19 +114,19 @@ export default class GameState {
       return (moveIndex % 2 === 0) === isFirstMoveWhite;
     }
 
-    isGameTerminated(position) {
-      const chessRules = new this.ChessRules(position, this.enPassant, this.castlingRights);
+    isGameTerminated(fen, moveIndex) {
+      this.chessRules.setCurrentState(this.enPassant, this.castlingRights);
 
-      const isWhite = this.isWhiteToMove(this.currentMoveIndex);
-      if (chessRules.isCheckmate(isWhite)) {
+      const isWhite = this.isWhiteToMove(moveIndex);
+      if (this.chessRules.isCheckmate(fen, isWhite)) {
         return true;
       }
 
-      if (chessRules.isStalemate(isWhite)) {
+      if (this.chessRules.isStalemate(fen, isWhite)) {
         return true;
       }
 
-      if (chessRules.isInsufficientMaterial()) {
+      if (this.chessRules.isInsufficientMaterial(fen)) {
         return true;
       }
 
@@ -136,15 +137,15 @@ export default class GameState {
       return false;
     }
 
-    isLegalMove(position, from, to, piece) {
-      const chessRules = new this.ChessRules(position, this.enPassant, this.castlingRights);
-      return chessRules.isLegalMove(from, to, piece);
+    isLegalMove(fen, from, to, piece) {
+      this.chessRules.setCurrentState(this.enPassant, this.castlingRights);
+      return this.chessRules.isLegalMoveWithFen(fen, from, to, piece);
     }
 
-    isCheckmate(position, moveIndex) {
+    isCheckmate(fen, moveIndex) {
       const isWhite = this.isWhiteToMove(moveIndex);
-      const chessRules = new this.ChessRules(position, this.enPassant, this.castlingRights);
-      return chessRules.isCheckmate(isWhite);
+      this.chessRules.setCurrentState(this.enPassant, this.castlingRights);
+      return this.chessRules.isCheckmate(fen, isWhite);
     }
 
   }

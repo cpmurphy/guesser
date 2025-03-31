@@ -820,6 +820,7 @@ describe('Board', () => {
 
       board.addExtraMove(move);
 
+      expect(board.isWhiteToMove(board.currentMoveIndex)).toBe(false);
       expect(board.moves[0]).toEqual('Rh8#');
     });
   });

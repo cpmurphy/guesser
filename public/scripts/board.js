@@ -795,7 +795,7 @@ export default class Board {
   }
 
   isGameTerminated() {
-    return this.gameState.isGameTerminated(this.board.getPosition());
+    return this.gameState.isGameTerminated(this.board.getPosition(), this.currentMoveIndex);
   }
 
 }

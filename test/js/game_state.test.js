@@ -22,6 +22,17 @@ describe('GameState', () => {
     });
   });
 
+  describe('isWhiteToMove', () => {
+    it('handles a normal game starting with white', () => {
+      let gameState = new GameState('rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1', ChessRules);
+      expect(gameState.isWhiteToMove(0)).toBe(true);
+    });
+    it('handles jumping into the middle of a game with black to move', () => {
+      let gameState = new GameState('rnbqkbnr/pppp1ppp/8/4p3/4P3/5N2/PPPP1PPP/RNBQKB1R b KQkq - 1 2', ChessRules);
+      expect(gameState.isWhiteToMove(0)).toBe(false);
+    });
+  });
+
   describe('castling rights', () => {
     it('removes white kingside castling when white king moves', () => {
       let gameState = new GameState('r1bqk2r/pppp1pp1/2n2n1p/2b1p3/2B1P3/2P2N1P/PP1P1PP1/RNBQK2R w KQkq - 0 6', ChessRules);

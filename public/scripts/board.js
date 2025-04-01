@@ -133,38 +133,30 @@ export default class Board {
 
   onMoveCompleted(from, to) {
     const piece = this.board.getPiece(from);
-    const position = this.board.getPosition();
+    const fen = this.board.getPosition();
 
     if (!piece) {
       return false;
     }
 
-    if (!this.isLegalMove(from, to, piece)) {
+    if (!this.gameState.isLegalMove(fen, from, to, piece)) {
       return false;
     }
-    this.lastPosition = position;
+    this.lastPosition = fen;
 
-    if (this.isPawnPromotion(from, to, piece)) {
+    if (this.gameState.isPawnPromotion(to, piece)) {
       this.showPromotionDialog(from, to, piece, this.generateCompleteFen());
       return false; // Don't complete the move yet
     }
 
     if (piece === this.PIECE.wk || piece === this.PIECE.bk) {
-      if (this.isCastling(piece, from, to)) {
-        this.performCastling(piece, to, position);
+      if (this.gameState.isCastling(piece, from, to)) {
+        this.performCastling(piece, to, fen);
       }
     }
 
     this.submitGuess(from, to, piece, null, this.generateCompleteFen());
     return true;
-  }
-
-  isLegalMove(from, to, piece) {
-    return this.gameState.isLegalMove(this.board.getPosition(), from, to, piece);
-  }
-
-  isWhiteToMove(moveIndex) {
-    return this.gameState.isWhiteToMove(moveIndex);
   }
 
   position(fen) {
@@ -475,32 +467,18 @@ export default class Board {
 
   showPromotionDialog(source, target, piece, oldPos) {
     const color = piece.charAt(0);
-    const position = this.board.getPosition();
+    const fen = this.board.getPosition();
     this.board.showPromotionDialog(target, color, (result) => {
       if (result && result.piece) {
         this.board.setPiece(result.square, result.piece, true)
         this.board.setPiece(source, null)
         this.submitGuess(source, target, piece, result.piece, oldPos);
       } else {
-        this.board.setPosition(position)
+        this.board.setPosition(fen)
       }
     });
   }
 
-  isPawnPromotion(from, to, piece) {
-    if (!piece.endsWith('p')) return false;
-    const targetRank = to[1];
-    return (piece.startsWith('w') && targetRank === '8') ||
-           (piece.startsWith('b') && targetRank === '1');
-  }
-
-  isCastling(piece, source, target) {
-    const kingside = (piece === this.PIECE.wk && source === 'e1' && target === 'g1') ||
-      (piece === this.PIECE.bk && source === 'e8' && target === 'g8');
-    const queenside = (piece === this.PIECE.wk && source === 'e1' && target === 'c1') ||
-      (piece === this.PIECE.bk && source === 'e8' && target === 'c8');
-    return kingside || queenside;
-  }
 
   performCastling(piece, target) {
     let rookSource, rookTarget;
@@ -678,7 +656,7 @@ export default class Board {
 
     // Add checkmate symbol if the position is checkmate
     if (!move.notation.endsWith('#')) {
-      if (this.isCheckmate()) {
+      if (this.gameState.isCheckmate(this.board.getPosition(), this.currentMoveIndex)) {
         move.notation += '#';
         this.moves[this.currentMoveIndex-1] = move.notation;
         this.updateLastMoveDisplay();
@@ -686,17 +664,13 @@ export default class Board {
     }
   }
 
-  isCheckmate() {
-    return this.gameState.isCheckmate(this.board.getPosition(), this.currentMoveIndex);
-  }
-
   generateCompleteFen() {
-    const piecePlacement = this.board.getPosition();
+    const fen = this.board.getPosition();
     const activeColor = this.gameState.isWhiteToMove(this.currentMoveIndex) ? 'w' : 'b';
     // Calculate the full move number
     const fullmoveNumber = Math.floor(this.currentMoveIndex / 2) + this.startingWholeMove;
 
-    return `${piecePlacement} ${activeColor} ${this.gameState.stringForFen()} ${fullmoveNumber}`;
+    return `${fen} ${activeColor} ${this.gameState.stringForFen()} ${fullmoveNumber}`;
   }
 
   formatEvaluation(evaluation) {

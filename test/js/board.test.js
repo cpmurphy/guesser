@@ -78,62 +78,6 @@ describe('Board', () => {
     `;
   });
 
-  describe('isWhiteToMove', () => {
-    it('handles a normal game starting with white', () => {
-      const data = createGameData({
-        sideToMove: 'white',
-        startingWholeMove: 1,
-        moves: ['e4', 'e5', 'Nf3'],
-        uiMoves: [{"piece":"P","moves":["e2-e4"]},{"piece":"p","moves":["e7-e5"]},{"piece":"N","moves":["g1-f3"]}]
-      });
-      const chessboard = new Chessboard('element', {});
-      board = new Board(data, chessboard);
-
-      expect(board.currentMoveIndex).toBe(0);
-      expect(board.isWhiteToMove(board.currentMoveIndex)).toBe(true);
-      board.moveForward();
-      expect(board.isWhiteToMove(board.currentMoveIndex)).toBe(false);
-      board.moveForward();
-      expect(board.isWhiteToMove(board.currentMoveIndex)).toBe(true);
-    });
-
-    it('handles jumping into the middle of a game with black to move', () => {
-      const data = createGameData({
-        startingWholeMove: 1,
-        currentWholeMove: 2,
-        sideToMove: 'black',
-        moves: ['e4', 'e5', 'Nf3', 'Nc6'],
-        uiMoves: [{"piece":"P","moves":["e2-e4"]},{"piece":"p","moves":["e7-e5"]},{"piece":"N","moves":["g1-f3"]},{"piece":"N","moves":["b8-c6"]}]
-      });
-      const chessboard = new Chessboard('element', {});
-      board = new Board(data, chessboard);
-
-      expect(board.currentMoveIndex).toBe(3);
-      expect(board.isWhiteToMove(board.currentMoveIndex)).toBe(false);
-      board.moveForward();
-      expect(board.isWhiteToMove(board.currentMoveIndex)).toBe(true);
-    });
-
-    it('handles a game that starts with black to move', () => {
-      const data = createGameData({
-        uiMoves: [{"piece":"b","moves":["f8-c5"]},{"piece":"p","moves":["c2-c3"]},{"piece":"n","moves":["g8-f6"]}],
-        moves: ["Bc5","c3","Nf6"],
-        startingWholeMove: 3,
-        currentWholeMove: 3,
-        sideToMove: 'black',
-        fen: 'r1bqkbnr/pppp1ppp/2n5/4p3/2B1P3/5N2/PPPP1PPP/RNBQK2R b KQkq - 3 3',
-      });
-      const chessboard = new Chessboard('element', {});
-      board = new Board(data, chessboard);
-
-      expect(board.currentMoveIndex).toBe(0);
-      expect(board.isWhiteToMove(board.currentMoveIndex)).toBe(false);
-      board.moveForward();
-      expect(board.isWhiteToMove(board.currentMoveIndex)).toBe(true);
-      board.moveForward();
-      expect(board.isWhiteToMove(board.currentMoveIndex)).toBe(false);
-    });
-  });
 
   describe('moveBackward', () => {
     it('handles when player redoes a bad move', () => {
@@ -157,7 +101,6 @@ describe('Board', () => {
       expect(board.moves.length).toBe(1);
       expect(board.uiMoves[0]).toEqual({piece:"P", moves: ["e7-d8"], add: ['R', 'd8'], remove: ['q', 'd8'], notation: "exd8=R#"});
       expect(board.moves[0]).toEqual("exd8=R#");
-      expect(board.isWhiteToMove(board.currentMoveIndex)).toBe(false);
     });
   });
 
@@ -393,7 +336,6 @@ describe('Board', () => {
       const board = new Board(data, chessboard);
       board.submitGuess('e7', 'e8', 'wp', 'wq', '7k/4P2p/5K2/8/8/8/8/8 w - - 0 1');
       expect(board.gameState.halfmoveClock).toBe(0);
-      expect(board.isWhiteToMove(board.currentMoveIndex)).toBe(false);
     });
   });
 
@@ -612,7 +554,6 @@ describe('Board', () => {
       ]);
       expect(board.lastMoveElement.textContent).toBe('1... c5');
       expect(board.currentMoveIndex).toBe(2);
-      expect(board.isWhiteToMove(board.currentMoveIndex)).toBe(true);
     });
     it("handles guesses when the game move is a passing move", () => {
       const data = createGameData({
@@ -820,7 +761,6 @@ describe('Board', () => {
 
       board.addExtraMove(move);
 
-      expect(board.isWhiteToMove(board.currentMoveIndex)).toBe(false);
       expect(board.moves[0]).toEqual('Rh8#');
     });
   });

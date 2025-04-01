@@ -114,6 +114,21 @@ export default class GameState {
       return (moveIndex % 2 === 0) === isFirstMoveWhite;
     }
 
+    isPawnPromotion(to, piece) {
+      if (!piece.endsWith('p')) return false;
+      const targetRank = to[1];
+      return (piece.startsWith('w') && targetRank === '8') ||
+             (piece.startsWith('b') && targetRank === '1');
+    }
+  
+    isCastling(piece, source, target) {
+      const kingside = (piece === this.PIECE.wk && source === 'e1' && target === 'g1') ||
+        (piece === this.PIECE.bk && source === 'e8' && target === 'g8');
+      const queenside = (piece === this.PIECE.wk && source === 'e1' && target === 'c1') ||
+        (piece === this.PIECE.bk && source === 'e8' && target === 'c8');
+      return kingside || queenside;
+    }
+
     isGameTerminated(fen, moveIndex) {
       this.chessRules.setCurrentState(this.enPassant, this.castlingRights);
 

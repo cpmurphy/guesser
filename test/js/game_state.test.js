@@ -1,6 +1,8 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import GameState from '../../public/scripts/game_state.js';
 import ChessRules from '../../public/scripts/chess_rules.js';
+import Fen from '../../public/scripts/fen.js';
+import { PIECE } from '../../public/scripts/board_definitions.js';
 
 describe('GameState', () => {
 
@@ -10,39 +12,39 @@ describe('GameState', () => {
 
   describe('constructor', () => {
     it('initializes with correct castling rights from FEN', () => {
-      let gameState = new GameState('r1bqk2r/pppp1pp1/2n2n1p/2b1p3/2B1P3/2P2N1P/PP1P1PP1/RNBQK2R w KQkq - 0 6', ChessRules);
+      let gameState = new GameState('r1bqk2r/pppp1pp1/2n2n1p/2b1p3/2B1P3/2P2N1P/PP1P1PP1/RNBQK2R w KQkq - 0 6', ChessRules, Fen, PIECE);
       expect(gameState.castlingRights).toBe('KQkq');
       expect(gameState.enPassant).toBe('-');
       expect(gameState.halfmoveClock).toBe(0);
     });
 
     it('handles FEN with partial castling rights', () => {
-      let gameState = new GameState('1nbqkbnr/1ppp1ppp/r7/p3p3/P3P3/R7/1PPP1PPP/1NBQKBNR w Kk - 2 4', ChessRules);
+      let gameState = new GameState('1nbqkbnr/1ppp1ppp/r7/p3p3/P3P3/R7/1PPP1PPP/1NBQKBNR w Kk - 2 4', ChessRules, Fen, PIECE);
       expect(gameState.castlingRights).toBe('Kk');
     });
   });
 
   describe('isWhiteToMove', () => {
     it('handles a normal game starting with white', () => {
-      let gameState = new GameState('rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1', ChessRules);
+      let gameState = new GameState('rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1', ChessRules, Fen, PIECE);
       expect(gameState.isWhiteToMove(0)).toBe(true);
     });
     it('handles jumping into the middle of a game with black to move', () => {
-      let gameState = new GameState('rnbqkbnr/pppp1ppp/8/4p3/4P3/5N2/PPPP1PPP/RNBQKB1R b KQkq - 1 2', ChessRules);
+      let gameState = new GameState('rnbqkbnr/pppp1ppp/8/4p3/4P3/5N2/PPPP1PPP/RNBQKB1R b KQkq - 1 2', ChessRules, Fen, PIECE);
       expect(gameState.isWhiteToMove(0)).toBe(false);
     });
   });
 
   describe('castling rights', () => {
     it('removes white kingside castling when white king moves', () => {
-      let gameState = new GameState('r1bqk2r/pppp1pp1/2n2n1p/2b1p3/2B1P3/2P2N1P/PP1P1PP1/RNBQK2R w KQkq - 0 6', ChessRules);
+      let gameState = new GameState('r1bqk2r/pppp1pp1/2n2n1p/2b1p3/2B1P3/2P2N1P/PP1P1PP1/RNBQK2R w KQkq - 0 6', ChessRules, Fen, PIECE);
       gameState.update('wk', 'e1', 'e2');
       expect(gameState.castlingRights).not.toMatch(/[KQ]/);
       expect(gameState.castlingRights).toMatch(/[kq]/);
     });
 
     it('removes black kingside castling when black king moves', () => {
-      let gameState = new GameState('r1bqk2r/pppp1pp1/2n2n1p/2b1p3/2B1P3/2P2N1P/PP1P1PP1/RNBQK2R w KQkq - 0 6', ChessRules);
+      let gameState = new GameState('r1bqk2r/pppp1pp1/2n2n1p/2b1p3/2B1P3/2P2N1P/PP1P1PP1/RNBQK2R w KQkq - 0 6', ChessRules, Fen, PIECE);
       gameState.update('bk', 'e8', 'e7');
       expect(gameState.castlingRights).not.toMatch(/[kq]/);
       expect(gameState.castlingRights).toMatch(/[KQ]/);
@@ -56,7 +58,7 @@ describe('GameState', () => {
     });
 
     it('removes white kingside castling when h1 rook moves', () => {
-      let gameState = new GameState('r1bqk2r/pppp1pp1/2n2n1p/2b1p3/2B1P3/2P2N1P/PP1P1PP1/RNBQK2R w KQkq - 0 6', ChessRules);
+      let gameState = new GameState('r1bqk2r/pppp1pp1/2n2n1p/2b1p3/2B1P3/2P2N1P/PP1P1PP1/RNBQK2R w KQkq - 0 6', ChessRules, Fen, PIECE);
       gameState.update('wr', 'h1', 'h2');
       expect(gameState.castlingRights).not.toMatch(/K/);
       expect(gameState.castlingRights).toMatch(/[Qkq]/);
@@ -76,7 +78,7 @@ describe('GameState', () => {
     });
 
     it('can rewind moves and restore castling rights', () => {
-      let gameState = new GameState('r1bqk2r/pppp1pp1/2n2n1p/2b1p3/2B1P3/2P2N1P/PP1P1PP1/RNBQK2R w KQkq - 0 6', ChessRules);
+      let gameState = new GameState('r1bqk2r/pppp1pp1/2n2n1p/2b1p3/2B1P3/2P2N1P/PP1P1PP1/RNBQK2R w KQkq - 0 6', ChessRules, Fen, PIECE);
       gameState.update('wr', 'h1', 'h2');
       gameState.update('wk', 'e1', 'e2');
 
@@ -138,7 +140,7 @@ describe('GameState', () => {
     let gameState;
 
     beforeEach(() => {
-      gameState = new GameState('rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1', ChessRules);
+      gameState = new GameState('rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1', ChessRules, Fen, PIECE);
     });
 
     it('resets to 0 after a pawn move', () => {

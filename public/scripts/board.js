@@ -4,6 +4,7 @@ import { COLOR, PIECE } from './board_definitions.js';
 import GameState from './game_state.js';
 import MoveLocalizer from './move_localizer.js';
 import { loadModules } from './module_loader.js';
+import Fen from './fen.js';
 
 export default class Board {
   constructor(data, chessboard) {
@@ -17,6 +18,7 @@ export default class Board {
       this.PIECE = PIECE;
       this.GameState = GameState;
       this.MoveLocalizer = MoveLocalizer;
+      this.Fen = Fen;
 
       this.initializeSync(data, chessboard);
     }
@@ -29,6 +31,7 @@ export default class Board {
     this.PIECE = modules.PIECE;
     this.GameState = modules.GameState;
     this.MoveLocalizer = modules.MoveLocalizer;
+    this.Fen = modules.Fen;
 
     this.initializeSync(data, chessboard);
   }
@@ -67,7 +70,7 @@ export default class Board {
   initializeGameState(fen) {
     this.board.setPosition(fen);
     this.lastPosition = this.board.getPosition();
-    this.gameState = new this.GameState(fen, this.ChessRules);
+    this.gameState = new this.GameState(fen, this.ChessRules, this.Fen, this.PIECE);
     this.hideGuessResult();
     this.initializeButtonStates(false);
   }

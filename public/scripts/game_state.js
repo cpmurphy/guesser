@@ -1,5 +1,5 @@
 export default class GameState {
-    constructor(fen, ChessRules) {
+    constructor(fen, ChessRules, Fen, PIECE) {
       const fenParts = fen.split(' ');
       this.castlingRightsHistory = [];
       this.enPassantHistory = [];
@@ -9,6 +9,8 @@ export default class GameState {
       this.changeIndex = 0;
       this.sideWithFirstMove = this.extractSideFromFen(fen);
       this.chessRules = new ChessRules();
+      this.Fen = Fen;
+      this.PIECE = PIECE;
       this.chessRules.setCurrentState(this.enPassant, this.castlingRights);
     }
 
@@ -163,4 +165,4 @@ export default class GameState {
       return this.chessRules.isCheckmate(fen, isWhite);
     }
 
-  }
+}

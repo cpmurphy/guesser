@@ -5,6 +5,7 @@ import GameState from './game_state.js';
 import MoveLocalizer from './move_localizer.js';
 import { loadModules } from './module_loader.js';
 import Fen from './fen.js';
+import EvaluationExplainer from './evaluation_explainer.js';
 
 export default class Board {
   constructor(data, chessboard) {
@@ -19,7 +20,7 @@ export default class Board {
       this.GameState = GameState;
       this.MoveLocalizer = MoveLocalizer;
       this.Fen = Fen;
-
+      this.EvaluationExplainer = EvaluationExplainer;
       this.initializeSync(data, chessboard);
     }
   }
@@ -32,13 +33,14 @@ export default class Board {
     this.GameState = modules.GameState;
     this.MoveLocalizer = modules.MoveLocalizer;
     this.Fen = modules.Fen;
-
+    this.EvaluationExplainer = modules.EvaluationExplainer;
     this.initializeSync(data, chessboard);
   }
 
   initializeSync(data, chessboard) {
     this.locale = data.locale;
     this.moveLocalizer = new this.MoveLocalizer(this.locale);
+    this.evaluationExplainer = new this.EvaluationExplainer(this.moveLocalizer);
     this.gameResult = data.gameResult;
     this.lastMoveElement = document.getElementById('last-move');
     this.moveInput = document.getElementById('move-input');
@@ -346,14 +348,8 @@ export default class Board {
           );
           this.moveForward();
         } else {
-          const evalDiff = this.compareEvaluations(move.guess_eval.score, move.game_eval.score);
-          const evalComment = this.getEvaluationComment(move.result, move.game_move, move.guess_eval.score, evalDiff);
-          var headline;
-          if (move.guess_eval.score > 100 && evalDiff > -30) {
-            headline = window.TRANSLATIONS.guess.correct.good_move;
-          } else {
-            headline = window.TRANSLATIONS.guess.correct.good_guess;
-          }
+          const evalComment = this.evaluationExplainer.getEvaluationComment(move);
+          const headline = this.evaluationExplainer.getEvaluationHeadline(move);
 
           this.updateGuessStatus(
             'green',
@@ -371,8 +367,7 @@ export default class Board {
             window.TRANSLATIONS.guess.move_was_passed
           );
         } else {
-          const evalDiff = this.compareEvaluations(move.guess_eval.score, move.game_eval.score);
-          const evalComment = this.getEvaluationComment(move.result, move.game_move, move.guess_eval.score, evalDiff);
+          const evalComment = this.evaluationExplainer.getEvaluationComment(move);
           this.updateGuessStatus(
             'red',
             window.TRANSLATIONS.guess.incorrect,
@@ -676,59 +671,6 @@ export default class Board {
     return `${fen} ${activeColor} ${this.gameState.stringForFen()} ${fullmoveNumber}`;
   }
 
-  formatEvaluation(evaluation) {
-    if (!evaluation) return '';
-
-    const formatScore = (score) => {
-        if (typeof score === 'number') {
-            return score > 0 ? `+${(score/100).toFixed(2)}` : `${(score/100).toFixed(2)}`;
-        }
-        return score;
-    };
-
-    const e = formatScore(evaluation);
-
-    return `Evaluation: ${e}`;
-  }
-
-  compareEvaluations(guessEval, gameEval) {
-    if (!guessEval || !gameEval) return 0;
-    return guessEval - gameEval;
-  }
-
-  getEvaluationComment(guessResult, gameMove, guessEval, evalDiff) {
-    var comment = '';
-    const guessCorrect = guessResult == 'correct';
-    const moveText = guessCorrect ? this.moveLocalizer.localize(gameMove) : '';
-
-    if (evalDiff > 50) {
-      comment = window.TRANSLATIONS.evaluation.much_better.replace('%{game_move}', gameMove);
-    } else if (evalDiff > 10) {
-      comment = window.TRANSLATIONS.evaluation.slightly_better.replace('%{game_move}', gameMove);
-    } else if (evalDiff < -100) {
-      comment = window.TRANSLATIONS.evaluation.much_worse.replace('%{move}', moveText);
-    } else if (evalDiff < -50) {
-      comment = window.TRANSLATIONS.evaluation.worse.replace('%{move}', moveText);
-    } else if (evalDiff < -10) {
-      comment = window.TRANSLATIONS.evaluation.slightly_worse.replace('%{move}', moveText);
-    } else if (guessResult == 'correct') {
-      comment = window.TRANSLATIONS.evaluation.equal.replace('%{move}', moveText);
-    } else {
-      comment = window.TRANSLATIONS.evaluation.not_as_good;
-    }
-    if (comment.includes('()')) {
-      comment = comment.replace(/\(\)/, '');
-    }
-
-    if (evalDiff < -10) {
-      if (evalDiff > -50 && guessEval > 50) {
-        comment += " " + window.TRANSLATIONS.evaluation.still_good;
-      } else if (guessEval > 50) {
-        comment += " " + window.TRANSLATIONS.evaluation.reasonable;
-      }
-    }
-    return comment;
-  }
 
   handleCorrectGuess(move) {
     if (move.remove) {

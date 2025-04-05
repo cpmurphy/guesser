@@ -7,6 +7,7 @@ export default class GameState {
       this.enPassant = fenParts[3];
       this.halfmoveClock = parseInt(fenParts[4]);
       this.changeIndex = 0;
+      this.startingWholeMove = parseInt(fenParts[5]);
       this.sideWithFirstMove = this.extractSideFromFen(fen);
       this.chessRules = new ChessRules();
       this.Fen = Fen;
@@ -39,6 +40,13 @@ export default class GameState {
         this.castlingRights = '-';
       }
       return `${this.castlingRights} ${this.enPassant} ${this.halfmoveClock}`;
+    }
+
+    generateCompleteFen(partialFen, moveIndex) {
+      const activeColor = this.isWhiteToMove(moveIndex) ? 'w' : 'b';
+      // Calculate the full move number
+      const fullmoveNumber = Math.floor(moveIndex / 2) + this.startingWholeMove;
+      return `${partialFen} ${activeColor} ${this.stringForFen()} ${fullmoveNumber}`;
     }
 
     updateEnPassant(piece, from, to) {

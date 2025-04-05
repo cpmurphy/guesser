@@ -663,14 +663,9 @@ export default class Board {
   }
 
   generateCompleteFen() {
-    const fen = this.board.getPosition();
-    const activeColor = this.gameState.isWhiteToMove(this.currentMoveIndex) ? 'w' : 'b';
-    // Calculate the full move number
-    const fullmoveNumber = Math.floor(this.currentMoveIndex / 2) + this.startingWholeMove;
-
-    return `${fen} ${activeColor} ${this.gameState.stringForFen()} ${fullmoveNumber}`;
+    const partialFen = this.board.getPosition();
+    return this.gameState.generateCompleteFen(partialFen, this.currentMoveIndex);
   }
-
 
   handleCorrectGuess(move) {
     if (move.remove) {

@@ -6,6 +6,7 @@ import MoveLocalizer from './move_localizer.js';
 import { loadModules } from './module_loader.js';
 import Fen from './fen.js';
 import EvaluationExplainer from './evaluation_explainer.js';
+import ResultDisplay from './result_display.js';
 
 export default class Board {
   constructor(data, chessboard) {
@@ -21,6 +22,7 @@ export default class Board {
       this.MoveLocalizer = MoveLocalizer;
       this.Fen = Fen;
       this.EvaluationExplainer = EvaluationExplainer;
+      this.ResultDisplay = ResultDisplay;
       this.initializeSync(data, chessboard);
     }
   }
@@ -34,6 +36,7 @@ export default class Board {
     this.MoveLocalizer = modules.MoveLocalizer;
     this.Fen = modules.Fen;
     this.EvaluationExplainer = modules.EvaluationExplainer;
+    this.ResultDisplay = modules.ResultDisplay;
     this.initializeSync(data, chessboard);
   }
 
@@ -45,6 +48,7 @@ export default class Board {
     this.lastMoveElement = document.getElementById('last-move');
     this.moveInput = document.getElementById('move-input');
     this.board = chessboard;
+    this.resultDisplay = new this.ResultDisplay();
     this.setupUserInterface();
     this.onGameLoaded(data);
   }
@@ -73,7 +77,7 @@ export default class Board {
     this.board.setPosition(fen);
     this.lastPosition = this.board.getPosition();
     this.gameState = new this.GameState(fen, this.ChessRules, this.Fen, this.PIECE);
-    this.hideGuessResult();
+    this.resultDisplay.hideGuessResult();
     this.initializeButtonStates(false);
   }
 
@@ -181,7 +185,7 @@ export default class Board {
       if (btn) {
         btn.addEventListener('click', (e) => {
           e.preventDefault();
-          this.hideGuessResult();
+          this.resultDisplay.hideGuessResult();
           action();
         });
       }
@@ -260,7 +264,7 @@ export default class Board {
     }
     this.updateButtonStates();
     if (this.gameOver()) {
-      this.displayGameResult();
+      this.resultDisplay.displayGameResult();
     }
     this.updateLastMoveDisplay();
   }
@@ -277,24 +281,6 @@ export default class Board {
         this.gameState.update(piece, from, to);
       }
     }
-  }
-
-  displayGameResult() {
-    const guessResult = document.getElementById('guess_result');
-
-    // Check if the result span already exists
-    let resultSpan = guessResult.querySelector('.game-result');
-
-    if (!resultSpan) {
-      // If it doesn't exist, create a new span
-      resultSpan = document.createElement('span');
-      resultSpan.className = 'game-result';
-      resultSpan.style.marginLeft = '10px';  // Add some space between existing content and result
-      guessResult.appendChild(resultSpan);
-    }
-
-    resultSpan.textContent = this.gameResult || 'Game Over';
-    resultSpan.style.color = 'blue';
   }
 
   moveBackward() {
@@ -341,7 +327,7 @@ export default class Board {
     data.forEach((move) => {
       if (move.result === 'correct') {
         if (move.same_as_game) {
-          this.updateGuessStatus(
+          this.resultDisplay.updateGuessStatus(
             'green',
             window.TRANSLATIONS.guess.correct.correct_exclamation,
             window.TRANSLATIONS.guess.correct.same_as_game
@@ -351,7 +337,7 @@ export default class Board {
           const evalComment = this.evaluationExplainer.getEvaluationComment(move);
           const headline = this.evaluationExplainer.getEvaluationHeadline(move);
 
-          this.updateGuessStatus(
+          this.resultDisplay.updateGuessStatus(
             'green',
             headline,
             evalComment
@@ -361,14 +347,14 @@ export default class Board {
         }
       } else if (move.result === 'incorrect') {
         if (move.game_move === '--') {
-          this.updateGuessStatus(
+          this.resultDisplay.updateGuessStatus(
             'black',
             '',
             window.TRANSLATIONS.guess.move_was_passed
           );
         } else {
           const evalComment = this.evaluationExplainer.getEvaluationComment(move);
-          this.updateGuessStatus(
+          this.resultDisplay.updateGuessStatus(
             'red',
             window.TRANSLATIONS.guess.incorrect,
             evalComment
@@ -380,7 +366,7 @@ export default class Board {
           this.moveForward();
         }
       } else if (move.result === 'game_over') {
-        this.updateGuessStatus(
+        this.resultDisplay.updateGuessStatus(
           'green',
           '',
           window.TRANSLATIONS.guess.beyond_game
@@ -388,15 +374,6 @@ export default class Board {
         this.addExtraMove(move);
       }
     });
-  }
-
-  hideGuessResult() {
-    const guessResult = document.getElementById('guess_result');
-    const guessComment = document.getElementById('guess_comment');
-    const guessSubcomment = document.getElementById('guess_subcomment');
-    if (guessResult) guessResult.textContent = '';
-    if (guessComment) guessComment.textContent = '';
-    if (guessSubcomment) guessSubcomment.textContent = '';
   }
 
   isPieceAvailableToMove(piece) {
@@ -672,7 +649,7 @@ export default class Board {
       this.board.setPiece(move.remove[1], null);
     }
     if (!this.isPastRecordedMoves()) {
-      this.updateGuessStatus('green', window.TRANSLATIONS.guess.correct.correct_exclamation, window.TRANSLATIONS.guess.correct.same_as_game);
+      this.resultDisplay.updateGuessStatus('green', window.TRANSLATIONS.guess.correct.correct_exclamation, window.TRANSLATIONS.guess.correct.same_as_game);
     }
     this.currentMoveIndex++;
     // autoplay the opponent's move unless guess mode is both
@@ -684,18 +661,8 @@ export default class Board {
     this.updateButtonStates();
     this.updateLastMoveDisplay();
     if (this.gameOver()) {
-      this.displayGameResult();
+      this.resultDisplay.displayGameResult();
     }
-  }
-
-  updateGuessStatus(headlineColor, headlineText, commentText) {
-    const guessResult = document.getElementById('guess_result');
-    const guessComment = document.getElementById('guess_comment');
-    const guessSubcomment = document.getElementById('guess_subcomment');
-
-    guessResult.style.color = headlineColor;
-    guessResult.textContent = headlineText;
-    guessComment.textContent = commentText;
   }
 
   initializeGuessMode(currentWholeMove, sideToMove) {

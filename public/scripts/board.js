@@ -7,6 +7,7 @@ import { loadModules } from './module_loader.js';
 import Fen from './fen.js';
 import EvaluationExplainer from './evaluation_explainer.js';
 import ResultDisplay from './result_display.js';
+import ButtonUi from './button_ui.js';
 
 export default class Board {
   constructor(data, chessboard) {
@@ -23,6 +24,7 @@ export default class Board {
       this.Fen = Fen;
       this.EvaluationExplainer = EvaluationExplainer;
       this.ResultDisplay = ResultDisplay;
+      this.ButtonUi = ButtonUi;
       this.initializeSync(data, chessboard);
     }
   }
@@ -37,6 +39,7 @@ export default class Board {
     this.Fen = modules.Fen;
     this.EvaluationExplainer = modules.EvaluationExplainer;
     this.ResultDisplay = modules.ResultDisplay;
+    this.ButtonUi = modules.ButtonUi;
     this.initializeSync(data, chessboard);
   }
 
@@ -49,17 +52,24 @@ export default class Board {
     this.moveInput = document.getElementById('move-input');
     this.board = chessboard;
     this.resultDisplay = new this.ResultDisplay();
+    this.buttonUi = new this.ButtonUi();
     this.setupUserInterface();
     this.onGameLoaded(data);
   }
 
   setupUserInterface() {
-    this.setupMoveButtons();
+    this.buttonUi.setupMoveButtons(
+      this.fastRewind.bind(this),
+      this.moveBackward.bind(this),
+      this.moveForward.bind(this),
+      this.fastForward.bind(this),
+      this.resultDisplay.hideGuessResult.bind(this.resultDisplay)
+    );
     this.setupMoveInputListener();
-    this.setupFlipBoardButton();
+    this.buttonUi.setupFlipBoardButton(this.flipBoard.bind(this));
     this.setupMoveHandlers();
-    this.setupExportFenButton();
-    this.setupEngineMoveButton();
+    this.buttonUi.setupExportFenButton(this.generateCompleteFen.bind(this));
+    this.buttonUi.setupEngineMoveButton(this.requestEngineBestMove.bind(this));
   }
 
   setupMoveHandlers() {
@@ -172,26 +182,6 @@ export default class Board {
     this.board.setPosition(fen);
   }
 
-  setupMoveButtons() {
-    const buttons = [
-      { id: 'fastRewindBtn', action: this.fastRewind.bind(this) },
-      { id: 'backwardBtn', action: this.moveBackward.bind(this) },
-      { id: 'forwardBtn', action: this.moveForward.bind(this) },
-      { id: 'fastForwardBtn', action: this.fastForward.bind(this) }
-    ];
-
-    buttons.forEach(({ id, action }) => {
-      const btn = document.getElementById(id);
-      if (btn) {
-        btn.addEventListener('click', (e) => {
-          e.preventDefault();
-          this.resultDisplay.hideGuessResult();
-          action();
-        });
-      }
-    });
-  }
-
   setupMoveInputListener() {
     this.moveInput.addEventListener('keypress', (e) => {
       if (e.key === 'Enter') {
@@ -230,10 +220,7 @@ export default class Board {
   }
 
   initializeButtonStates(pgnLoaded) {
-    const backBtn = document.getElementById('backwardBtn');
-    backBtn.disabled = true;
-    const forwardBtn = document.getElementById('forwardBtn');
-    forwardBtn.disabled = !pgnLoaded;
+    this.buttonUi.initializeButtonStates(pgnLoaded);
   }
 
   moveForward() {
@@ -480,28 +467,12 @@ export default class Board {
   }
 
   updateButtonStates() {
-    const buttons = [
-      { id: 'fastRewindBtn', disabled: this.currentMoveIndex <= 0 },
-      { id: 'backwardBtn', disabled: this.currentMoveIndex <= 0 },
-      { id: 'forwardBtn', disabled: this.currentMoveIndex >= this.moves.length },
-      { id: 'fastForwardBtn', disabled: this.currentMoveIndex >= this.moves.length },
-      { id: 'engineMoveBtn', disabled: !this.isPastRecordedMoves() || this.isGameTerminated() }
-    ];
-
-    buttons.forEach(({ id, disabled }) => {
-      const btn = document.getElementById(id);
-      if (btn) {
-        btn.disabled = disabled;
-      }
-    });
-  }
-
-  setupFlipBoardButton() {
-    const flipBtn = document.getElementById('flipBoardBtn');
-    flipBtn.addEventListener('click', (e) => {
-      e.preventDefault();
-      this.flipBoard();
-    });
+    this.buttonUi.updateButtonStates(
+      this.currentMoveIndex,
+      this.moves.length,
+      this.isPastRecordedMoves(),
+      this.isGameTerminated()
+    );
   }
 
   flipBoard() {
@@ -550,55 +521,6 @@ export default class Board {
     const wholeMoveNumber = Math.floor(moveOffset / 2) + this.startingWholeMove;
     const localizedMove = this.moveLocalizer.localize(moveNotation);
     this.lastMoveElement.textContent = `${wholeMoveNumber}${this.gameState.isWhiteToMove(moveIndex) ? '.' : '...'} ${localizedMove}`;
-  }
-
-  setupExportFenButton() {
-    const exportBtn = document.getElementById('exportFenBtn');
-    exportBtn.addEventListener('click', (e) => {
-      e.preventDefault();
-      const fen = this.generateCompleteFen();
-      navigator.clipboard.writeText(fen).then(() => {
-        let messageDiv = document.getElementById('copy-message');
-        if (!messageDiv) {
-          messageDiv = document.createElement('div');
-          messageDiv.id = 'copy-message';
-          messageDiv.style.position = 'fixed';
-          messageDiv.style.padding = '10px';
-          messageDiv.style.backgroundColor = '#4CAF50';
-          messageDiv.style.color = 'white';
-          messageDiv.style.borderRadius = '5px';
-          messageDiv.style.zIndex = '1000';
-          document.body.appendChild(messageDiv);
-        }
-
-        messageDiv.classList.remove('fade-out');
-        messageDiv.style.display = 'block';
-
-        const btnRect = exportBtn.getBoundingClientRect();
-        messageDiv.style.top = `${btnRect.bottom + 5}px`;
-        messageDiv.style.left = `${btnRect.left}px`;
-
-        messageDiv.textContent = window.TRANSLATIONS.fen.copied;
-
-        // Start fade out after 1.5 seconds
-        setTimeout(() => {
-          messageDiv.classList.add('fade-out');
-          // Hide the element after the animation completes
-          setTimeout(() => {
-            messageDiv.style.display = 'none';
-          }, 300); // matches animation duration
-        }, 1500);
-      });
-    });
-  }
-
-  setupEngineMoveButton() {
-    const engineMoveBtn = document.getElementById('engineMoveBtn');
-    engineMoveBtn.addEventListener('click', (e) => {
-      e.preventDefault();
-      this.requestEngineBestMove();
-    });
-    engineMoveBtn.disabled = true;
   }
 
   requestEngineBestMove() {

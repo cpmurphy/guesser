@@ -9,7 +9,7 @@ export default class GameState {
       this.changeIndex = 0;
       this.startingWholeMove = parseInt(fenParts[5]);
       this.sideWithFirstMove = this.extractSideFromFen(fen);
-      this.chessRules = new ChessRules();
+      this.chessRules = new ChessRules(Fen);
       this.Fen = Fen;
       this.PIECE = PIECE;
       this.chessRules.setCurrentState(this.enPassant, this.castlingRights);

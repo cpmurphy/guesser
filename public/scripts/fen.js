@@ -2,7 +2,7 @@ export default class Fen {
 
   static fenToObj(fen) {
     if (typeof fen !== 'string') {
-      throw new Error('FEN must be a string');
+      throw new Error('FEN must be a string but was ' + typeof fen);
     }
     const position = {};
     const [piecePlacement] = fen.split(' ');

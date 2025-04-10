@@ -141,6 +141,9 @@ export default class GameState {
 
     isGameTerminated(fen, moveIndex) {
       this.chessRules.setCurrentState(this.enPassant, this.castlingRights);
+      if (!fen) {
+        return false;
+      }
 
       const isWhite = this.isWhiteToMove(moveIndex);
       if (this.chessRules.isCheckmate(fen, isWhite)) {

@@ -21,7 +21,7 @@ export default class ResultDisplay {
     guessComment.textContent = commentText;
   }
 
-  displayGameResult() {
+  displayGameResult(gameResult) {
     const guessResult = document.getElementById('guess_result');
 
     // Check if the result span already exists
@@ -35,7 +35,7 @@ export default class ResultDisplay {
       guessResult.appendChild(resultSpan);
     }
 
-    resultSpan.textContent = this.gameResult || 'Game Over';
+    resultSpan.textContent = gameResult || 'Game Over';
     resultSpan.style.color = 'blue';
   }
 

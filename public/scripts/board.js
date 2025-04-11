@@ -251,7 +251,7 @@ export default class Board {
     }
     this.updateButtonStates();
     if (this.gameOver()) {
-      this.resultDisplay.displayGameResult();
+      this.resultDisplay.displayGameResult(this.gameResult);
     }
     this.updateLastMoveDisplay();
   }
@@ -578,7 +578,7 @@ export default class Board {
     this.updateButtonStates();
     this.updateLastMoveDisplay();
     if (this.gameOver()) {
-      this.resultDisplay.displayGameResult();
+      this.resultDisplay.displayGameResult(this.gameResult);
     }
   }
 

@@ -314,8 +314,7 @@ export default class Board {
     data.forEach((move) => {
       if (move.result === 'correct') {
         if (move.same_as_game) {
-          this.resultDisplay.updateGuessStatus(
-            'green',
+          this.resultDisplay.goodGuess(
             window.TRANSLATIONS.guess.correct.correct_exclamation,
             window.TRANSLATIONS.guess.correct.same_as_game
           );
@@ -324,8 +323,7 @@ export default class Board {
           const evalComment = this.evaluationExplainer.getEvaluationComment(move);
           const headline = this.evaluationExplainer.getEvaluationHeadline(move);
 
-          this.resultDisplay.updateGuessStatus(
-            'green',
+          this.resultDisplay.goodGuess(
             headline,
             evalComment
           );
@@ -334,15 +332,13 @@ export default class Board {
         }
       } else if (move.result === 'incorrect') {
         if (move.game_move === '--') {
-          this.resultDisplay.updateGuessStatus(
-            'black',
+          this.resultDisplay.neutralGuess(
             '',
             window.TRANSLATIONS.guess.move_was_passed
           );
         } else {
           const evalComment = this.evaluationExplainer.getEvaluationComment(move);
-          this.resultDisplay.updateGuessStatus(
-            'red',
+          this.resultDisplay.badGuess(
             window.TRANSLATIONS.guess.incorrect,
             evalComment
           );
@@ -353,8 +349,7 @@ export default class Board {
           this.moveForward();
         }
       } else if (move.result === 'game_over') {
-        this.resultDisplay.updateGuessStatus(
-          'green',
+        this.resultDisplay.neutralGuess(
           '',
           window.TRANSLATIONS.guess.beyond_game
         );
@@ -571,7 +566,7 @@ export default class Board {
       this.board.setPiece(move.remove[1], null);
     }
     if (!this.isPastRecordedMoves()) {
-      this.resultDisplay.updateGuessStatus('green', window.TRANSLATIONS.guess.correct.correct_exclamation, window.TRANSLATIONS.guess.correct.same_as_game);
+      this.resultDisplay.goodGuess(window.TRANSLATIONS.guess.correct.correct_exclamation, window.TRANSLATIONS.guess.correct.same_as_game);
     }
     this.currentMoveIndex++;
     // autoplay the opponent's move unless guess mode is both

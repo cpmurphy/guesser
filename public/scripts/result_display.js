@@ -1,9 +1,20 @@
 export default class ResultDisplay {
 
+  goodGuess(headlineText, commentText) {
+    this.updateGuessStatus('green', headlineText, commentText);
+  }
+
+  badGuess(headlineText, commentText) {
+    this.updateGuessStatus('red', headlineText, commentText);
+  }
+
+  neutralGuess(headlineText, commentText) {
+    this.updateGuessStatus('black', headlineText, commentText);
+  }
+
   updateGuessStatus(headlineColor, headlineText, commentText) {
     const guessResult = document.getElementById('guess_result');
     const guessComment = document.getElementById('guess_comment');
-    const guessSubcomment = document.getElementById('guess_subcomment');
 
     guessResult.style.color = headlineColor;
     guessResult.textContent = headlineText;

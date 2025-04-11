@@ -17,7 +17,7 @@ SCRIPT_DIR=$(dirname "$0")
 
 rake smoke
 
-rake bump_version && git add public/asset-manifest.json && git commit -m 'bump asset version'
+rake bump_version
 rake docker_build
 
 rm -f chess_guesser.tar

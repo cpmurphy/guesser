@@ -1,5 +1,8 @@
 deploy_env.sh
 
+# we don't to commit this every time
+public/asset-manifest.json
+
 # ignore the files we build for Docker
 *.tar
 *.tar.bz2

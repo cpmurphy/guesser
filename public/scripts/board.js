@@ -3,7 +3,6 @@ import ChessRules from './chess_rules.js';
 import { COLOR, PIECE } from './board_definitions.js';
 import GameState from './game_state.js';
 import MoveLocalizer from './move_localizer.js';
-import { loadModules } from './module_loader.js';
 import Fen from './fen.js';
 import EvaluationExplainer from './evaluation_explainer.js';
 import ResultDisplay from './result_display.js';
@@ -32,6 +31,7 @@ export default class Board {
   }
 
   async initialize(data, chessboard) {
+    const { loadModules } = await import(`./module_loader.js?v=${data.version}`);
     const modules = await loadModules(data.version);
     this.ChessRules = modules.ChessRules;
     this.COLOR = modules.COLOR;

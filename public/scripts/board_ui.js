@@ -1,7 +1,8 @@
 export default class BoardUi {
-  constructor(chessboard, COLOR) {
+  constructor(chessboard, COLOR, PIECE) {
     this.board = chessboard;
     this.COLOR = COLOR;
+    this.PIECE = PIECE;
   }
 
   flipBoard() {
@@ -30,6 +31,30 @@ export default class BoardUi {
 
   movePiece(from, to, animate = false) {
     this.board.movePiece(from, to, animate);
+  }
+
+  performCastling(piece, target) {
+    let rookSource, rookTarget;
+
+    if (piece === this.PIECE.wk) {
+      if (target === 'g1') {
+        rookSource = 'h1';
+        rookTarget = 'f1';
+      } else if (target === 'c1') {
+        rookSource = 'a1';
+        rookTarget = 'd1';
+      }
+    } else if (piece === this.PIECE.bk) {
+      if (target === 'g8') {
+        rookSource = 'h8';
+        rookTarget = 'f8';
+      } else if (target === 'c8') {
+        rookSource = 'a8';
+        rookTarget = 'd8';
+      }
+    }
+
+    this.board.movePiece(rookSource, rookTarget, true);
   }
 
   showPromotionDialog(square, color, callback) {

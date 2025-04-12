@@ -53,7 +53,7 @@ export default class Board {
     this.gameResult = data.gameResult;
     this.lastMoveElement = document.getElementById('last-move');
     this.moveInput = document.getElementById('move-input');
-    this.boardUi = new this.BoardUi(chessboard, this.COLOR);
+    this.boardUi = new this.BoardUi(chessboard, this.COLOR, this.PIECE);
     this.resultDisplay = new this.ResultDisplay();
     this.buttonUi = new this.ButtonUi();
     this.setupUserInterface();
@@ -172,7 +172,7 @@ export default class Board {
 
     if (piece === this.PIECE.wk || piece === this.PIECE.bk) {
       if (this.gameState.isCastling(piece, from, to)) {
-        this.performCastling(piece, to, fen);
+        this.boardUi.performCastling(piece, to);
       }
     }
 
@@ -387,30 +387,6 @@ export default class Board {
         this.boardUi.setPosition(fen)
       }
     });
-  }
-
-  performCastling(piece, target) {
-    let rookSource, rookTarget;
-
-    if (piece === this.PIECE.wk) {
-      if (target === 'g1') {
-        rookSource = 'h1';
-        rookTarget = 'f1';
-      } else if (target === 'c1') {
-        rookSource = 'a1';
-        rookTarget = 'd1';
-      }
-    } else if (piece === this.PIECE.bk) {
-      if (target === 'g8') {
-        rookSource = 'h8';
-        rookTarget = 'f8';
-      } else if (target === 'c8') {
-        rookSource = 'a8';
-        rookTarget = 'd8';
-      }
-    }
-
-    this.boardUi.movePiece(rookSource, rookTarget, true);
   }
 
   updateButtonStates() {

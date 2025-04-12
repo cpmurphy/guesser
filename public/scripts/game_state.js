@@ -132,10 +132,10 @@ export default class GameState {
     }
   
     isCastling(piece, source, target) {
-      const kingside = (piece.toLowerCase() === 'k' && source === 'e1' && target === 'g1') ||
-        (piece.toLowerCase() === 'k' && source === 'e8' && target === 'g8');
-      const queenside = (piece.toLowerCase() === 'k' && source === 'e1' && target === 'c1') ||
-        (piece.toLowerCase() === 'k' && source === 'e8' && target === 'c8');
+      const kingside = (piece === 'wk' && source === 'e1' && target === 'g1') ||
+        (piece === 'bk' && source === 'e8' && target === 'g8');
+      const queenside = (piece === 'wk' && source === 'e1' && target === 'c1') ||
+        (piece === 'bk' && source === 'e8' && target === 'c8');
       return kingside || queenside;
     }
 

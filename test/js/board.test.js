@@ -324,7 +324,7 @@ describe('Board', () => {
         board.moveForward();
       }
       board.submitGuess('e5', 'f6', 'wp', null, 'rnbqkbnr/pp1pp1pp/8/2p1Pp2/8/8/PPPP1PPP/RNBQKBNR');
-      expect(board.board.getPiece('f5')).toBeNull();
+      expect(board.boardUi.getPiece('f5')).toBeNull();
     });
     it('handles promotion moves', () => {
       const data = createGameData({
@@ -582,11 +582,13 @@ describe('Board', () => {
       const chessboard = new Chessboard('element', {});
       const board = new Board(data, chessboard);
       board.moveForward();
-      expect(board.board.getPiece('c2')).toBe(null);
-      expect(board.board.getPiece('c1')).toBe('bq');
+      expect(board.boardUi.getPiece('c2')).toBe(null);
+      expect(board.boardUi.getPiece('c1')).toBe('bq');
       board.moveBackward();
-      expect(board.board.getPiece('c1')).toBe(null);
-      expect(board.board.getPiece('c2')).toBe('bp');
+      expect(board.currentMoveIndex).toBe(0);
+      expect(board.gameState.isWhiteToMove(0)).toBe(false);
+      expect(board.boardUi.getPiece('c1')).toBe(null);
+      expect(board.boardUi.getPiece('c2')).toBe('bp');
     });
   });
 

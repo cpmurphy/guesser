@@ -1,9 +1,42 @@
 export default class BoardUi {
-  constructor(board) {
-    this.board = board;
+  constructor(chessboard, COLOR) {
+    this.board = chessboard;
+    this.COLOR = COLOR;
   }
 
-  executeMove(uiMove) {
+  flipBoard() {
+    if (this.board.getOrientation() === this.COLOR.white) {
+        this.board.setOrientation(this.COLOR.black);
+    } else {
+      this.board.setOrientation(this.COLOR.white);
+    }
+  }
+
+  setPosition(fen) {
+    this.board.setPosition(fen);
+  }
+
+  getPosition() {
+    return this.board.getPosition();
+  }
+
+  getPiece(square) {
+    return this.board.getPiece(square);
+  }
+
+  setPiece(square, piece, animate = false) {
+    this.board.setPiece(square, piece, animate);
+  }
+
+  movePiece(from, to, animate = false) {
+    this.board.movePiece(from, to, animate);
+  }
+
+  showPromotionDialog(square, color, callback) {
+    this.board.showPromotionDialog(square, color, callback);
+  }
+
+  executeMove(uiMove, isWhiteToMove) {
     if (!uiMove.remove && !uiMove.add) {
       uiMove.moves.forEach(m => {
         const [from, to] = m.split('-');
@@ -15,10 +48,10 @@ export default class BoardUi {
         this.board.movePiece(from, to, true);
       });
       if (uiMove.remove && uiMove.remove[1] != uiMove.moves[0].substring(3, 5)) {
-        this.board.setPiece(uiMove.remove[1], null);
+        this.setPiece(uiMove.remove[1], null);
       }
       if (uiMove.add) {
-        this.board.setPiece(uiMove.add[1], this.translatePiece(uiMove.add[0]));
+        this.setPiece(uiMove.add[1], this.translatePiece(uiMove.add[0], isWhiteToMove), true);
       }
     }
   }
@@ -27,24 +60,18 @@ export default class BoardUi {
     if (uiMove.moves && Array.isArray(uiMove.moves)) {
       if (uiMove.add) {
         // reverse the addition of the piece
-        this.board.setPiece(uiMove.add[1], this.pawnForCurrentMove(isWhiteToMove));
+        this.setPiece(uiMove.add[1], this.pawnForCurrentMove(isWhiteToMove));
       }
       uiMove.moves.forEach(m => this.board.movePiece(...m.split('-').reverse(), true));
-      if (uiMove.remove || uiMove.add) {
-        if (uiMove.remove) {
-          // reverse the removal of the piece
-          this.board.setPiece(uiMove.remove[1], this.translatePiece(uiMove.remove[0]));
-        }
+      if (uiMove.remove) {
+        // reverse the removal of the piece
+        this.setPiece(uiMove.remove[1], this.translatePiece(uiMove.remove[0], !isWhiteToMove));
       }
     }
   }
 
-  translatePiece(piece) {
-    if (piece.match(/^[rnbqkp]$/)) {
-      return "b" + piece.toLowerCase();
-    } else {
-      return "w" + piece.toLowerCase();
-    }
+  translatePiece(piece, isWhiteToMove) {
+    return isWhiteToMove ? "w" + piece.toLowerCase() : "b" + piece.toLowerCase();
   }
 
   pawnForCurrentMove(isWhiteToMove) {

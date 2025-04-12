@@ -53,10 +53,9 @@ export default class Board {
     this.gameResult = data.gameResult;
     this.lastMoveElement = document.getElementById('last-move');
     this.moveInput = document.getElementById('move-input');
-    this.board = chessboard;
+    this.boardUi = new this.BoardUi(chessboard, this.COLOR);
     this.resultDisplay = new this.ResultDisplay();
     this.buttonUi = new this.ButtonUi();
-    this.boardUi = new this.BoardUi(this.board);
     this.setupUserInterface();
     this.onGameLoaded(data);
   }
@@ -70,7 +69,7 @@ export default class Board {
       this.resultDisplay.hideGuessResult.bind(this.resultDisplay)
     );
     this.setupMoveInputListener();
-    this.buttonUi.setupFlipBoardButton(this.flipBoard.bind(this));
+    this.buttonUi.setupFlipBoardButton(this.boardUi.flipBoard.bind(this.boardUi));
     this.setupMoveHandlers();
     this.buttonUi.setupExportFenButton(this.generateCompleteFen.bind(this));
     this.buttonUi.setupEngineMoveButton(this.requestEngineBestMove.bind(this));
@@ -88,8 +87,8 @@ export default class Board {
   }
 
   initializeGameState(fen) {
-    this.board.setPosition(fen);
-    this.lastPosition = this.board.getPosition();
+    this.boardUi.setPosition(fen);
+    this.lastPosition = this.boardUi.getPosition();
     this.gameState = new this.GameState(fen, this.ChessRules, this.Fen);
     this.resultDisplay.hideGuessResult();
     this.initializeButtonStates(false);
@@ -116,17 +115,16 @@ export default class Board {
       const moveIncrement = this.sideToMove === 'white' ? 0 : 1;
       const moveIndex = (data.currentWholeMove - this.startingWholeMove) * 2 + moveIncrement;
       if (!this.gameState.isWhiteToMove(moveIndex)) {
-        this.flipBoard();
+        this.boardUi.flipBoard();
       }
       this.goToMoveIndex(moveIndex);
     }
     this.updateLastMoveDisplay();
     this.updateGuessMode();
-
   }
 
   onMoveStart(square) {
-    const piece = this.board.getPiece(square);
+    const piece = this.boardUi.getPiece(square);
 
     if (!piece) {
       return false;
@@ -155,8 +153,8 @@ export default class Board {
   }
 
   onMoveCompleted(from, to) {
-    const piece = this.board.getPiece(from);
-    const fen = this.board.getPosition();
+    const piece = this.boardUi.getPiece(from);
+    const fen = this.boardUi.getPosition();
 
     if (!piece) {
       return false;
@@ -183,7 +181,7 @@ export default class Board {
   }
 
   position(fen) {
-    this.board.setPosition(fen);
+    this.boardUi.setPosition(fen);
   }
 
   setupMoveInputListener() {
@@ -232,7 +230,7 @@ export default class Board {
       const uiMove = this.uiMoves[this.currentMoveIndex];
       if (uiMove.moves.length > 0) {
           this.updateGameState(uiMove, uiMove.piece);
-          this.boardUi.executeMove(uiMove);
+          this.boardUi.executeMove(uiMove, this.gameState.isWhiteToMove(this.currentMoveIndex));
       }
       this.currentMoveIndex++;
     }
@@ -282,7 +280,7 @@ export default class Board {
             headline,
             evalComment
           );
-          this.board.setPosition(this.lastPosition);
+          this.boardUi.setPosition(this.lastPosition);
           this.moveForward();
         }
       } else if (move.result === 'incorrect') {
@@ -298,7 +296,7 @@ export default class Board {
             evalComment
           );
         }
-        this.board.setPosition(this.lastPosition);
+        this.boardUi.setPosition(this.lastPosition);
       } else if (move.result === 'auto_move') {
         if (this.guessMode() != 'both') {
           this.moveForward();
@@ -379,18 +377,17 @@ export default class Board {
 
   showPromotionDialog(source, target, piece, oldPos) {
     const color = piece.charAt(0);
-    const fen = this.board.getPosition();
-    this.board.showPromotionDialog(target, color, (result) => {
+    const fen = this.boardUi.getPosition();
+    this.boardUi.showPromotionDialog(target, color, (result) => {
       if (result && result.piece) {
-        this.board.setPiece(result.square, result.piece, true)
-        this.board.setPiece(source, null)
+        this.boardUi.setPiece(result.square, result.piece, true)
+        this.boardUi.setPiece(source, null)
         this.submitGuess(source, target, piece, result.piece, oldPos);
       } else {
-        this.board.setPosition(fen)
+        this.boardUi.setPosition(fen)
       }
     });
   }
-
 
   performCastling(piece, target) {
     let rookSource, rookTarget;
@@ -413,7 +410,7 @@ export default class Board {
       }
     }
 
-    this.board.movePiece(rookSource, rookTarget, true);
+    this.boardUi.movePiece(rookSource, rookTarget, true);
   }
 
   updateButtonStates() {
@@ -423,14 +420,6 @@ export default class Board {
       this.isPastRecordedMoves(),
       this.isGameTerminated()
     );
-  }
-
-  flipBoard() {
-    if (this.board.getOrientation() === this.COLOR.white) {
-      this.board.setOrientation(this.COLOR.black);
-    } else {
-      this.board.setOrientation(this.COLOR.white);
-    }
   }
 
   fastForward() {
@@ -503,7 +492,7 @@ export default class Board {
 
     // Add checkmate symbol if the position is checkmate
     if (!move.notation.endsWith('#')) {
-      if (this.gameState.isCheckmate(this.board.getPosition(), this.currentMoveIndex)) {
+      if (this.gameState.isCheckmate(this.boardUi.getPosition(), this.currentMoveIndex)) {
         move.notation += '#';
         this.moves[this.currentMoveIndex-1] = move.notation;
         this.updateLastMoveDisplay();
@@ -512,13 +501,13 @@ export default class Board {
   }
 
   generateCompleteFen() {
-    const partialFen = this.board.getPosition();
+    const partialFen = this.boardUi.getPosition();
     return this.gameState.generateCompleteFen(partialFen, this.currentMoveIndex);
   }
 
   handleCorrectGuess(move) {
     if (move.remove) {
-      this.board.setPiece(move.remove[1], null);
+      this.boardUi.setPiece(move.remove[1], null);
     }
     if (!this.isPastRecordedMoves()) {
       this.resultDisplay.goodGuess(window.TRANSLATIONS.guess.correct.correct_exclamation, window.TRANSLATIONS.guess.correct.same_as_game);
@@ -548,7 +537,6 @@ export default class Board {
   }
 
   isGameTerminated() {
-    return this.gameState.isGameTerminated(this.board.getPosition(), this.currentMoveIndex);
+    return this.gameState.isGameTerminated(this.boardUi.getPosition(), this.currentMoveIndex);
   }
-
 }

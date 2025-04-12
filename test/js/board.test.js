@@ -564,8 +564,9 @@ describe('Board', () => {
       const board = new Board(data, chessboard);
       board.moveForward();
       expect(board.currentMoveIndex).toBe(1);
-      board.handleGuessResponse([{"moves":[]}]);
+      board.handleGuessResponse([{result: "incorrect", game_move: "--"}]);
       expect(board.currentMoveIndex).toBe(1);
+      expect(board.generateCompleteFen()).toBe('rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq - 0 1');
     });
   });
 

@@ -30,8 +30,8 @@ export default class GameState {
     }
 
     updateForPassingMove() {
-      this.halfmoveClock++;
       this.changeIndex++;
+      this.enPassant = '-';
     }
 
     stringForFen() {

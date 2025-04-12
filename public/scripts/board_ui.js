@@ -15,6 +15,15 @@ export default class BoardUi {
 
   setPosition(fen) {
     this.board.setPosition(fen);
+    this.lastPosition = fen;
+  }
+
+  saveLastPosition() {
+    this.lastPosition = this.board.getPosition();
+  }
+
+  restoreLastPosition() {
+    this.board.setPosition(this.lastPosition);
   }
 
   getPosition() {

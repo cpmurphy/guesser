@@ -88,7 +88,6 @@ export default class Board {
 
   initializeGameState(fen) {
     this.boardUi.setPosition(fen);
-    this.lastPosition = this.boardUi.getPosition();
     this.gameState = new this.GameState(fen, this.ChessRules, this.Fen);
     this.resultDisplay.hideGuessResult();
     this.initializeButtonStates(false);
@@ -163,7 +162,6 @@ export default class Board {
     if (!this.gameState.isLegalMove(fen, from, to, piece)) {
       return false;
     }
-    this.lastPosition = fen;
 
     if (this.gameState.isPawnPromotion(to, piece)) {
       this.showPromotionDialog(from, to, piece, this.generateCompleteFen());
@@ -177,11 +175,8 @@ export default class Board {
     }
 
     this.submitGuess(from, to, piece, null, this.generateCompleteFen());
+    this.boardUi.saveLastPosition();
     return true;
-  }
-
-  position(fen) {
-    this.boardUi.setPosition(fen);
   }
 
   setupMoveInputListener() {
@@ -280,11 +275,12 @@ export default class Board {
             headline,
             evalComment
           );
-          this.boardUi.setPosition(this.lastPosition);
+          this.boardUi.restoreLastPosition();
           this.moveForward();
         }
       } else if (move.result === 'incorrect') {
         if (move.game_move === '--') {
+          this.gameState.updateForPassingMove();
           this.resultDisplay.neutralGuess(
             '',
             window.TRANSLATIONS.guess.move_was_passed
@@ -295,8 +291,8 @@ export default class Board {
             window.TRANSLATIONS.guess.incorrect,
             evalComment
           );
+          this.boardUi.restoreLastPosition();
         }
-        this.boardUi.setPosition(this.lastPosition);
       } else if (move.result === 'auto_move') {
         if (this.guessMode() != 'both') {
           this.moveForward();

@@ -126,7 +126,7 @@ export default class GameState {
     }
 
     isPawnPromotion(to, piece) {
-      if (piece.toLowerCase() !== 'p') return false;
+      if (!piece.endsWith('p')) return false;
       const targetRank = to[1];
       return targetRank === '8' || targetRank === '1';
     }

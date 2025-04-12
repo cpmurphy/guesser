@@ -10,7 +10,8 @@ export const loadModules = async (version) => {
     EvaluationExplainer,
     Fen,
     ResultDisplay,
-    ButtonUi
+    ButtonUi,
+    BoardUi
   ] = await Promise.all([
     import(`./chess_rules.js${versionSuffix}`).then(m => m.default),
     import(`./board_definitions.js${versionSuffix}`),
@@ -19,10 +20,11 @@ export const loadModules = async (version) => {
     import(`./evaluation_explainer.js${versionSuffix}`).then(m => m.default),
     import(`./fen.js${versionSuffix}`).then(m => m.default),
     import(`./result_display.js${versionSuffix}`).then(m => m.default),
-    import(`./button_ui.js${versionSuffix}`).then(m => m.default)
+    import(`./button_ui.js${versionSuffix}`).then(m => m.default),
+    import(`./board_ui.js${versionSuffix}`).then(m => m.default)
   ]);
 
   return {
-    ChessRules, COLOR, PIECE, GameState, MoveLocalizer, EvaluationExplainer, Fen, ResultDisplay, ButtonUi
+    ChessRules, COLOR, PIECE, GameState, MoveLocalizer, EvaluationExplainer, Fen, ResultDisplay, ButtonUi, BoardUi
   };
 }; 

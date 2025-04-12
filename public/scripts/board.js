@@ -8,6 +8,7 @@ import Fen from './fen.js';
 import EvaluationExplainer from './evaluation_explainer.js';
 import ResultDisplay from './result_display.js';
 import ButtonUi from './button_ui.js';
+import BoardUi from './board_ui.js';
 
 export default class Board {
   constructor(data, chessboard) {
@@ -25,6 +26,7 @@ export default class Board {
       this.EvaluationExplainer = EvaluationExplainer;
       this.ResultDisplay = ResultDisplay;
       this.ButtonUi = ButtonUi;
+      this.BoardUi = BoardUi;
       this.initializeSync(data, chessboard);
     }
   }
@@ -40,6 +42,7 @@ export default class Board {
     this.EvaluationExplainer = modules.EvaluationExplainer;
     this.ResultDisplay = modules.ResultDisplay;
     this.ButtonUi = modules.ButtonUi;
+    this.BoardUi = modules.BoardUi;
     this.initializeSync(data, chessboard);
   }
 
@@ -53,6 +56,7 @@ export default class Board {
     this.board = chessboard;
     this.resultDisplay = new this.ResultDisplay();
     this.buttonUi = new this.ButtonUi();
+    this.boardUi = new this.BoardUi(this.board);
     this.setupUserInterface();
     this.onGameLoaded(data);
   }
@@ -86,7 +90,7 @@ export default class Board {
   initializeGameState(fen) {
     this.board.setPosition(fen);
     this.lastPosition = this.board.getPosition();
-    this.gameState = new this.GameState(fen, this.ChessRules, this.Fen, this.PIECE);
+    this.gameState = new this.GameState(fen, this.ChessRules, this.Fen);
     this.resultDisplay.hideGuessResult();
     this.initializeButtonStates(false);
   }
@@ -227,25 +231,8 @@ export default class Board {
     if (!this.gameOver()) {
       const uiMove = this.uiMoves[this.currentMoveIndex];
       if (uiMove.moves.length > 0) {
-          const piece = this.translatePiece(uiMove.piece);
-          this.updateGameState(uiMove, piece);
-        if (!uiMove.remove && !uiMove.add) {
-          uiMove.moves.forEach(m => {
-            const [from, to] = m.split('-');
-            this.board.movePiece(from, to, true);
-          });
-        } else {
-          uiMove.moves.forEach(m => {
-            const [from, to] = m.split('-');
-            this.board.movePiece(from, to, true);
-          });
-          if (uiMove.remove && uiMove.remove[1] != uiMove.moves[0].substring(3, 5)) {
-            this.board.setPiece(uiMove.remove[1], null);
-          }
-          if (uiMove.add) {
-            this.board.setPiece(uiMove.add[1], this.translatePiece(uiMove.add[0]));
-          }
-        }
+          this.updateGameState(uiMove, uiMove.piece);
+          this.boardUi.executeMove(uiMove);
       }
       this.currentMoveIndex++;
     }
@@ -256,16 +243,16 @@ export default class Board {
     this.updateLastMoveDisplay();
   }
 
-  updateGameState(uiMove, piece) {
+  updateGameState(uiMove) {
     if (uiMove.moves.length === 0) {
       this.gameState.updateForPassingMove();
     } else {
       const [from, to] = uiMove.moves[0].split('-');
       if (uiMove.remove) {
         const capturedPiece = uiMove.remove[0];
-        this.gameState.update(piece, from, to, capturedPiece);
+        this.gameState.update(uiMove.piece, from, to, capturedPiece);
       } else {
-        this.gameState.update(piece, from, to);
+        this.gameState.update(uiMove.piece, from, to);
       }
     }
   }
@@ -273,41 +260,9 @@ export default class Board {
   moveBackward() {
     this.currentMoveIndex--;
     this.gameState.rewind();
-    this.reverseMove(this.uiMoves[this.currentMoveIndex]);
+    this.boardUi.reverseMove(this.uiMoves[this.currentMoveIndex], this.gameState.isWhiteToMove(this.currentMoveIndex));
     this.updateButtonStates();
     this.updateLastMoveDisplay();
-  }
-
-  reverseMove(uiMove) {
-    if (uiMove.moves && Array.isArray(uiMove.moves)) {
-      if (uiMove.add) {
-        // reverse the addition of the piece
-        this.board.setPiece(uiMove.add[1], this.pawnForCurrentMove());
-      }
-      uiMove.moves.forEach(m => this.board.movePiece(...m.split('-').reverse(), true));
-      if (uiMove.remove || uiMove.add) {
-        if (uiMove.remove) {
-          // reverse the removal of the piece
-          this.board.setPiece(uiMove.remove[1], this.translatePiece(uiMove.remove[0]));
-        }
-      }
-    }
-  }
-
-  translatePiece(piece) {
-    if (piece.match(/^[rnbqkp]$/)) {
-      return "b" + piece.toLowerCase();
-    } else {
-      return "w" + piece.toLowerCase();
-    }
-  }
-
-  pawnForCurrentMove() {
-    if (this.gameState.isWhiteToMove(this.currentMoveIndex)) {
-      return this.PIECE.wp;
-    } else {
-      return this.PIECE.bp;
-    }
   }
 
   handleGuessResponse(data) {

@@ -1,7 +1,7 @@
 export default class GameState {
-    constructor(fen, ChessRules, Fen, PIECE) {
+    constructor(fen, ChessRules, Fen) {
       const fenParts = fen.split(' ');
-      this.castlingRightsHistory = [];
+      this.castlingRightsHistory = new Map();
       this.enPassantHistory = [];
       this.castlingRights = fenParts[2];
       this.enPassant = fenParts[3];
@@ -11,18 +11,17 @@ export default class GameState {
       this.sideWithFirstMove = this.extractSideFromFen(fen);
       this.chessRules = new ChessRules(Fen);
       this.Fen = Fen;
-      this.PIECE = PIECE;
       this.chessRules.setCurrentState(this.enPassant, this.castlingRights);
     }
 
     update(piece, from, to, capturedPiece) {
-      if (piece === "wk" || piece === "bk") {
+      if (piece.toLowerCase() === "k") {
         this.removeCastlingRights(piece);
-      } else if (piece === "wr" || piece === "br") {
+      } else if (piece.toLowerCase() === "r") {
         this.updateCastlingRights(piece, from);
       }
       this.updateEnPassant(piece, from, to);
-      if (piece === "wp" || piece === "bp" || capturedPiece) {
+      if (piece.toLowerCase() === "p" || capturedPiece) {
         this.halfmoveClock = 0;
       } else {
         this.halfmoveClock++;
@@ -50,7 +49,7 @@ export default class GameState {
     }
 
     updateEnPassant(piece, from, to) {
-      if (!piece.endsWith('p')) {
+      if (piece.toLowerCase() !== 'p') {
         this.enPassant = '-';
       } else {
         const fromRank = parseInt(from[1]);
@@ -72,8 +71,8 @@ export default class GameState {
       if (this.halfmoveClock > 0) {
         this.halfmoveClock--;
       }
-      if (this.castlingRightsHistory[this.changeIndex]) {
-        this.castlingRights = this.castlingRightsHistory[this.changeIndex];
+      if (this.castlingRightsHistory.has(this.changeIndex)) {
+        this.castlingRights = this.castlingRightsHistory.get(this.changeIndex);
       }
       if (this.enPassantHistory[this.changeIndex]) {
         this.enPassant = this.enPassantHistory[this.changeIndex];
@@ -83,30 +82,32 @@ export default class GameState {
     }
 
     removeCastlingRights(piece) {
-      if (piece === "wk" && this.castlingRights.match(/[KQ]/)) {
-        this.castlingRightsHistory[this.changeIndex] = this.castlingRights;
+      const whiteToMove = this.isWhiteToMove(this.changeIndex);
+      if (whiteToMove && piece.toLowerCase() === "k" && this.castlingRights.match(/[KQ]/)) {
+        this.castlingRightsHistory.set(this.changeIndex, this.castlingRights);
         this.castlingRights = this.castlingRights.replaceAll(/[KQ]/g, '');
-      } else if (piece === "bk" && this.castlingRights.match(/[kq]/)) {
-        this.castlingRightsHistory[this.changeIndex] = this.castlingRights;
+      } else if (!whiteToMove && piece.toLowerCase() === "k" && this.castlingRights.match(/[kq]/)) {
+        this.castlingRightsHistory.set(this.changeIndex, this.castlingRights);
         this.castlingRights = this.castlingRights.replaceAll(/[kq]/g, '');
       }
     }
 
     updateCastlingRights(piece, from) {
-      if (piece === "wr") {
+      const whiteToMove = this.isWhiteToMove(this.changeIndex);
+      if (whiteToMove && piece.toLowerCase() === "r") {
         if (from === 'a1' && this.castlingRights.match(/Q/)) {
-          this.castlingRightsHistory[this.changeIndex] = this.castlingRights;
+          this.castlingRightsHistory.set(this.changeIndex, this.castlingRights);
           this.castlingRights = this.castlingRights.replace('Q', '');
         } else if (from === 'h1' && this.castlingRights.match(/K/)) {
-          this.castlingRightsHistory[this.changeIndex] = this.castlingRights;
+          this.castlingRightsHistory.set(this.changeIndex, this.castlingRights);
           this.castlingRights = this.castlingRights.replace('K', '');
         }
-      } else if (piece === "br") {
+      } else if (!whiteToMove && piece.toLowerCase() === "r") {
         if (from === 'a8' && !this.castlingRights.match(/q/)) {
-          this.castlingRightsHistory[this.changeIndex] = this.castlingRights;
+          this.castlingRightsHistory.set(this.changeIndex, this.castlingRights);
           this.castlingRights = this.castlingRights.replace('q', '');
         } else if (from === 'h8' && !this.castlingRights.match(/k/)) {
-          this.castlingRightsHistory[this.changeIndex] = this.castlingRights;
+          this.castlingRightsHistory.set(this.changeIndex, this.castlingRights);
           this.castlingRights = this.castlingRights.replace('k', '');
         }
       }
@@ -125,17 +126,16 @@ export default class GameState {
     }
 
     isPawnPromotion(to, piece) {
-      if (!piece.endsWith('p')) return false;
+      if (piece.toLowerCase() !== 'p') return false;
       const targetRank = to[1];
-      return (piece.startsWith('w') && targetRank === '8') ||
-             (piece.startsWith('b') && targetRank === '1');
+      return targetRank === '8' || targetRank === '1';
     }
   
     isCastling(piece, source, target) {
-      const kingside = (piece === this.PIECE.wk && source === 'e1' && target === 'g1') ||
-        (piece === this.PIECE.bk && source === 'e8' && target === 'g8');
-      const queenside = (piece === this.PIECE.wk && source === 'e1' && target === 'c1') ||
-        (piece === this.PIECE.bk && source === 'e8' && target === 'c8');
+      const kingside = (piece.toLowerCase() === 'k' && source === 'e1' && target === 'g1') ||
+        (piece.toLowerCase() === 'k' && source === 'e8' && target === 'g8');
+      const queenside = (piece.toLowerCase() === 'k' && source === 'e1' && target === 'c1') ||
+        (piece.toLowerCase() === 'k' && source === 'e8' && target === 'c8');
       return kingside || queenside;
     }
 

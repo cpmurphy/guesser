@@ -766,6 +766,28 @@ describe('Board', () => {
 
       expect(board.moves[0]).toEqual('Rh8#');
     });
+    it('adds + to notation when move results in check', () => {
+      const data = createGameData({
+        fen: '5k2/8/8/8/8/2K5/8/4R3 w - - 0 1',
+        uiMoves: [],
+        moves: [],
+        startingWholeMove: 1,
+        currentWholeMove: 1,
+        sideToMove: 'white',
+      });
+      const chessboard = new Chessboard('element', {});
+      const board = new Board(data, chessboard);
+
+      const move = {
+        notation: 'Rf1',  // Intentionally missing the # symbol
+        moves: ['e1-f1'],
+        piece: 'R'
+      };
+
+      board.addExtraMove(move);
+
+      expect(board.moves[0]).toEqual('Rf1+');
+    });
   });
   describe('passing moves', () => {
     it('moves forward through passing moves', () => {

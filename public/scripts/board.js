@@ -468,6 +468,12 @@ export default class Board {
         move.notation += '#';
         this.moves[this.currentMoveIndex-1] = move.notation;
         this.updateLastMoveDisplay();
+      } else if (!move.notation.endsWith('+')) {
+        if (this.gameState.isCheck(this.boardUi.getPosition(), this.currentMoveIndex)) {
+          move.notation += '+';
+          this.moves[this.currentMoveIndex-1] = move.notation;
+          this.updateLastMoveDisplay();
+        }
       }
     }
   }

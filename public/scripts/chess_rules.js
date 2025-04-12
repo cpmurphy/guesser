@@ -306,6 +306,11 @@ export default class ChessRules {
     return this.isInCheck(isWhite, position) && !this.isAnyMovePossible(position, isWhite);
   }
 
+  isCheck(fen, isWhite) {
+    const position = this.Fen.fenToObj(fen);
+    return this.isInCheck(isWhite, position) && this.isAnyMovePossible(position, isWhite);
+  }
+
   isStalemate(fen, isWhite) {
     const position = this.Fen.fenToObj(fen);
     return !this.isInCheck(isWhite, position) && !this.isAnyMovePossible(position, isWhite);

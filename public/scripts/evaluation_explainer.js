@@ -5,9 +5,38 @@ export default class EvaluationExplainer {
 
   explainEvaluation(move) {
     const explanation = {};
-    const evalDiff = this.compareEvaluations(move.guess_eval.score, move.game_eval.score);
-    explanation.comment = this.chooseEvaluationComment(move.result, move.game_move, move.guess_eval.score, evalDiff);
-    explanation.headline = this.getEvaluationHeadline(move, evalDiff);
+    if (move.result == 'correct') {
+      if (move.same_as_game) {
+        explanation.rating = 'good';
+        explanation.headline = window.TRANSLATIONS.guess.correct.correct_exclamation;
+        explanation.comment = window.TRANSLATIONS.guess.correct.same_as_game;
+          explanation.action = 'keep_guess';
+        } else {
+        explanation.rating = this.getRating(move.result, move.game_move);
+        const evalDiff = this.compareEvaluations(move.guess_eval.score, move.game_eval.score);
+        explanation.comment = this.chooseEvaluationComment(move.result, move.game_move, move.guess_eval.score, evalDiff);
+        explanation.headline = this.getEvaluationHeadline(move, evalDiff);
+        explanation.action = 'use_game_move';
+      }
+    } else if (move.result == 'incorrect') {
+      if (move.game_move == '--') {
+        explanation.rating = 'neutral';
+        explanation.headline = '';
+        explanation.comment = window.TRANSLATIONS.guess.move_was_passed;
+        explanation.action = 'use_game_move';
+      } else {
+        explanation.rating = 'bad';
+        const evalDiff = this.compareEvaluations(move.guess_eval.score, move.game_eval.score);
+        explanation.comment = this.chooseEvaluationComment(move.result, move.game_move, move.guess_eval.score, evalDiff);
+        explanation.headline = this.getEvaluationHeadline(move, evalDiff);
+        explanation.action = 'restore_position';
+      }
+    } else if (move.result == 'game_over') {
+      explanation.rating = 'neutral';
+      explanation.headline = '';
+      explanation.comment = window.TRANSLATIONS.guess.beyond_game;
+      explanation.action = 'keep_guess';
+    }
     return explanation;
   }
 
@@ -61,4 +90,15 @@ export default class EvaluationExplainer {
     }
     return comment;
   }
+
+  getRating(guessResult, gameMove) {
+    if (guessResult == 'correct') {
+      return 'good';
+    } else if (gameMove == '--') {
+      return 'neutral';
+    } else {
+      return 'bad';
+    }
+  }
 }
+

@@ -157,6 +157,7 @@ describe('EvaluationExplainer', () => {
   describe('explainEvaluation headline', () => {
     it('returns "Good Move!" for high score with small difference', () => {
       const move = {
+        result: 'correct',
         guess_eval: { score: 150 },
         game_eval: { score: 130 }
       };
@@ -167,6 +168,7 @@ describe('EvaluationExplainer', () => {
 
     it('returns "Good Move!" for high score with large difference', () => {
       const move = {
+        result: 'correct',
         guess_eval: { score: 150 },
         game_eval: { score: 50 }
       };
@@ -177,6 +179,7 @@ describe('EvaluationExplainer', () => {
 
     it('returns "Good Guess!" for low score', () => {
       const move = {
+        result: 'correct',
         guess_eval: { score: 50 },
         game_eval: { score: 100 }
       };

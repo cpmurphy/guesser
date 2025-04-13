@@ -260,48 +260,33 @@ export default class Board {
 
   handleGuessResponse(data) {
     data.forEach((move) => {
-      if (move.result === 'correct') {
-        if (move.same_as_game) {
-          this.resultDisplay.goodGuess(
-            window.TRANSLATIONS.guess.correct.correct_exclamation,
-            window.TRANSLATIONS.guess.correct.same_as_game
-          );
-          this.moveForward();
-        } else {
-          const explanation = this.evaluationExplainer.explainEvaluation(move);
-
-          this.resultDisplay.goodGuess(
-            explanation.headline,
-            explanation.comment
-          );
-          this.boardUi.restoreLastPosition();
+      if (move.result == 'auto_move') {
+        if (this.guessMode() != 'both') {
           this.moveForward();
         }
-      } else if (move.result === 'incorrect') {
-        if (move.game_move === '--') {
-          this.gameState.updateForPassingMove();
-          this.resultDisplay.neutralGuess(
-            '',
-            window.TRANSLATIONS.guess.move_was_passed
-          );
-        } else {
-          const explanation = this.evaluationExplainer.explainEvaluation(move);
-          this.resultDisplay.badGuess(
-            window.TRANSLATIONS.guess.incorrect,
-            explanation.comment
-          );
-          this.boardUi.restoreLastPosition();
-        }
+      } else {
+        const explanation = this.evaluationExplainer.explainEvaluation(move);
+        this.resultDisplay.update(
+          explanation.rating,
+        explanation.headline,
+        explanation.comment
+      );
+      if (explanation.rating == 'good') {
+          if (explanation.action == 'use_game_move') {
+            this.boardUi.restoreLastPosition();
+            this.moveForward();
+          }
+      } else if (explanation.rating == 'bad') {
+        this.boardUi.restoreLastPosition();
+      } else if (explanation.rating == 'neutral') {
+        this.gameState.updateForPassingMove();
       } else if (move.result === 'auto_move') {
         if (this.guessMode() != 'both') {
           this.moveForward();
         }
       } else if (move.result === 'game_over') {
-        this.resultDisplay.neutralGuess(
-          '',
-          window.TRANSLATIONS.guess.beyond_game
-        );
-        this.addExtraMove(move);
+          this.addExtraMove(move);
+        }
       }
     });
   }
@@ -487,7 +472,7 @@ export default class Board {
       this.boardUi.setPiece(move.remove[1], null);
     }
     if (!this.isPastRecordedMoves()) {
-      this.resultDisplay.goodGuess(window.TRANSLATIONS.guess.correct.correct_exclamation, window.TRANSLATIONS.guess.correct.same_as_game);
+      this.resultDisplay.update('good', window.TRANSLATIONS.guess.correct.correct_exclamation, window.TRANSLATIONS.guess.correct.same_as_game);
     }
     this.currentMoveIndex++;
     // autoplay the opponent's move unless guess mode is both

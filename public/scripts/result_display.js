@@ -1,7 +1,21 @@
 export default class ResultDisplay {
 
-  goodGuess(headlineText, commentText) {
-    this.updateGuessStatus('green', headlineText, commentText);
+  update(rating, headlineText, commentText) {
+    let headlineColor;
+    switch (rating) {
+      case 'good':
+        headlineColor = 'green';
+        break;
+      case 'bad':
+        headlineColor = 'red';
+        break;
+      case 'neutral':
+        headlineColor = 'black';
+        break;
+      default:
+        headlineColor = 'black';
+    }
+    this.updateGuessStatus(headlineColor, headlineText, commentText);
   }
 
   badGuess(headlineText, commentText) {

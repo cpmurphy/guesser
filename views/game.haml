@@ -99,7 +99,7 @@
         const { Chessboard, INPUT_EVENT_TYPE, COLOR } = await import(`/scripts/3rdparty/Chessboard.js${versionSuffix}`);
         const { Markers, MARKER_TYPE } = await import(`/scripts/3rdparty/extensions/markers/Markers.js${versionSuffix}`);
         const { PromotionDialog } = await import(`/scripts/3rdparty/extensions/promotion-dialog/PromotionDialog.js${versionSuffix}`);
-        const { default: Board } = await import(`/scripts/board.js${versionSuffix}`);
+        const { default: Guesser } = await import(`/scripts/guesser.js${versionSuffix}`);
 
         const guesserState = {
           locale: '#{@locale}',
@@ -128,8 +128,8 @@
           ]
         });
 
-        const board = new Board(guesserState, chessboard);
-        const { onMoveStart, onMoveCompleted } = board.setupMoveHandlers();
+        const guesser = new Guesser(guesserState, chessboard);
+        const { onMoveStart, onMoveCompleted } = guesser.setupMoveHandlers();
         chessboard.enableMoveInput((event) => {
           switch (event.type) {
             case INPUT_EVENT_TYPE.moveInputStarted:

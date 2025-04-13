@@ -9,7 +9,7 @@ import ResultDisplay from './result_display.js';
 import ButtonUi from './button_ui.js';
 import BoardUi from './board_ui.js';
 
-export default class Board {
+export default class Guesser {
   constructor(data, chessboard) {
     if (data.version) {
       // Production mode - use dynamic loading

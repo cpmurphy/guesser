@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import Board from '../../public/scripts/board.js';
+import Guesser from '../../public/scripts/guesser.js';
 import { Chessboard } from './__mocks__/cm-chessboard.js';
 
 // Mock translations that would normally be injected by the server
@@ -38,7 +38,7 @@ global.window = {
   }
 };
 
-// Helper to create a minimal data object that Board needs
+// Helper to create a minimal data object that Guesser needs
 function createGameData(options = {}) {
   return {
     locale: options.locale || 'en',
@@ -54,11 +54,11 @@ function createGameData(options = {}) {
   };
 }
 
-describe('Board', () => {
-  let board;
+describe('Guesser', () => {
+  let guesser;
 
   beforeEach(() => {
-    // Mock DOM elements that Board expects
+    // Mock DOM elements that Guesser expects
     document.body.innerHTML = `
       <div id="board"></div>
       <div id="last-move"></div>
@@ -76,8 +76,11 @@ describe('Board', () => {
       <div id="guess_comment"></div>
       <div id="guess_subcomment"></div>
     `;
-  });
 
+    const data = createGameData();
+    const chessboard = new Chessboard('element', {});
+    guesser = new Guesser(data, chessboard);
+  });
 
   describe('moveBackward', () => {
     it('handles when player redoes a bad move', () => {
@@ -90,17 +93,17 @@ describe('Board', () => {
         uiMoves: []
       });
       const chessboard = new Chessboard('element', {});
-      board = new Board(data, chessboard);
+      const guesser = new Guesser(data, chessboard);
 
-      expect(board.currentMoveIndex).toBe(0);
-      board.addExtraMove({piece:"P", moves: ["e7-e8"], add: ['R', 'e8'], notation: "e8=R"});
-      board.moveForward();
-      board.moveBackward();
-      board.addExtraMove({piece:"P", moves: ["e7-d8"], add: ['R', 'd8'], remove: ['q', 'd8'], notation: "exd8=R"});
-      board.moveForward();
-      expect(board.moves.length).toBe(1);
-      expect(board.uiMoves[0]).toEqual({piece:"P", moves: ["e7-d8"], add: ['R', 'd8'], remove: ['q', 'd8'], notation: "exd8=R#"});
-      expect(board.moves[0]).toEqual("exd8=R#");
+      expect(guesser.currentMoveIndex).toBe(0);
+      guesser.addExtraMove({piece:"P", moves: ["e7-e8"], add: ['R', 'e8'], notation: "e8=R"});
+      guesser.moveForward();
+      guesser.moveBackward();
+      guesser.addExtraMove({piece:"P", moves: ["e7-d8"], add: ['R', 'd8'], remove: ['q', 'd8'], notation: "exd8=R"});
+      guesser.moveForward();
+      expect(guesser.moves.length).toBe(1);
+      expect(guesser.uiMoves[0]).toEqual({piece:"P", moves: ["e7-d8"], add: ['R', 'd8'], remove: ['q', 'd8'], notation: "exd8=R#"});
+      expect(guesser.moves[0]).toEqual("exd8=R#");
     });
   });
 
@@ -113,18 +116,18 @@ describe('Board', () => {
         uiMoves: [{"piece":"P","moves":["e2-e4"]},{"piece":"p","moves":["e7-e5"]},{"piece":"N","moves":["g1-f3"]}]
       });
       const chessboard = new Chessboard('element', {});
-      board = new Board(data, chessboard);
+      const guesser = new Guesser(data, chessboard);
 
-      board.moveForward();
-      board.updateLastMoveDisplay();
+      guesser.moveForward();
+      guesser.updateLastMoveDisplay();
       expect(document.getElementById('last-move').textContent).toBe('1. e4');
 
-      board.moveForward();
-      board.updateLastMoveDisplay();
+      guesser.moveForward();
+      guesser.updateLastMoveDisplay();
       expect(document.getElementById('last-move').textContent).toBe('1... e5');
 
-      board.moveForward();
-      board.updateLastMoveDisplay();
+      guesser.moveForward();
+      guesser.updateLastMoveDisplay();
       expect(document.getElementById('last-move').textContent).toBe('2. Nf3');
     });
 
@@ -138,18 +141,18 @@ describe('Board', () => {
         fen: 'r1bk3r/pppp2bp/2n5/4p2q/2BP1pNP/2P5/PP4P1/2BQ2KR b - - 0 15',
       });
       const chessboard = new Chessboard('element', { position: data.fen });
-      board = new Board(data, chessboard);
+      const guesser = new Guesser(data, chessboard);
 
-      board.moveForward();
-      board.updateLastMoveDisplay();
+      guesser.moveForward();
+      guesser.updateLastMoveDisplay();
       expect(document.getElementById('last-move').textContent).toBe('15... d6');
 
-      board.moveForward();
-      board.updateLastMoveDisplay();
+      guesser.moveForward();
+      guesser.updateLastMoveDisplay();
       expect(document.getElementById('last-move').textContent).toBe('16. Be2');
 
-      board.moveForward();
-      board.updateLastMoveDisplay();
+      guesser.moveForward();
+      guesser.updateLastMoveDisplay();
       expect(document.getElementById('last-move').textContent).toBe('16... Qe8');
     });
 
@@ -162,13 +165,13 @@ describe('Board', () => {
         uiMoves: [{"piece":"P","moves":["e2-e4"]},{"piece":"p","moves":["e7-e5"]},{"piece":"N","moves":["g1-f3"]},{"piece":"N","moves":["b8-c6"]}]
       });
       const chessboard = new Chessboard('element', {});
-      board = new Board(data, chessboard);
+      const guesser = new Guesser(data, chessboard);
 
-      expect(board.currentMoveIndex).toBe(3);
-      board.moveBackward();
-      board.moveBackward();
-      expect(board.currentMoveIndex).toBe(1);
-      board.updateLastMoveDisplay();
+      expect(guesser.currentMoveIndex).toBe(3);
+      guesser.moveBackward();
+      guesser.moveBackward();
+      expect(guesser.currentMoveIndex).toBe(1);
+      guesser.updateLastMoveDisplay();
       expect(document.getElementById('last-move').textContent).toBe('1. e4');
     });
   });
@@ -190,7 +193,7 @@ describe('Board', () => {
       });
 
       const chessboard = new Chessboard('element', {});
-      const board = new Board(data, chessboard);
+      const guesser = new Guesser(data, chessboard);
       const blackRadio = document.querySelector('input[name="guess_mode"][value="black"]');
       expect(blackRadio.checked).toBe(true);
     });
@@ -203,7 +206,7 @@ describe('Board', () => {
       });
 
       const chessboard = new Chessboard('element', {});
-      const board = new Board(data, chessboard);
+      const guesser = new Guesser(data, chessboard);
       const whiteRadio = document.querySelector('input[name="guess_mode"][value="white"]');
       expect(whiteRadio.checked).toBe(true);
     });
@@ -218,7 +221,7 @@ describe('Board', () => {
       });
 
       const chessboard = new Chessboard('element', {});
-      const board = new Board(data, chessboard);
+      const guesser = new Guesser(data, chessboard);
       expect(whiteRadio.checked).toBe(true);
     });
   });
@@ -250,16 +253,16 @@ describe('Board', () => {
       });
 
       const chessboard = new Chessboard('element', {});
-      const board = new Board(data, chessboard);
+      const guesser = new Guesser(data, chessboard);
       document.querySelector('input[value="white"]').checked = true;
 
-      const moveForwardSpy = vi.spyOn(board, 'moveForward');
+      const moveForwardSpy = vi.spyOn(guesser, 'moveForward');
 
-      board.handleCorrectGuess(data.uiMoves[0]);
+      guesser.handleCorrectGuess(data.uiMoves[0]);
       vi.runAllTimers();
 
       expect(moveForwardSpy).toHaveBeenCalled();
-      expect(board.currentMoveIndex).toBe(2); // Should have moved forward twice
+      expect(guesser.currentMoveIndex).toBe(2); // Should have moved forward twice
     });
 
     it('auto-plays opponent move when guessing as black only', () => {
@@ -275,17 +278,17 @@ describe('Board', () => {
       });
 
       const chessboard = new Chessboard('element', {});
-      const board = new Board(data, chessboard);
+      const guesser = new Guesser(data, chessboard);
       document.querySelector('input[value="black"]').checked = true;
 
-      const moveForwardSpy = vi.spyOn(board, 'moveForward');
+      const moveForwardSpy = vi.spyOn(guesser, 'moveForward');
 
-      board.moveForward(); // play White's move first
-      board.handleCorrectGuess(data.uiMoves[1]);
+      guesser.moveForward(); // play White's move first
+      guesser.handleCorrectGuess(data.uiMoves[1]);
       vi.runAllTimers();
 
       expect(moveForwardSpy).toHaveBeenCalled();
-      expect(board.currentMoveIndex).toBe(3); // Should have moved forward twice
+      expect(guesser.currentMoveIndex).toBe(3); // Should have moved forward twice
     });
 
     it('does not auto-play opponent move when guessing both sides', () => {
@@ -299,16 +302,16 @@ describe('Board', () => {
       });
 
       const chessboard = new Chessboard('element', {});
-      const board = new Board(data, chessboard);
+      const guesser = new Guesser(data, chessboard);
       document.querySelector('input[value="both"]').checked = true;
 
-      const moveForwardSpy = vi.spyOn(board, 'moveForward');
+      const moveForwardSpy = vi.spyOn(guesser, 'moveForward');
 
-      board.handleCorrectGuess(data.uiMoves[0]);
+      guesser.handleCorrectGuess(data.uiMoves[0]);
       vi.runAllTimers();
 
       expect(moveForwardSpy).not.toHaveBeenCalled();
-      expect(board.currentMoveIndex).toBe(1); // Should have moved forward only once
+      expect(guesser.currentMoveIndex).toBe(1); // Should have moved forward only once
     });
   });
 
@@ -319,12 +322,12 @@ describe('Board', () => {
         moves: ['e4','c5','e5','f5','exf6']
       });
       const chessboard = new Chessboard('element', {});
-      const board = new Board(data, chessboard);
+      const guesser = new Guesser(data, chessboard);
       for (let i = 0; i < 4; i++) {
-        board.moveForward();
+        guesser.moveForward();
       }
-      board.submitGuess('e5', 'f6', 'wp', null, 'rnbqkbnr/pp1pp1pp/8/2p1Pp2/8/8/PPPP1PPP/RNBQKBNR');
-      expect(board.boardUi.getPiece('f5')).toBeNull();
+      guesser.submitGuess('e5', 'f6', 'wp', null, 'rnbqkbnr/pp1pp1pp/8/2p1Pp2/8/8/PPPP1PPP/RNBQKBNR');
+      expect(guesser.boardUi.getPiece('f5')).toBeNull();
     });
     it('handles promotion moves', () => {
       const data = createGameData({
@@ -333,9 +336,9 @@ describe('Board', () => {
         uiMoves: [{"piece":"P","moves":["e7-e8"],"add":["q","e8"]}]
       });
       const chessboard = new Chessboard('element', { position: data.fen });
-      const board = new Board(data, chessboard);
-      board.submitGuess('e7', 'e8', 'wp', 'wq', '7k/4P2p/5K2/8/8/8/8/8 w - - 0 1');
-      expect(board.gameState.halfmoveClock).toBe(0);
+      const guesser = new Guesser(data, chessboard);
+      guesser.submitGuess('e7', 'e8', 'wp', 'wq', '7k/4P2p/5K2/8/8/8/8/8 w - - 0 1');
+      expect(guesser.gameState.halfmoveClock).toBe(0);
     });
   });
 
@@ -365,12 +368,12 @@ describe('Board', () => {
       });
 
       const chessboard = new Chessboard('element', {});
-      const board = new Board(data, chessboard);
+      const guesser = new Guesser(data, chessboard);
       document.querySelector('input[value="white"]').checked = true;
 
-      const moveForwardSpy = vi.spyOn(board, 'moveForward');
+      const moveForwardSpy = vi.spyOn(guesser, 'moveForward');
 
-      board.handleGuessResponse([{
+      guesser.handleGuessResponse([{
         "result": "correct",
         "same_as_game": false,
         "game_move": "e4",
@@ -401,7 +404,7 @@ describe('Board', () => {
       }
       ]);
       vi.runAllTimers();
-      expect(board.currentMoveIndex).toBe(2); // Should have moved forward twice
+      expect(guesser.currentMoveIndex).toBe(2); // Should have moved forward twice
     });
 
     it('auto-plays opponent move when guessing as black only', () => {
@@ -416,13 +419,13 @@ describe('Board', () => {
       });
 
       const chessboard = new Chessboard('element', {});
-      const board = new Board(data, chessboard);
+      const guesser = new Guesser(data, chessboard);
       document.querySelector('input[value="black"]').checked = true;
-      board.moveForward(); // Play white's first move
+      guesser.moveForward(); // Play white's first move
 
-      const moveForwardSpy = vi.spyOn(board, 'moveForward');
+      const moveForwardSpy = vi.spyOn(guesser, 'moveForward');
 
-      board.handleGuessResponse([
+      guesser.handleGuessResponse([
         {
           "result": "correct",
           "same_as_game": false,
@@ -458,7 +461,7 @@ describe('Board', () => {
       vi.runAllTimers();
 
       expect(moveForwardSpy).toHaveBeenCalledTimes(2);
-      expect(board.currentMoveIndex).toBe(3); // Should have moved forward twice
+      expect(guesser.currentMoveIndex).toBe(3); // Should have moved forward twice
     });
 
     it('does not auto-play opponent move when guessing both sides', () => {
@@ -472,14 +475,14 @@ describe('Board', () => {
       });
 
       const chessboard = new Chessboard('element', {});
-      const board = new Board(data, chessboard);
+      const guesser = new Guesser(data, chessboard);
       document.querySelector('input[value="both"]').checked = true;
 
-      const moveForwardSpy = vi.spyOn(board, 'moveForward');
+      const moveForwardSpy = vi.spyOn(guesser, 'moveForward');
 
-      board.moveForward(); // Play White's first move
+      guesser.moveForward(); // Play White's first move
       // Now handle a guess of Black's first move
-      board.handleGuessResponse([
+      guesser.handleGuessResponse([
         {
           "result": "correct",
           "same_as_game": false,
@@ -515,7 +518,7 @@ describe('Board', () => {
       vi.runAllTimers();
 
       expect(moveForwardSpy).toHaveBeenCalledTimes(2);
-      expect(board.currentMoveIndex).toBe(2); // Should have moved forward only one move -- White's second move
+      expect(guesser.currentMoveIndex).toBe(2); // Should have moved forward only one move -- White's second move
     });
 
     it('updates the last move after a good guess', () => {
@@ -529,9 +532,9 @@ describe('Board', () => {
         ]
       });
       const chessboard = new Chessboard('element', {});
-      const board = new Board(data, chessboard);
-      board.moveForward();
-      board.handleGuessResponse([
+      const guesser = new Guesser(data, chessboard);
+      guesser.moveForward();
+      guesser.handleGuessResponse([
         {
           result: 'correct',
           same_as_game: false,
@@ -552,8 +555,8 @@ describe('Board', () => {
           total_moves: 16
         }
       ]);
-      expect(board.lastMoveElement.textContent).toBe('1... c5');
-      expect(board.currentMoveIndex).toBe(2);
+      expect(guesser.lastMoveElement.textContent).toBe('1... c5');
+      expect(guesser.currentMoveIndex).toBe(2);
     });
     it("handles guesses when the game move is a passing move", () => {
       const data = createGameData({
@@ -561,12 +564,12 @@ describe('Board', () => {
         uiMoves: [{"piece":"P","moves":["e2-e4"]},{"moves":[]},{"piece":"P","moves":["d2-d4"]},{"piece":"p","moves":["e7-e6"]}]
       });
       const chessboard = new Chessboard('element', {});
-      const board = new Board(data, chessboard);
-      board.moveForward();
-      expect(board.currentMoveIndex).toBe(1);
-      board.handleGuessResponse([{result: "incorrect", game_move: "--"}]);
-      expect(board.currentMoveIndex).toBe(1);
-      expect(board.generateCompleteFen()).toBe('rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq - 0 1');
+      const guesser = new Guesser(data, chessboard);
+      guesser.moveForward();
+      expect(guesser.currentMoveIndex).toBe(1);
+      guesser.handleGuessResponse([{result: "incorrect", game_move: "--"}]);
+      expect(guesser.currentMoveIndex).toBe(1);
+      expect(guesser.generateCompleteFen()).toBe('rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq - 0 1');
     });
   });
 
@@ -581,15 +584,15 @@ describe('Board', () => {
         sideToMove: 'black',
       });
       const chessboard = new Chessboard('element', {});
-      const board = new Board(data, chessboard);
-      board.moveForward();
-      expect(board.boardUi.getPiece('c2')).toBe(null);
-      expect(board.boardUi.getPiece('c1')).toBe('bq');
-      board.moveBackward();
-      expect(board.currentMoveIndex).toBe(0);
-      expect(board.gameState.isWhiteToMove(0)).toBe(false);
-      expect(board.boardUi.getPiece('c1')).toBe(null);
-      expect(board.boardUi.getPiece('c2')).toBe('bp');
+      const guesser = new Guesser(data, chessboard);
+      guesser.moveForward();
+      expect(guesser.boardUi.getPiece('c2')).toBe(null);
+      expect(guesser.boardUi.getPiece('c1')).toBe('bq');
+      guesser.moveBackward();
+      expect(guesser.currentMoveIndex).toBe(0);
+      expect(guesser.gameState.isWhiteToMove(0)).toBe(false);
+      expect(guesser.boardUi.getPiece('c1')).toBe(null);
+      expect(guesser.boardUi.getPiece('c2')).toBe('bp');
     });
   });
 
@@ -621,17 +624,17 @@ describe('Board', () => {
         black: 'Sergey Karjakin'
       });
       const chessboard = new Chessboard('element', {});
-      const board = new Board(data, chessboard);
+      const guesser = new Guesser(data, chessboard);
       for (let i = 0; i < 19; i++) {
-        board.moveForward();
+        guesser.moveForward();
       }
-      expect(board.currentMoveIndex).toBe(19);
-      expect(board.generateCompleteFen()).toBe('r1bq1r1k/ppppnp1p/2n3p1/6B1/2PQ2N1/8/PP2PPPP/R3KB1R b KQ - 4 10');
+      expect(guesser.currentMoveIndex).toBe(19);
+      expect(guesser.generateCompleteFen()).toBe('r1bq1r1k/ppppnp1p/2n3p1/6B1/2PQ2N1/8/PP2PPPP/R3KB1R b KQ - 4 10');
       for (let i = 0; i < 19; i++) {
-        board.moveBackward();
+        guesser.moveBackward();
       }
-      expect(board.currentMoveIndex).toBe(0);
-      expect(board.generateCompleteFen()).toBe('rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1');
+      expect(guesser.currentMoveIndex).toBe(0);
+      expect(guesser.generateCompleteFen()).toBe('rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1');
     });
   });
 
@@ -651,13 +654,13 @@ describe('Board', () => {
       });
 
       const chessboard = new Chessboard('element', {});
-      const board = new Board(data, chessboard);
+      const guesser = new Guesser(data, chessboard);
 
-      board.moveForward(); // Play white's first move
+      guesser.moveForward(); // Play white's first move
 
-      // Spy on board methods first
-      const moveForwardSpy = vi.spyOn(board, 'moveForward');
-      const addExtraMoveSpy = vi.spyOn(board, 'addExtraMove');
+      // Spy on guesser methods first
+      const moveForwardSpy = vi.spyOn(guesser, 'moveForward');
+      const addExtraMoveSpy = vi.spyOn(guesser, 'addExtraMove');
 
       // Mock the engine response
       global.fetch.mockResolvedValue({
@@ -670,13 +673,13 @@ describe('Board', () => {
       });
 
       // Wait for all promises to resolve
-      await board.requestEngineBestMove();
+      await guesser.requestEngineBestMove();
       await vi.waitFor(() => {
         expect(addExtraMoveSpy).toHaveBeenCalledWith({
           piece:"p", moves:["e7-e5"], notation:"e5"
         });
         expect(moveForwardSpy).toHaveBeenCalled();
-        expect(board.currentMoveIndex).toBe(2);
+        expect(guesser.currentMoveIndex).toBe(2);
         expect(document.getElementById('last-move').textContent).toBe('1... e5');
       });
     });
@@ -688,10 +691,10 @@ describe('Board', () => {
       });
 
       const chessboard = new Chessboard('element', {});
-      const board = new Board(data, chessboard);
+      const guesser = new Guesser(data, chessboard);
 
-      const addExtraMoveSpy = vi.spyOn(board, 'addExtraMove');
-      const moveForwardSpy = vi.spyOn(board, 'moveForward');
+      const addExtraMoveSpy = vi.spyOn(guesser, 'addExtraMove');
+      const moveForwardSpy = vi.spyOn(guesser, 'moveForward');
 
       // Mock a failed engine response
       global.fetch.mockResolvedValue({
@@ -699,7 +702,7 @@ describe('Board', () => {
         json: () => Promise.resolve({ error: "Engine error" })
       });
 
-      await board.requestEngineBestMove();
+      await guesser.requestEngineBestMove();
       await vi.waitFor(() => {
         expect(addExtraMoveSpy).not.toHaveBeenCalled();
         expect(moveForwardSpy).not.toHaveBeenCalled();
@@ -714,18 +717,18 @@ describe('Board', () => {
         uiMoves: [{"piece":"P","moves":["e2-e4"]},{"piece":"p","moves":["e7-e5"]}]
       });
       const chessboard = new Chessboard('element', {});
-      const board = new Board(data, chessboard);
-      board.moveForward();
-      board.moveForward();
-      board.addExtraMove({piece:"N", moves:["g1-f3"],notation:"Nf3"});
-      expect(board.uiMoves.length).toBe(3);
-      expect(board.moves.length).toBe(3);
-      expect(board.uiMoves[0].moves).toEqual(["e2-e4"]);
-      expect(board.uiMoves[1].moves).toEqual(["e7-e5"]);
-      expect(board.uiMoves[2].moves).toEqual(["g1-f3"]);
-      expect(board.moves[0]).toEqual("e4");
-      expect(board.moves[1]).toEqual("e5");
-      expect(board.moves[2]).toEqual("Nf3");
+      const guesser = new Guesser(data, chessboard);
+      guesser.moveForward();
+      guesser.moveForward();
+      guesser.addExtraMove({piece:"N", moves:["g1-f3"],notation:"Nf3"});
+      expect(guesser.uiMoves.length).toBe(3);
+      expect(guesser.moves.length).toBe(3);
+      expect(guesser.uiMoves[0].moves).toEqual(["e2-e4"]);
+      expect(guesser.uiMoves[1].moves).toEqual(["e7-e5"]);
+      expect(guesser.uiMoves[2].moves).toEqual(["g1-f3"]);
+      expect(guesser.moves[0]).toEqual("e4");
+      expect(guesser.moves[1]).toEqual("e5");
+      expect(guesser.moves[2]).toEqual("Nf3");
     });
     it('replaces a extra move in the game if one exists at the current index', () => {
       const data = createGameData({
@@ -733,16 +736,16 @@ describe('Board', () => {
         uiMoves: [{"piece":"P","moves":["e2-e4"]},{"piece":"p","moves":["e7-e5"]}]
       });
       const chessboard = new Chessboard('element', {});
-      const board = new Board(data, chessboard);
-      board.moveForward();
-      board.moveForward();
-      board.addExtraMove({piece:"N", moves:["g1-f3"],notation:"Nf3"});
-      board.moveBackward();
-      board.addExtraMove({piece:"P", moves:["d2-d4"],notation:"d4"});
-      expect(board.uiMoves.length).toBe(3);
-      expect(board.moves.length).toBe(3);
-      expect(board.uiMoves[2].moves).toEqual(["d2-d4"]);
-      expect(board.moves[2]).toEqual("d4");
+      const guesser = new Guesser(data, chessboard);
+      guesser.moveForward();
+      guesser.moveForward();
+      guesser.addExtraMove({piece:"N", moves:["g1-f3"],notation:"Nf3"});
+      guesser.moveBackward();
+      guesser.addExtraMove({piece:"P", moves:["d2-d4"],notation:"d4"});
+      expect(guesser.uiMoves.length).toBe(3);
+      expect(guesser.moves.length).toBe(3);
+      expect(guesser.uiMoves[2].moves).toEqual(["d2-d4"]);
+      expect(guesser.moves[2]).toEqual("d4");
     });
     it('adds # to notation when move results in checkmate', () => {
       const data = createGameData({
@@ -754,7 +757,7 @@ describe('Board', () => {
         sideToMove: 'white',
       });
       const chessboard = new Chessboard('element', {});
-      const board = new Board(data, chessboard);
+      const guesser = new Guesser(data, chessboard);
 
       const move = {
         notation: 'Rh8',  // Intentionally missing the # symbol
@@ -762,9 +765,9 @@ describe('Board', () => {
         piece: 'R'
       };
 
-      board.addExtraMove(move);
+      guesser.addExtraMove(move);
 
-      expect(board.moves[0]).toEqual('Rh8#');
+      expect(guesser.moves[0]).toEqual('Rh8#');
     });
     it('adds + to notation when move results in check', () => {
       const data = createGameData({
@@ -776,7 +779,7 @@ describe('Board', () => {
         sideToMove: 'white',
       });
       const chessboard = new Chessboard('element', {});
-      const board = new Board(data, chessboard);
+      const guesser = new Guesser(data, chessboard);
 
       const move = {
         notation: 'Rf1',  // Intentionally missing the # symbol
@@ -784,9 +787,9 @@ describe('Board', () => {
         piece: 'R'
       };
 
-      board.addExtraMove(move);
+      guesser.addExtraMove(move);
 
-      expect(board.moves[0]).toEqual('Rf1+');
+      expect(guesser.moves[0]).toEqual('Rf1+');
     });
   });
   describe('passing moves', () => {
@@ -796,23 +799,23 @@ describe('Board', () => {
         uiMoves: [{"piece":"P","moves":["e2-e4"]},{"moves":[]},{"piece":"P","moves":["d2-d4"]},{"piece":"p","moves":["e7-e6"]}]
       });
       const chessboard = new Chessboard('element', {});
-      const board = new Board(data, chessboard);
-      board.moveForward();
-      expect(board.currentMoveIndex).toBe(1);
-      expect(board.uiMoves[0].moves).toEqual(["e2-e4"]);
-      expect(board.moves[0]).toEqual('e4');
-      board.moveForward();
-      expect(board.currentMoveIndex).toBe(2);
-      expect(board.uiMoves[1].moves).toEqual([]);
-      expect(board.moves[1]).toEqual('--');
-      board.moveForward();
-      expect(board.currentMoveIndex).toBe(3);
-      expect(board.uiMoves[2].moves).toEqual(["d2-d4"]);
-      expect(board.moves[2]).toEqual('d4');
-      board.moveForward();
-      expect(board.currentMoveIndex).toBe(4);
-      expect(board.uiMoves[3].moves).toEqual(["e7-e6"]);
-      expect(board.moves[3]).toEqual('e6');
+      const guesser = new Guesser(data, chessboard);
+      guesser.moveForward();
+      expect(guesser.currentMoveIndex).toBe(1);
+      expect(guesser.uiMoves[0].moves).toEqual(["e2-e4"]);
+      expect(guesser.moves[0]).toEqual('e4');
+      guesser.moveForward();
+      expect(guesser.currentMoveIndex).toBe(2);
+      expect(guesser.uiMoves[1].moves).toEqual([]);
+      expect(guesser.moves[1]).toEqual('--');
+      guesser.moveForward();
+      expect(guesser.currentMoveIndex).toBe(3);
+      expect(guesser.uiMoves[2].moves).toEqual(["d2-d4"]);
+      expect(guesser.moves[2]).toEqual('d4');
+      guesser.moveForward();
+      expect(guesser.currentMoveIndex).toBe(4);
+      expect(guesser.uiMoves[3].moves).toEqual(["e7-e6"]);
+      expect(guesser.moves[3]).toEqual('e6');
     });
   });
 });

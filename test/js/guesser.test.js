@@ -791,6 +791,21 @@ describe('Guesser', () => {
 
       expect(guesser.moves[0]).toEqual('Rf1+');
     });
+    it('adds the extra move when not called directly', () => {
+      const data = createGameData({
+        fen: '3k4/8/8/7P/8/8/8/3K4 w - - 0 43',
+        moves: ['h6'],
+        uiMoves: [{"piece":"P","moves":["h7-h6"]}]
+      });
+      const chessboard = new Chessboard('element', {});
+      const guesser = new Guesser(data, chessboard);
+      guesser.moveForward();
+      guesser.handleGuessResponse([{"piece":"k","moves":["d8-e8"],"notation":"Ke8","result":"game_over"}]);
+      expect(guesser.uiMoves.length).toBe(2);
+      expect(guesser.moves.length).toBe(2);
+      expect(guesser.uiMoves[1].moves).toEqual(["d8-e8"]);
+      expect(guesser.moves[1]).toEqual('Ke8');
+    });
   });
   describe('passing moves', () => {
     it('moves forward through passing moves', () => {

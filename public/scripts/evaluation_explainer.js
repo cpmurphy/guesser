@@ -23,7 +23,7 @@ export default class EvaluationExplainer {
         explanation.rating = 'neutral';
         explanation.headline = '';
         explanation.comment = window.TRANSLATIONS.guess.move_was_passed;
-        explanation.action = 'use_game_move';
+        explanation.action = 'pass_move';
       } else {
         explanation.rating = 'bad';
         const evalDiff = this.compareEvaluations(move.guess_eval.score, move.game_eval.score);
@@ -35,7 +35,7 @@ export default class EvaluationExplainer {
       explanation.rating = 'neutral';
       explanation.headline = '';
       explanation.comment = window.TRANSLATIONS.guess.beyond_game;
-      explanation.action = 'keep_guess';
+      explanation.action = 'add_extra_move';
     }
     return explanation;
   }

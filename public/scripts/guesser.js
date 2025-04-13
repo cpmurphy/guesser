@@ -268,24 +268,26 @@ export default class Guesser {
         const explanation = this.evaluationExplainer.explainEvaluation(move);
         this.resultDisplay.update(
           explanation.rating,
-        explanation.headline,
-        explanation.comment
-      );
-      if (explanation.rating == 'good') {
-          if (explanation.action == 'use_game_move') {
-            this.boardUi.restoreLastPosition();
+          explanation.headline,
+          explanation.comment
+        );
+        if (explanation.rating == 'good') {
+            if (explanation.action == 'use_game_move') {
+              this.boardUi.restoreLastPosition();
+              this.moveForward();
+            }
+        } else if (explanation.rating == 'bad') {
+          this.boardUi.restoreLastPosition();
+        } else if (explanation.rating == 'neutral') {
+          if (explanation.action == 'pass_move') {
+            this.gameState.updateForPassingMove();
+          } else if (explanation.action == 'add_extra_move') {
+            this.addExtraMove(move);
+          }
+        } else if (move.result === 'auto_move') {
+          if (this.guessMode() != 'both') {
             this.moveForward();
           }
-      } else if (explanation.rating == 'bad') {
-        this.boardUi.restoreLastPosition();
-      } else if (explanation.rating == 'neutral') {
-        this.gameState.updateForPassingMove();
-      } else if (move.result === 'auto_move') {
-        if (this.guessMode() != 'both') {
-          this.moveForward();
-        }
-      } else if (move.result === 'game_over') {
-          this.addExtraMove(move);
         }
       }
     });

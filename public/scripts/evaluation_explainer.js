@@ -3,13 +3,19 @@ export default class EvaluationExplainer {
     this.moveLocalizer = moveLocalizer;
   }
 
-  getEvaluationComment(move) {
+  explainEvaluation(move) {
+    const explanation = {};
     const evalDiff = this.compareEvaluations(move.guess_eval.score, move.game_eval.score);
+    explanation.comment = this.chooseEvaluationComment(move.result, move.game_move, move.guess_eval.score, evalDiff);
+    explanation.headline = this.getEvaluationHeadline(move, evalDiff);
+    return explanation;
+  }
+
+  getEvaluationComment(move, evalDiff) {
     return this.chooseEvaluationComment(move.result, move.game_move, move.guess_eval.score, evalDiff);
   }
 
-  getEvaluationHeadline(move) {
-    const evalDiff = this.compareEvaluations(move.guess_eval.score, move.game_eval.score);
+  getEvaluationHeadline(move, evalDiff) {
     if (move.guess_eval.score > 100 && evalDiff > -30) {
       return window.TRANSLATIONS.guess.correct.good_move;
     } else {

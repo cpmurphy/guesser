@@ -268,12 +268,11 @@ export default class Board {
           );
           this.moveForward();
         } else {
-          const evalComment = this.evaluationExplainer.getEvaluationComment(move);
-          const headline = this.evaluationExplainer.getEvaluationHeadline(move);
+          const explanation = this.evaluationExplainer.explainEvaluation(move);
 
           this.resultDisplay.goodGuess(
-            headline,
-            evalComment
+            explanation.headline,
+            explanation.comment
           );
           this.boardUi.restoreLastPosition();
           this.moveForward();
@@ -286,10 +285,10 @@ export default class Board {
             window.TRANSLATIONS.guess.move_was_passed
           );
         } else {
-          const evalComment = this.evaluationExplainer.getEvaluationComment(move);
+          const explanation = this.evaluationExplainer.explainEvaluation(move);
           this.resultDisplay.badGuess(
             window.TRANSLATIONS.guess.incorrect,
-            evalComment
+            explanation.comment
           );
           this.boardUi.restoreLastPosition();
         }

@@ -44,7 +44,7 @@ describe('EvaluationExplainer', () => {
     explainer = new EvaluationExplainer(moveLocalizer);
   });
 
-  describe('getEvaluationComment', () => {
+  describe('explainEvaluation comment', () => {
     it('returns appropriate comment for much better evaluation', () => {
       const move = {
         guess_eval: { score: 200 },
@@ -53,8 +53,8 @@ describe('EvaluationExplainer', () => {
         game_move: 'e4'
       };
       
-      const comment = explainer.getEvaluationComment(move);
-      expect(comment).toBe('Your move is even better than the game move (e4)!');
+      const explanation = explainer.explainEvaluation(move);
+      expect(explanation.comment).toBe('Your move is even better than the game move (e4)!');
     });
 
     it('returns appropriate comment for slightly better evaluation', () => {
@@ -65,8 +65,8 @@ describe('EvaluationExplainer', () => {
         game_move: 'e4'
       };
       
-      const comment = explainer.getEvaluationComment(move);
-      expect(comment).toBe('Your move is slightly better than the game move (e4).');
+      const explanation = explainer.explainEvaluation(move);
+      expect(explanation.comment).toBe('Your move is slightly better than the game move (e4).');
     });
 
     it('returns appropriate comment for much worse evaluation', () => {
@@ -77,8 +77,8 @@ describe('EvaluationExplainer', () => {
         game_move: 'e4'
       };
       
-      const comment = explainer.getEvaluationComment(move);
-      expect(comment).toBe('The game move (e4) was much better. Your move still leaves you with a reasonable position.');
+      const explanation = explainer.explainEvaluation(move);
+      expect(explanation.comment).toBe('The game move (e4) was much better. Your move still leaves you with a reasonable position.');
     });
 
     it('returns appropriate comment for worse evaluation', () => {
@@ -89,8 +89,8 @@ describe('EvaluationExplainer', () => {
         game_move: 'e4'
       };
       
-      const comment = explainer.getEvaluationComment(move);
-      expect(comment).toBe('The game move (e4) was significantly better. Your move still leaves you with a reasonable position.');
+      const explanation = explainer.explainEvaluation(move);
+      expect(explanation.comment).toBe('The game move (e4) was significantly better. Your move still leaves you with a reasonable position.');
     });
 
     it('returns appropriate comment for slightly worse evaluation with high score', () => {
@@ -101,8 +101,8 @@ describe('EvaluationExplainer', () => {
         game_move: 'e4'
       };
       
-      const comment = explainer.getEvaluationComment(move);
-      expect(comment).toBe('Your move is about as good as the game move (e4).');
+      const explanation = explainer.explainEvaluation(move);
+      expect(explanation.comment).toBe('Your move is about as good as the game move (e4).');
     });
 
     it('returns appropriate comment for slightly worse evaluation with low score', () => {
@@ -113,8 +113,8 @@ describe('EvaluationExplainer', () => {
         game_move: 'e4'
       };
       
-      const comment = explainer.getEvaluationComment(move);
-      expect(comment).toBe('Your move is about as good as the game move (e4).');
+      const explanation = explainer.explainEvaluation(move);
+      expect(explanation.comment).toBe('Your move is about as good as the game move (e4).');
     });
 
     it('returns appropriate comment for equal evaluation', () => {
@@ -125,8 +125,8 @@ describe('EvaluationExplainer', () => {
         game_move: 'e4'
       };
       
-      const comment = explainer.getEvaluationComment(move);
-      expect(comment).toBe('Your move is about as good as the game move (e4).');
+      const explanation = explainer.explainEvaluation(move);
+      expect(explanation.comment).toBe('Your move is about as good as the game move (e4).');
     });
 
     it('returns appropriate comment for incorrect guess', () => {
@@ -137,8 +137,8 @@ describe('EvaluationExplainer', () => {
         game_move: 'e4'
       };
       
-      const comment = explainer.getEvaluationComment(move);
-      expect(comment).toBe('The game move  was much better. Your move still leaves you with a reasonable position.');
+      const explanation = explainer.explainEvaluation(move);
+      expect(explanation.comment).toBe('The game move  was much better. Your move still leaves you with a reasonable position.');
     });
 
     it('handles null or undefined evaluations', () => {
@@ -149,20 +149,20 @@ describe('EvaluationExplainer', () => {
         game_move: 'e4'
       };
       
-      const comment = explainer.getEvaluationComment(move);
-      expect(comment).toBe('Your move is about as good as the game move (e4).');
+      const explanation = explainer.explainEvaluation(move);
+      expect(explanation.comment).toBe('Your move is about as good as the game move (e4).');
     });
   });
 
-  describe('getEvaluationHeadline', () => {
+  describe('explainEvaluation headline', () => {
     it('returns "Good Move!" for high score with small difference', () => {
       const move = {
         guess_eval: { score: 150 },
         game_eval: { score: 130 }
       };
       
-      const headline = explainer.getEvaluationHeadline(move);
-      expect(headline).toBe('Good Move!');
+      const explanation = explainer.explainEvaluation(move);
+      expect(explanation.headline).toBe('Good Move!');
     });
 
     it('returns "Good Move!" for high score with large difference', () => {
@@ -171,8 +171,8 @@ describe('EvaluationExplainer', () => {
         game_eval: { score: 50 }
       };
       
-      const headline = explainer.getEvaluationHeadline(move);
-      expect(headline).toBe('Good Move!');
+      const explanation = explainer.explainEvaluation(move);
+      expect(explanation.headline).toBe('Good Move!');
     });
 
     it('returns "Good Guess!" for low score', () => {
@@ -181,8 +181,8 @@ describe('EvaluationExplainer', () => {
         game_eval: { score: 100 }
       };
       
-      const headline = explainer.getEvaluationHeadline(move);
-      expect(headline).toBe('Good Guess!');
+      const explanation = explainer.explainEvaluation(move);
+      expect(explanation.headline).toBe('Good Guess!');
     });
   });
 

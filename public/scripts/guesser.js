@@ -175,7 +175,7 @@ export default class Guesser {
     }
 
     this.submitGuess(from, to, piece, null, this.generateCompleteFen());
-    this.boardUi.saveLastPosition();
+    this.boardUi.saveLastPosition(fen);
     return true;
   }
 

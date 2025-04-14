@@ -18,8 +18,8 @@ export default class BoardUi {
     this.lastPosition = fen;
   }
 
-  saveLastPosition() {
-    this.lastPosition = this.board.getPosition();
+  saveLastPosition(fen) {
+    this.lastPosition = fen;
   }
 
   restoreLastPosition() {

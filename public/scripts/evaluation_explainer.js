@@ -14,8 +14,8 @@ export default class EvaluationExplainer {
         } else {
         explanation.rating = this.getRating(move.result, move.game_move);
         const evalDiff = this.compareEvaluations(move.guess_eval.score, move.game_eval.score);
-        explanation.comment = this.chooseEvaluationComment(move.result, move.game_move, move.guess_eval.score, evalDiff);
         explanation.headline = this.getEvaluationHeadline(move, evalDiff);
+        explanation.comment = this.chooseEvaluationComment(move.result, move.game_move, move.guess_eval.score, evalDiff);
         explanation.action = 'use_game_move';
       }
     } else if (move.result == 'incorrect') {
@@ -26,9 +26,9 @@ export default class EvaluationExplainer {
         explanation.action = 'pass_move';
       } else {
         explanation.rating = 'bad';
+        explanation.headline = window.TRANSLATIONS.guess.incorrect;
         const evalDiff = this.compareEvaluations(move.guess_eval.score, move.game_eval.score);
         explanation.comment = this.chooseEvaluationComment(move.result, move.game_move, move.guess_eval.score, evalDiff);
-        explanation.headline = this.getEvaluationHeadline(move, evalDiff);
         explanation.action = 'restore_position';
       }
     } else if (move.result == 'game_over') {

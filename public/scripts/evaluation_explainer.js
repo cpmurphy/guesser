@@ -63,9 +63,9 @@ export default class EvaluationExplainer {
     const moveText = guessCorrect ? this.moveLocalizer.localize(gameMove) : '';
 
     if (evalDiff > 50) {
-      comment = window.TRANSLATIONS.evaluation.much_better.replace('%{game_move}', gameMove);
+      comment = window.TRANSLATIONS.evaluation.much_better.replace('%{game_move}', moveText);
     } else if (evalDiff > 10) {
-      comment = window.TRANSLATIONS.evaluation.slightly_better.replace('%{game_move}', gameMove);
+      comment = window.TRANSLATIONS.evaluation.slightly_better.replace('%{game_move}', moveText);
     } else if (evalDiff < -100) {
       comment = window.TRANSLATIONS.evaluation.much_worse.replace('%{move}', moveText);
     } else if (evalDiff < -50) {

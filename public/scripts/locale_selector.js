@@ -1,4 +1,4 @@
-class LocaleSelector {
+export class LocaleSelector {
   constructor() {
     this.select = document.getElementById('locale-select');
     this.select.addEventListener('change', this.handleLocaleChange.bind(this));

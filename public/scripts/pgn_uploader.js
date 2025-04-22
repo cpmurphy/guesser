@@ -1,4 +1,4 @@
-class PgnUploader {
+export class PgnUploader {
 
   constructor() {
     this.setupPgnInputMethod();

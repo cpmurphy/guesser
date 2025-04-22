@@ -39,3 +39,6 @@ bin/fix_crit.rb
 # other stuff
 examples/
 .vscode/
+
+# ignore coverage output
+coverage/

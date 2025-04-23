@@ -6,7 +6,7 @@ export default defineConfig({
     environment: 'jsdom',
     coverage: {
       provider: 'v8',
-      reporter: ['text', 'html'],
+      reporter: ['text', 'json', 'html'],
       reportsDirectory: './coverage',
       exclude: [
 	...coverageConfigDefaults.exclude,
@@ -15,8 +15,12 @@ export default defineConfig({
         'test/**',
         '**/*.d.ts',
         '**/vendor/**',
-        '**/3rdparty/**'
-      ]
+        '**/3rdparty/**',
+      ],
+      statements: 85,
+      branches: 90,
+      functions: 85,
+      lines: 85
     }
   },
   resolve: {

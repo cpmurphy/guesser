@@ -833,4 +833,65 @@ describe('Guesser', () => {
       expect(guesser.moves[3]).toEqual('e6');
     });
   });
+
+  describe('onMoveStart', () => {
+    beforeEach(() => {
+      document.body.innerHTML += `
+        <input type="radio" name="guess_mode" value="white">
+        <input type="radio" name="guess_mode" value="black">
+        <input type="radio" name="guess_mode" value="both">
+      `;
+    });
+
+    it('returns false when trying to move an empty square', () => {
+      const data = createGameData();
+      const chessboard = new Chessboard('element', {});
+      const guesser = new Guesser(data, chessboard);
+      expect(guesser.onMoveStart('e4')).toBe(false);
+    });
+
+    it('returns false when game is terminated', () => {
+      const data = createGameData({
+        moves: ['e4'],
+        uiMoves: [{"piece":"P","moves":["e2-e4"]}]
+      });
+      const chessboard = new Chessboard('element', {});
+      const guesser = new Guesser(data, chessboard);
+      guesser.moveForward();
+      expect(guesser.onMoveStart('e2')).toBe(false);
+    });
+
+    it('returns false when trying to move opponent\'s piece', () => {
+      const data = createGameData({
+        sideToMove: 'white'
+      });
+      const chessboard = new Chessboard('element', {});
+      chessboard.setPiece('e7', 'bp');
+      const guesser = new Guesser(data, chessboard);
+      expect(guesser.onMoveStart('e7')).toBe(false);
+    });
+
+    it('returns false when in wrong guess mode', () => {
+      const data = createGameData({
+        sideToMove: 'white'
+      });
+      const chessboard = new Chessboard('element', {});
+      chessboard.setPiece('e2', 'wp');
+      const guesser = new Guesser(data, chessboard);
+      document.querySelector('input[value="black"]').checked = true;
+      expect(guesser.onMoveStart('e2')).toBe(false);
+    });
+
+    it('returns true when all conditions are met', () => {
+      const data = createGameData({
+        sideToMove: 'white'
+      });
+      const chessboard = new Chessboard('element', {});
+      chessboard.setPiece('e2', 'wp');
+      const guesser = new Guesser(data, chessboard);
+      document.querySelector('input[value="white"]').checked = true;
+      expect(guesser.onMoveStart('e2')).toBe(true);
+    });
+  });
+
 });

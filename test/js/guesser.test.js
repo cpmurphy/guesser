@@ -894,4 +894,169 @@ describe('Guesser', () => {
     });
   });
 
+  describe('fastForward and fastRewind', () => {
+    beforeEach(() => {
+      vi.useFakeTimers();
+    });
+
+    afterEach(() => {
+      vi.useRealTimers();
+    });
+
+    it('fastForwards through all moves in the game', async () => {
+      const data = createGameData({
+        moves: ['e4', 'e5', 'Nf3', 'Nc6', 'Bb5'],
+        uiMoves: [
+          {"piece":"P","moves":["e2-e4"]},
+          {"piece":"p","moves":["e7-e5"]},
+          {"piece":"N","moves":["g1-f3"]},
+          {"piece":"N","moves":["b8-c6"]},
+          {"piece":"B","moves":["f1-b5"]}
+        ]
+      });
+      const chessboard = new Chessboard('element', {});
+      const guesser = new Guesser(data, chessboard);
+
+      guesser.fastForward();
+      await vi.runAllTimersAsync();
+
+      expect(guesser.currentMoveIndex).toBe(5);
+      expect(chessboard.getPiece('e4')).toBe('wp');
+      expect(chessboard.getPiece('e5')).toBe('bp');
+      expect(chessboard.getPiece('f3')).toBe('wn');
+      expect(chessboard.getPiece('c6')).toBe('bn');
+      expect(chessboard.getPiece('b5')).toBe('wb');
+    });
+
+    it('fastRewinds back to the starting position', async () => {
+      const data = createGameData({
+        moves: ['e4', 'e5', 'Nf3', 'Nc6', 'Bb5'],
+        uiMoves: [
+          {"piece":"P","moves":["e2-e4"]},
+          {"piece":"p","moves":["e7-e5"]},
+          {"piece":"N","moves":["g1-f3"]},
+          {"piece":"N","moves":["b8-c6"]},
+          {"piece":"B","moves":["f1-b5"]}
+        ]
+      });
+      const chessboard = new Chessboard('element', {});
+      const guesser = new Guesser(data, chessboard);
+
+      // First move forward to the end
+      guesser.fastForward();
+      await vi.runAllTimersAsync();
+      expect(guesser.currentMoveIndex).toBe(5);
+
+      // Then rewind back to start
+      guesser.fastRewind();
+      await vi.runAllTimersAsync();
+      expect(guesser.currentMoveIndex).toBe(0);
+      expect(chessboard.getPiece('e2')).toBe('wp');
+      expect(chessboard.getPiece('e7')).toBe('bp');
+      expect(chessboard.getPiece('g1')).toBe('wn');
+      expect(chessboard.getPiece('b8')).toBe('bn');
+      expect(chessboard.getPiece('f1')).toBe('wb');
+    });
+
+    it('handles fastForward when already at the end of the game', async () => {
+      const data = createGameData({
+        moves: ['e4', 'e5'],
+        uiMoves: [
+          {"piece":"P","moves":["e2-e4"]},
+          {"piece":"p","moves":["e7-e5"]}
+        ]
+      });
+      const chessboard = new Chessboard('element', {});
+      const guesser = new Guesser(data, chessboard);
+
+      // Move to the end
+      guesser.fastForward();
+      await vi.runAllTimersAsync();
+      expect(guesser.currentMoveIndex).toBe(2);
+
+      // Try to fastForward again
+      guesser.fastForward();
+      await vi.runAllTimersAsync();
+      expect(guesser.currentMoveIndex).toBe(2);
+      expect(chessboard.getPiece('e4')).toBe('wp');
+      expect(chessboard.getPiece('e5')).toBe('bp');
+    });
+
+    it('handles fastRewind when already at the start of the game', async () => {
+      const data = createGameData({
+        moves: ['e4', 'e5'],
+        uiMoves: [
+          {"piece":"P","moves":["e2-e4"]},
+          {"piece":"p","moves":["e7-e5"]}
+        ]
+      });
+      const chessboard = new Chessboard('element', {});
+      const guesser = new Guesser(data, chessboard);
+
+      // Move to the end and back
+      guesser.fastForward();
+      await vi.runAllTimersAsync();
+      guesser.fastRewind();
+      await vi.runAllTimersAsync();
+      expect(guesser.currentMoveIndex).toBe(0);
+
+      // Try to fastRewind again
+      guesser.fastRewind();
+      await vi.runAllTimersAsync();
+      expect(guesser.currentMoveIndex).toBe(0);
+      expect(chessboard.getPiece('e2')).toBe('wp');
+      expect(chessboard.getPiece('e7')).toBe('bp');
+    });
+
+    it('handles fastForward with promotion moves', async () => {
+      const data = createGameData({
+        moves: ['e4', 'e5', 'd4', 'exd4', 'e5', 'd6', 'exd6', 'Qxd6'],
+        uiMoves: [
+          {"piece":"P","moves":["e2-e4"]},
+          {"piece":"p","moves":["e7-e5"]},
+          {"piece":"P","moves":["d2-d4"]},
+          {"piece":"p","moves":["e5-d4"],"remove":["P","d4"]},
+          {"piece":"P","moves":["e4-e5"]},
+          {"piece":"p","moves":["d7-d6"]},
+          {"piece":"P","moves":["e5-d6"],"remove":["p","d6"]},
+          {"piece":"Q","moves":["d1-d6"],"remove":["P","d6"]},
+        ]
+      });
+      const chessboard = new Chessboard('element', {});
+      const guesser = new Guesser(data, chessboard);
+
+      guesser.fastForward();
+      await vi.runAllTimersAsync();
+      expect(guesser.currentMoveIndex).toBe(8);
+      expect(chessboard.getPiece('d6')).toBe('wq');
+    });
+
+    it('handles fastRewind with promotion moves', async () => {
+      const data = createGameData({
+        moves: ['e4', 'e5', 'd4', 'exd4', 'e5', 'd6', 'exd6', 'Qxd6', 'e8=Q'],
+        uiMoves: [
+          {"piece":"P","moves":["e2-e4"]},
+          {"piece":"p","moves":["e7-e5"]},
+          {"piece":"P","moves":["d2-d4"]},
+          {"piece":"p","moves":["e5-d4"],"remove":["P","d4"]},
+          {"piece":"P","moves":["e4-e5"]},
+          {"piece":"p","moves":["d7-d6"]},
+          {"piece":"P","moves":["e5-d6"],"remove":["p","d6"]},
+          {"piece":"Q","moves":["d1-d6"],"remove":["P","d6"]},
+          {"piece":"P","moves":["e7-e8"],"add":["q","e8"]}
+        ]
+      });
+      const chessboard = new Chessboard('element', {});
+      const guesser = new Guesser(data, chessboard);
+
+      // Move to the end and back
+      guesser.fastForward();
+      await vi.runAllTimersAsync();
+      guesser.fastRewind();
+      await vi.runAllTimersAsync();
+      expect(guesser.currentMoveIndex).toBe(0);
+      expect(chessboard.getPiece('e7')).toBe('bp');
+    });
+  });
+
 });

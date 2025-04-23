@@ -293,20 +293,6 @@ export default class Guesser {
     });
   }
 
-  isPieceAvailableToMove(piece) {
-    const currentGuessMode = this.guessMode();
-    const pieceColor = piece.charAt(0);
-    if (pieceColor === 'w' && !this.gameState.isWhiteToMove(this.currentMoveIndex)) {
-      return false;
-    }
-    if (pieceColor === 'b' && this.gameState.isWhiteToMove(this.currentMoveIndex)) {
-      return false;
-    }
-    return currentGuessMode === 'both' ||
-       (currentGuessMode === 'white' && pieceColor === 'w') ||
-       (currentGuessMode === 'black' && pieceColor === 'b');
-  }
-
   gameOver() {
     return this.currentMoveIndex >= this.moves.length;
   }

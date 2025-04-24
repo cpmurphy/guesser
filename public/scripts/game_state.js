@@ -16,9 +16,9 @@ export default class GameState {
 
   update(piece, from, to, capturedPiece) {
     if (piece.toLowerCase() === "k") {
-      this.removeCastlingRights(piece);
+      this.removeCastlingRightsForKingMove();
     } else if (piece.toLowerCase() === "r") {
-      this.updateCastlingRights(piece, from);
+      this.updateCastlingRightsForRookMove(from);
     }
     this.updateEnPassant(piece, from, to);
     if (piece.toLowerCase() === "p" || capturedPiece) {
@@ -81,20 +81,20 @@ export default class GameState {
     }
   }
 
-  removeCastlingRights(piece) {
+  removeCastlingRightsForKingMove() {
     const whiteToMove = this.isWhiteToMove(this.changeIndex);
-    if (whiteToMove && piece.toLowerCase() === "k" && this.castlingRights.match(/[KQ]/)) {
+    if (whiteToMove && this.castlingRights.match(/[KQ]/)) {
       this.castlingRightsHistory.set(this.changeIndex, this.castlingRights);
       this.castlingRights = this.castlingRights.replaceAll(/[KQ]/g, '');
-    } else if (!whiteToMove && piece.toLowerCase() === "k" && this.castlingRights.match(/[kq]/)) {
+    } else if (!whiteToMove && this.castlingRights.match(/[kq]/)) {
       this.castlingRightsHistory.set(this.changeIndex, this.castlingRights);
       this.castlingRights = this.castlingRights.replaceAll(/[kq]/g, '');
     }
   }
 
-  updateCastlingRights(piece, from) {
+  updateCastlingRightsForRookMove(from) {
     const whiteToMove = this.isWhiteToMove(this.changeIndex);
-    if (whiteToMove && piece.toLowerCase() === "r") {
+    if (whiteToMove) {
       if (from === 'a1' && this.castlingRights.match(/Q/)) {
         this.castlingRightsHistory.set(this.changeIndex, this.castlingRights);
         this.castlingRights = this.castlingRights.replace('Q', '');
@@ -102,11 +102,11 @@ export default class GameState {
         this.castlingRightsHistory.set(this.changeIndex, this.castlingRights);
         this.castlingRights = this.castlingRights.replace('K', '');
       }
-    } else if (!whiteToMove && piece.toLowerCase() === "r") {
-      if (from === 'a8' && !this.castlingRights.match(/q/)) {
+    } else {
+      if (from === 'a8' && this.castlingRights.match(/q/)) {
         this.castlingRightsHistory.set(this.changeIndex, this.castlingRights);
         this.castlingRights = this.castlingRights.replace('q', '');
-      } else if (from === 'h8' && !this.castlingRights.match(/k/)) {
+      } else if (from === 'h8' && this.castlingRights.match(/k/)) {
         this.castlingRightsHistory.set(this.changeIndex, this.castlingRights);
         this.castlingRights = this.castlingRights.replace('k', '');
       }

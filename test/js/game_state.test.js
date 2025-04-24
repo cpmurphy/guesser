@@ -62,6 +62,19 @@ describe('GameState', () => {
       expect(gameState.castlingRights).not.toMatch(/K/);
       expect(gameState.castlingRights).toMatch(/[Qkq]/);
     });
+    it('removes black queenside castling when a8 rook moves', () => {
+      let gameState = new GameState('r1bqkbnr/2pp1ppp/p1n5/1p2p3/P3P3/1P6/1BPP1PPP/RN1QKBNR b KQkq - 0 5', ChessRules, Fen);
+      gameState.update('r', 'a8', 'a7');
+      expect(gameState.castlingRights).not.toMatch(/q/);
+      expect(gameState.castlingRights).toMatch(/[Kk]/);
+    });
+
+    it('removes black kingside castling when h8 rook moves', () => {
+      let gameState = new GameState('r1bqkbnr/p1pp1pp1/2n4p/1p2p3/P3P3/1P6/1BPP1PPP/RN1QKBNR b KQkq - 0 5', ChessRules, Fen);
+      gameState.update('r', 'h8', 'h7');
+      expect(gameState.castlingRights).not.toMatch(/k/);
+      expect(gameState.castlingRights).toMatch(/[KQ]/);
+    });
   });
 
   describe('move history', () => {

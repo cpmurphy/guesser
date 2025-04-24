@@ -53,7 +53,6 @@ describe('ChessRules', () => {
   describe('Knights', () => {
     it('allows legal knight moves', () => {
       const position = { 'g1': 'wn' };
-      const fen = Fen.objToFen(position);
       const rules = new ChessRules(Fen);
 
       expect(rules.isLegalMove(position, 'g1', 'f3', 'wn')).toBe(true);
@@ -63,11 +62,17 @@ describe('ChessRules', () => {
 
     it('prevents illegal knight moves', () => {
       const position = { 'g1': 'wn' };
-      const fen = Fen.objToFen(position);
       const rules = new ChessRules(Fen);
 
       expect(rules.isLegalMove(position, 'g1', 'g3', 'wn')).toBe(false);
       expect(rules.isLegalMove(position, 'g1', 'e3', 'wn')).toBe(false);
+    });
+    it('prevents a move that would put the king in check', () => {
+      const fen = '3k4/1pp2pp1/1b4r1/pP2p3/P3P3/6Nb/5P1P/3qB1KR w - - 0 20';
+      const position = Fen.fenToObj(fen);
+      const rules = new ChessRules(Fen);
+
+      expect(rules.isLegalMove(position, 'g3', 'e2', 'wn')).toBe(false);
     });
   });
 
@@ -375,6 +380,13 @@ describe('ChessRules', () => {
         const rules = new ChessRules(Fen);
 
         expect(rules.isStalemate(fen, false)).toBe(false);
+      });
+
+      it('recognizes a famous stalemate position (Troitsky-Vogt, 1896)', () => {
+        const fen = '3k4/1pp2pp1/1b4r1/pP2p3/P3P3/6Nb/5P1P/3qB1KR w - - 0 20';
+        const rules = new ChessRules(Fen);
+
+        expect(rules.isStalemate(fen, true)).toBe(true);
       });
     });
 

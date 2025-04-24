@@ -49,7 +49,7 @@ export default class ChessRules {
     }
 
     // Only check for check if not skipping validation
-    if (!skipCheckValidation && this.isInCheck(isWhite, position)) {
+    if (!skipCheckValidation) {
       const testPosition = { ...position };
       delete testPosition[source];
       testPosition[target] = piece;

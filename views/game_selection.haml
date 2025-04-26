@@ -40,8 +40,8 @@
 
       %button#upload_pgn_btn.btn{type: "submit"}= t('upload.submit')
 
-    %script{src:asset_path("scripts/pgn_uploader.js")}
-    %script{src:asset_path("scripts/locale_selector.js")}
+    %script{src:asset_path("scripts/pgn_uploader.js"), type: "module"}
+    %script{src:asset_path("scripts/locale_selector.js"), type: "module"}
     :javascript
       document.addEventListener('DOMContentLoaded', () => { 
         const uploader = new PgnUploader();

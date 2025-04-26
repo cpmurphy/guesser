@@ -42,8 +42,12 @@
 
     %script{src:asset_path("scripts/pgn_uploader.js"), type: "module"}
     %script{src:asset_path("scripts/locale_selector.js"), type: "module"}
-    :javascript
-      document.addEventListener('DOMContentLoaded', () => { 
-        const uploader = new PgnUploader();
-        const selector = new LocaleSelector();
-      });
+    %script{type: "module"}
+      :plain
+        import { PgnUploader } from '#{asset_path("scripts/pgn_uploader.js")}';
+        import { LocaleSelector } from '#{asset_path("scripts/locale_selector.js")}';
+
+        document.addEventListener('DOMContentLoaded', () => {
+          const uploader = new PgnUploader();
+          const selector = new LocaleSelector();
+        });

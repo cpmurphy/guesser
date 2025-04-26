@@ -8,6 +8,7 @@ GEM
     debug (1.10.0)
       irb (~> 1.10)
       reline (>= 0.3.8)
+    docile (1.4.1)
     haml (6.3.0)
       temple (>= 0.8.2)
       thor
@@ -78,6 +79,12 @@ GEM
     ruby-progressbar (1.13.0)
     ruby2_keywords (0.0.5)
     secure_headers (7.1.0)
+    simplecov (0.22.0)
+      docile (~> 1.1)
+      simplecov-html (~> 0.11)
+      simplecov_json_formatter (~> 0.1)
+    simplecov-html (0.13.1)
+    simplecov_json_formatter (0.1.4)
     sinatra (4.1.1)
       logger (>= 1.6.0)
       mustermann (~> 3.0)
@@ -113,6 +120,7 @@ DEPENDENCIES
   rubocop
   rubocop-minitest
   secure_headers
+  simplecov
   sinatra
   stockfish
   webrick

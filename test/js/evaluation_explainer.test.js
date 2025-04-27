@@ -58,10 +58,9 @@ describe('EvaluationExplainer', () => {
         guess_eval: { score: 200 },
         game_eval: { score: 100 },
         result: 'correct',
-        game_move: 'Ke2'
       };
       
-      const explanation = explainer.explainEvaluation(move);
+      const explanation = explainer.explainEvaluation(move, 'Ke2');
       expect(explanation.comment).toBe('¡Tu movimiento es incluso mejor que el de la partida (Re2)!');
     });
 
@@ -70,10 +69,9 @@ describe('EvaluationExplainer', () => {
         guess_eval: { score: 120 },
         game_eval: { score: 100 },
         result: 'correct',
-        game_move: 'Qf3'
       };
       
-      const explanation = explainer.explainEvaluation(move);
+      const explanation = explainer.explainEvaluation(move, 'Qf3');
       expect(explanation.comment).toBe('Tu movimiento es ligeramente mejor que el de la partida (Df3).');
     });
 
@@ -82,10 +80,9 @@ describe('EvaluationExplainer', () => {
         guess_eval: { score: 60 },
         game_eval: { score: 200 },
         result: 'correct',
-        game_move: 'Bc4'
       };
       
-      const explanation = explainer.explainEvaluation(move);
+      const explanation = explainer.explainEvaluation(move, 'Bc4');
       expect(explanation.comment).toBe('El movimiento de la partida (Ac4) era mucho mejor. Tu movimiento aún te deja en una posición razonable.');
     });
 
@@ -94,10 +91,9 @@ describe('EvaluationExplainer', () => {
         guess_eval: { score: 60 },
         game_eval: { score: 150 },
         result: 'correct',
-        game_move: 'Nf6'
       };
       
-      const explanation = explainer.explainEvaluation(move);
+      const explanation = explainer.explainEvaluation(move, 'Nf6');
       expect(explanation.comment).toBe('El movimiento de la partida (Cf6) era significativamente mejor. Tu movimiento aún te deja en una posición razonable.');
     });
 
@@ -106,10 +102,9 @@ describe('EvaluationExplainer', () => {
         guess_eval: { score: 90 },
         game_eval: { score: 100 },
         result: 'correct',
-        game_move: 'Rd7'
       };
       
-      const explanation = explainer.explainEvaluation(move);
+      const explanation = explainer.explainEvaluation(move, 'Rd7');
       expect(explanation.comment).toBe('Tu movimiento es tan bueno como el de la partida (Td7).');
     });
 
@@ -118,10 +113,9 @@ describe('EvaluationExplainer', () => {
         guess_eval: { score: 40 },
         game_eval: { score: 50 },
         result: 'correct',
-        game_move: 'e4'
       };
       
-      const explanation = explainer.explainEvaluation(move);
+      const explanation = explainer.explainEvaluation(move, 'e4');
       expect(explanation.comment).toBe('Tu movimiento es tan bueno como el de la partida (e4).');
     });
 
@@ -130,10 +124,9 @@ describe('EvaluationExplainer', () => {
         guess_eval: { score: 100 },
         game_eval: { score: 100 },
         result: 'correct',
-        game_move: 'e4'
       };
       
-      const explanation = explainer.explainEvaluation(move);
+      const explanation = explainer.explainEvaluation(move, 'e4');
       expect(explanation.comment).toBe('Tu movimiento es tan bueno como el de la partida (e4).');
     });
 
@@ -142,10 +135,9 @@ describe('EvaluationExplainer', () => {
         guess_eval: { score: 60 },
         game_eval: { score: 200 },
         result: 'incorrect',
-        game_move: 'e4'
       };
       
-      const explanation = explainer.explainEvaluation(move);
+      const explanation = explainer.explainEvaluation(move, 'e4');
       expect(explanation.comment).toBe('El movimiento de la partida  era mucho mejor. Tu movimiento aún te deja en una posición razonable.');
     });
 
@@ -154,10 +146,9 @@ describe('EvaluationExplainer', () => {
         guess_eval: { score: null },
         game_eval: { score: 100 },
         result: 'correct',
-        game_move: 'e4'
       };
       
-      const explanation = explainer.explainEvaluation(move);
+      const explanation = explainer.explainEvaluation(move, 'e4');
       expect(explanation.comment).toBe('Tu movimiento es tan bueno como el de la partida (e4).');
     });
   });

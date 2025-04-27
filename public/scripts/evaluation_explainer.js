@@ -3,7 +3,7 @@ export default class EvaluationExplainer {
     this.moveLocalizer = moveLocalizer;
   }
 
-  explainEvaluation(move) {
+  explainEvaluation(move, gameMove) {
     const explanation = {};
     if (move.result == 'correct') {
       if (move.same_as_game) {
@@ -12,14 +12,14 @@ export default class EvaluationExplainer {
         explanation.comment = window.TRANSLATIONS.guess.correct.same_as_game;
           explanation.action = 'keep_guess';
         } else {
-        explanation.rating = this.getRating(move.result, move.game_move);
+        explanation.rating = this.getRating(move.result, gameMove);
         const evalDiff = this.compareEvaluations(move.guess_eval.score, move.game_eval.score);
         explanation.headline = this.getEvaluationHeadline(move, evalDiff);
-        explanation.comment = this.chooseEvaluationComment(move.result, move.game_move, move.guess_eval.score, evalDiff);
+        explanation.comment = this.getEvaluationComment(move, gameMove, evalDiff);
         explanation.action = 'use_game_move';
       }
     } else if (move.result == 'incorrect') {
-      if (move.game_move == '--') {
+      if (gameMove == '--') {
         explanation.rating = 'neutral';
         explanation.headline = '';
         explanation.comment = window.TRANSLATIONS.guess.move_was_passed;
@@ -28,7 +28,7 @@ export default class EvaluationExplainer {
         explanation.rating = 'bad';
         explanation.headline = window.TRANSLATIONS.guess.incorrect;
         const evalDiff = this.compareEvaluations(move.guess_eval.score, move.game_eval.score);
-        explanation.comment = this.chooseEvaluationComment(move.result, move.game_move, move.guess_eval.score, evalDiff);
+        explanation.comment = this.getEvaluationComment(move, gameMove, evalDiff);
         explanation.action = 'restore_position';
       }
     } else if (move.result == 'game_over') {
@@ -40,8 +40,8 @@ export default class EvaluationExplainer {
     return explanation;
   }
 
-  getEvaluationComment(move, evalDiff) {
-    return this.chooseEvaluationComment(move.result, move.game_move, move.guess_eval.score, evalDiff);
+  getEvaluationComment(move, gameMove, evalDiff) {
+    return this.chooseEvaluationComment(move.result, gameMove, move.guess_eval.score, evalDiff);
   }
 
   getEvaluationHeadline(move, evalDiff) {

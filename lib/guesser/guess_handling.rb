@@ -56,7 +56,7 @@ module ChessGuesser
 
     def handle_beyond_game_move(guessed_move)
       translator = MoveTranslator.new
-      translator.load_game_from_fen(guessed_move['oldPos'])
+      translator.load_game_from_fen(guessed_move['old_pos'])
 
       move = build_guessed_move(guessed_move)
       translated_move = translator.translate_uci_move(move)
@@ -68,16 +68,22 @@ module ChessGuesser
     end
 
     def handle_normal_move(game, current_move, guess)
-      game.positions[current_move].to_fen
       guessed_move = guess['guessed_move']
+      original_fen = guess['old_pos']
       number_of_moves = game.moves.length
-      ui_game_move = guess['game_move']['moves'][0]
+      ui_game_move = guess['game_move']
 
-      response = @evaluator.handle_guess(guessed_move, current_move, ui_game_move, number_of_moves, game)
+      evaluation = @evaluator.handle_guess(original_fen, guessed_move, ui_game_move)
+      response = [evaluation]
+      # If correct, automatically play the move for the non-guessing side
+      if evaluation[:result] == 'correct' &&
+         current_move <= game.moves.length
+        response.push({ result: 'auto_move' })
+      end
       response.to_json
-    rescue StandardError => e
-      status 400
-      { error: "Invalid move evaluation: #{e.message}" }.to_json
+    #rescue StandardError => e
+    #  status 400
+    #  { error: "Invalid move evaluation: #{e.message}" }.to_json
     end
 
     def build_guessed_move(guessed_move)

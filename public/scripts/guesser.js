@@ -265,7 +265,8 @@ export default class Guesser {
           this.moveForward();
         }
       } else {
-        const explanation = this.evaluationExplainer.explainEvaluation(move);
+        const gameMove = this.moves[this.currentMoveIndex];
+        const explanation = this.evaluationExplainer.explainEvaluation(move, gameMove);
         this.resultDisplay.update(
           explanation.rating,
           explanation.headline,
@@ -311,15 +312,14 @@ export default class Guesser {
 
     const guessData = {
       path: window.location.pathname,
+      old_pos: "" + oldPosition,
       current_move: this.currentMoveIndex + 1,
       game_move: this.uiMoves[this.currentMoveIndex],
-      number_of_moves: this.moves.length,
       guessed_move: {
         source,
         target,
         piece: piece,
         promotion: promotedPiece ? promotedPiece.charAt(1) : undefined,
-        oldPos: "" + oldPosition
       }
     };
 

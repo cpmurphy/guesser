@@ -12,74 +12,44 @@ class GuessEvaluatorTest < Minitest::Test
 
   # rubocop:disable Minitest/MultipleAssertions
   def test_handle_incorrect_guess
-    game = create_game_with_one_move
+    old_fen = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1'
     guess = create_guess('h2', 'h4')
+    game_move = { 'moves' => ['d2-d4'] }
 
     @move_judge.expect(:compare_moves,
                        { good_move: false, best_eval: 0.5, guess_eval: 0.1, game_eval: 0.3 },
-                       [game.positions[0].to_fen, 'h2h4', 'd2d4'])
+                       [old_fen, 'h2h4', 'd2d4'])
 
-    result = @evaluator.handle_guess(guess, 0, 'd2-d4', 1, game)
+    result = @evaluator.handle_guess(old_fen, guess, game_move)
 
-    assert_equal 'incorrect', result[0][:result]
-    refute result[0][:same_as_game]
-    assert_equal 'd4', result[0][:game_move]
-    assert_in_delta(0.5, result[0][:best_eval])
-    assert_in_delta(0.1, result[0][:guess_eval])
-    assert_in_delta(0.3, result[0][:game_eval])
+    assert_equal 'incorrect', result[:result]
+    refute result[:same_as_game]
+    assert_in_delta(0.5, result[:best_eval])
+    assert_in_delta(0.1, result[:guess_eval])
+    assert_in_delta(0.3, result[:game_eval])
 
     @move_judge.verify
   end
 
   def test_handle_correct_guess_last_move
-    game = create_game_with_one_move
+    old_fen = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1'
     guess = create_guess('e2', 'e4')
+    game_move = { 'moves' => ['d2-d4'] }
 
     @move_judge.expect(:compare_moves,
                        { good_move: true, best_eval: 0.5, guess_eval: 0.3, game_eval: 0.3 },
-                       [game.positions[0].to_fen, 'e2e4', 'd2d4'])
+                       [old_fen, 'e2e4', 'd2d4'])
 
-    result = @evaluator.handle_guess(guess, 0, 'd2-d4', 1, game)
+    result = @evaluator.handle_guess(old_fen, guess, game_move)
 
-    assert_equal 'correct', result[0][:result]
-    refute result[0][:same_as_game]
-    assert_equal 'd4', result[0][:game_move]
-    assert_in_delta(0.5, result[0][:best_eval])
-    assert_in_delta(0.3, result[0][:guess_eval])
-    assert_in_delta(0.3, result[0][:game_eval])
-    assert_equal 2, result[0][:move_number]
-    assert_equal 1, result[0][:total_moves]
-    assert_equal 1, result.length # No auto-move added
+    assert_equal 'correct', result[:result]
+    refute result[:same_as_game]
+    assert_in_delta(0.5, result[:best_eval])
+    assert_in_delta(0.3, result[:guess_eval])
+    assert_in_delta(0.3, result[:game_eval])
 
     @move_judge.verify
   end
-
-  def test_handle_correct_guess_with_auto_move
-    game = create_game_with_two_moves
-    guess = create_guess('e2', 'e4')
-
-    @move_judge.expect(:compare_moves,
-                       { good_move: true, best_eval: 0.5, guess_eval: 0.3, game_eval: 0.3 },
-                       [game.positions[0].to_fen, 'e2e4', 'd2d4'])
-
-    result = @evaluator.handle_guess(guess, 0, 'd2-d4', 2, game)
-
-    assert_equal 'correct', result[0][:result]
-    refute result[0][:same_as_game]
-    assert_equal 'd4', result[0][:game_move]
-    assert_in_delta(0.5, result[0][:best_eval])
-    assert_in_delta(0.3, result[0][:guess_eval])
-    assert_in_delta(0.3, result[0][:game_eval])
-    assert_equal 2, result[0][:move_number]
-    assert_equal 2, result[0][:total_moves]
-
-    # Check auto-move
-    assert_equal 2, result.length
-    assert_equal 'auto_move', result[1][:result]
-
-    @move_judge.verify
-  end
-  # rubocop:enable Minitest/MultipleAssertions
 
   def test_needs_promotion_for_white_pawn
     assert @evaluator.send(:needs_promotion?, 'e7', 'e8', 'wp')
@@ -92,64 +62,37 @@ class GuessEvaluatorTest < Minitest::Test
   end
 
   def test_handle_guess_requires_promotion
+    old_fen = '8/P1n2pp1/3k3p/8/2p5/4K1P1/6BP/8 w - - 0 36'
     guess = {
-      'source' => 'e7',
-      'target' => 'e8',
+      'source' => 'a7',
+      'target' => 'a8',
       'piece' => 'wp'
     }
+    game_move = nil
 
-    result = @evaluator.handle_guess(guess, nil, nil, nil, nil)
+    result = @evaluator.handle_guess(old_fen, guess, game_move)
 
-    assert_equal 'needs_promotion', result[0][:result]
-    assert_equal 'e7', result[0][:source]
-    assert_equal 'e8', result[0][:target]
+    assert_equal 'needs_promotion', result[:result]
+    assert_equal 'a7', result[:source]
+    assert_equal 'a8', result[:target]
   end
 
   # rubocop:disable Style/OpenStructUse
   def test_handle_guess_with_passing_move
-    game = OpenStruct.new(
-      moves: [OpenStruct.new(notation: '--')],
-      positions: [
-        OpenStruct.new(to_fen: 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1'),
-        OpenStruct.new(to_fen: 'rnbqkbnr/pppppppp/8/8/3P4/8/PPP1PPPP/RNBQKBNR b KQkq - 0 1')
-      ]
-    )
+    old_fen = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1'
     guess = create_guess('e2', 'e4')
+    game_move = nil
+
     @move_judge.expect(:evaluate_standalone,
                        { good_move: true, best_eval: 0.5, guess_eval: 0.3, game_eval: 0.3 },
-                       [game.positions[0].to_fen, 'e2e4'])
+                       [old_fen, 'e2e4'])
 
-    result = @evaluator.handle_guess(guess, 0, '--', 1, game)
+    result = @evaluator.handle_guess(old_fen, guess, game_move)
 
-    assert_equal 'correct', result[0][:result]
+    assert_equal 'correct', result[:result]
   end
 
   private
-
-  def create_game_with_one_move
-    OpenStruct.new(
-      moves: [OpenStruct.new(notation: 'd4')],
-      positions: [
-        OpenStruct.new(to_fen: 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1'),
-        OpenStruct.new(to_fen: 'rnbqkbnr/pppppppp/8/8/3P4/8/PPP1PPPP/RNBQKBNR b KQkq - 0 1')
-      ]
-    )
-  end
-
-  def create_game_with_two_moves
-    OpenStruct.new(
-      moves: [
-        OpenStruct.new(notation: 'd4'),
-        OpenStruct.new(notation: 'd5')
-      ],
-      positions: [
-        OpenStruct.new(to_fen: 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1'),
-        OpenStruct.new(to_fen: 'rnbqkbnr/pppppppp/8/8/3P4/8/PPP1PPPP/RNBQKBNR b KQkq - 0 1'),
-        OpenStruct.new(to_fen: 'rnbqkbnr/ppp1pppp/8/3p4/3P4/8/PPP1PPPP/RNBQKBNR w KQkq - 0 2')
-      ]
-    )
-  end
-  # rubocop:enable Style/OpenStructUse
 
   def create_guess(source, target)
     {

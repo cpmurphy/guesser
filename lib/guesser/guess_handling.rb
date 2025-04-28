@@ -80,9 +80,9 @@ module ChessGuesser
         response.push({ result: 'auto_move' })
       end
       response.to_json
-        rescue StandardError => e
-         status 400
-         { error: "Invalid move evaluation: #{e.message}" }.to_json
+    rescue StandardError => e
+      status 400
+      { error: "Invalid move evaluation: #{e.message}" }.to_json
     end
 
     def build_guessed_move(guessed_move)

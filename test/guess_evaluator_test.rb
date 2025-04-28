@@ -50,6 +50,7 @@ class GuessEvaluatorTest < Minitest::Test
 
     @move_judge.verify
   end
+  # rubocop:enable Minitest/MultipleAssertions
 
   def test_needs_promotion_for_white_pawn
     assert @evaluator.send(:needs_promotion?, 'e7', 'e8', 'wp')
@@ -77,7 +78,6 @@ class GuessEvaluatorTest < Minitest::Test
     assert_equal 'a8', result[:target]
   end
 
-  # rubocop:disable Style/OpenStructUse
   def test_handle_guess_with_passing_move
     old_fen = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1'
     guess = create_guess('e2', 'e4')

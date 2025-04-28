@@ -70,7 +70,6 @@ module ChessGuesser
     def handle_normal_move(game, current_move, guess)
       guessed_move = guess['guessed_move']
       original_fen = guess['old_pos']
-      number_of_moves = game.moves.length
       ui_game_move = guess['game_move']
 
       evaluation = @evaluator.handle_guess(original_fen, guessed_move, ui_game_move)
@@ -81,9 +80,9 @@ module ChessGuesser
         response.push({ result: 'auto_move' })
       end
       response.to_json
-    #rescue StandardError => e
-    #  status 400
-    #  { error: "Invalid move evaluation: #{e.message}" }.to_json
+        rescue StandardError => e
+         status 400
+         { error: "Invalid move evaluation: #{e.message}" }.to_json
     end
 
     def build_guessed_move(guessed_move)

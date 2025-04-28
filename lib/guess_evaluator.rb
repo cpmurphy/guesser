@@ -59,7 +59,6 @@ class GuessEvaluator
 
   private
 
-
   def check_promotion(source, target, guessed_move)
     return unless needs_promotion?(source, target, guessed_move['piece']) && !guessed_move['promotion']
 
@@ -94,9 +93,7 @@ class GuessEvaluator
     return '--' unless game_move
 
     uci = game_move['moves'][0].sub('-', '')
-    if game_move['add']
-      uci += game_move['add'][0]
-    end
+    uci += game_move['add'][0] if game_move['add']
     uci
   end
 

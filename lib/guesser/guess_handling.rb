@@ -13,7 +13,7 @@ module ChessGuesser
       # Validate and process current move
       current_move = guess['current_move'].to_i - 1
       if current_move >= game.moves.length
-        handle_beyond_game_move(guess['guessed_move'])
+        handle_beyond_game_move(guess)
       else
         handle_normal_move(game, current_move, guess)
       end
@@ -24,7 +24,7 @@ module ChessGuesser
     private
 
     def validate_guess_structure(guess)
-      required_fields = %w[path current_move guessed_move]
+      required_fields = %w[path current_move guessed_move old_pos]
       missing_fields = required_fields.reject { |field| guess.key?(field) }
 
       if missing_fields.any?
@@ -54,11 +54,11 @@ module ChessGuesser
       square.is_a?(String) && square.match?(/^[a-h][1-8]$/)
     end
 
-    def handle_beyond_game_move(guessed_move)
+    def handle_beyond_game_move(guess)
       translator = MoveTranslator.new
-      translator.load_game_from_fen(guessed_move['old_pos'])
+      translator.load_game_from_fen(guess['old_pos'])
 
-      move = build_guessed_move(guessed_move)
+      move = build_guessed_move(guess['guessed_move'])
       translated_move = translator.translate_uci_move(move)
 
       [translated_move.merge({ result: 'game_over' })].to_json

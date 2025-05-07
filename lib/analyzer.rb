@@ -124,6 +124,11 @@ class Analyzer
 
   def close
     @engine&.execute('quit')
+  rescue Errno::EPIPE
+    # The stockfish engine may raise an EPIPE error if
+    # the connection is closed and the engine is not running.
+    # This is a workaround to ignore that error.
+  ensure
     @engine = nil
   end
 

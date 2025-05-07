@@ -50,6 +50,7 @@ class GuesserApp < Sinatra::Base
     initialize_supported_locales
     move_judge = MoveJudge.new
     @evaluator = GuessEvaluator.new(move_judge)
+    @move_translator = MoveTranslator.new
     @valid_pgn_basenames = build_builtin_allowlist
   end
 
@@ -157,10 +158,9 @@ class GuesserApp < Sinatra::Base
 
       if best_move && best_move[:move]
         move = best_move[:move]
-        move_translator = MoveTranslator.new
-        move_translator.load_game_from_fen(fen)
+        @move_translator.load_game_from_fen(fen)
         {
-          move: move_translator.translate_uci_move(move)
+          move: @move_translator.translate_uci_move(move)
         }.to_json
       else
         status 400

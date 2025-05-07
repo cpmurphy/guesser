@@ -11,7 +11,7 @@ export default class EvaluationExplainer {
         explanation.headline = window.TRANSLATIONS.guess.correct.correct_exclamation;
         explanation.comment = window.TRANSLATIONS.guess.correct.same_as_game;
           explanation.action = 'keep_guess';
-        } else {
+      } else {
         explanation.rating = this.getRating(move.result, gameMove);
         const evalDiff = this.compareEvaluations(move.guess_eval.score, move.game_eval.score);
         explanation.headline = this.getEvaluationHeadline(move, evalDiff);
@@ -36,6 +36,20 @@ export default class EvaluationExplainer {
       explanation.headline = '';
       explanation.comment = window.TRANSLATIONS.guess.beyond_game;
       explanation.action = 'add_extra_move';
+    }
+    return explanation;
+  }
+
+  explainEvaluationWithoutGameMove(move) {
+    const explanation = {};
+    if (move.result == 'correct') {
+      explanation.rating = 'good';
+      explanation.headline = window.TRANSLATIONS.guess.correct.good_move;
+      explanation.action = 'keep_guess';
+    } else if (move.result == 'incorrect') {
+      explanation.rating = 'bad';
+      explanation.headline = window.TRANSLATIONS.guess.incorrect;
+      explanation.action = 'restore_position';
     }
     return explanation;
   }

@@ -13,7 +13,7 @@ module ChessGuesser
       # Validate and process current move
       current_move = guess['current_move'].to_i - 1
       if current_move >= game.moves.length
-        handle_beyond_game_move(guess)
+        handle_beyond_game_move(guess, game)
       else
         handle_normal_move(game, current_move, guess)
       end
@@ -54,17 +54,22 @@ module ChessGuesser
       square.is_a?(String) && square.match?(/^[a-h][1-8]$/)
     end
 
-    def handle_beyond_game_move(guess)
-      translator = MoveTranslator.new
-      translator.load_game_from_fen(guess['old_pos'])
+    def handle_beyond_game_move(guess, _game)
+      guessed_move_data = guess['guessed_move']
+      original_fen = guess['old_pos']
 
-      move = build_guessed_move(guess['guessed_move'])
-      translated_move = translator.translate_uci_move(move)
+      evaluation = @evaluator.handle_guess(original_fen, guessed_move_data, nil)
 
-      [translated_move.merge({ result: 'game_over' })].to_json
+      uci_move_string = build_guessed_move(guessed_move_data)
+
+      @move_translator.load_game_from_fen(original_fen)
+      ui_move_object = @move_translator.translate_uci_move(uci_move_string)
+
+      evaluation[:move] = ui_move_object
+      [evaluation].to_json
     rescue StandardError => e
-      status 400
-      { error: "Invalid move format: #{e.message}" }.to_json
+      status 500
+      halt({ error: "Server error while processing move beyond game: #{e.message}" }.to_json)
     end
 
     def handle_normal_move(game, current_move, guess)
@@ -81,13 +86,13 @@ module ChessGuesser
       end
       response.to_json
     rescue StandardError => e
-      status 400
-      { error: "Invalid move evaluation: #{e.message}" }.to_json
+      status 400 # Or 500 if it's an internal server error rather than bad input
+      halt({ error: "Invalid move evaluation: #{e.message}" }.to_json)
     end
 
     def build_guessed_move(guessed_move)
       move = guessed_move['source'] + guessed_move['target']
-      move += guessed_move['promotion'] if guessed_move['promotion']
+      move += guessed_move['promotion'].downcase if guessed_move['promotion'] && !guessed_move['promotion'].empty?
       move
     end
   end

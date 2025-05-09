@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require 'json'
+
 module ChessGuesser
   module GuessHandling
     def handle_guess_request(guess)

@@ -293,10 +293,6 @@ export default class Guesser {
           this.moveForward();
         }
       } else {
-        const gameMoveForComparison = isWithinRecordedGame
-          ? this.moves[this.currentMoveIndex]
-          : undefined;
-
         const explanation =
           this.currentMoveIndex < this.recordedGameLength
             ? this.evaluationExplainer.explainEvaluation(

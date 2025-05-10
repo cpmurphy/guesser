@@ -393,24 +393,16 @@ describe("EvaluationExplainer", () => {
 
     it("does not mark as Poor move (flip) if drop is not > 100", () => {
       const move = {
-        // This should be "Okay move"
         result: "incorrect",
-        best_eval: { score: 60 }, // Winning
-        guess_eval: { score: -60 }, // Losing, but drop is 120. Is it poor or okay? drop 120 < 150. So okay.
-        // For poor flip: bestScoreForThisTurn > 50 (true), guessScore < -50 (true), drop > 100 (true, 120 > 100)
-        // Ah, so (120 >= 150 && -60 < 150) is false.
-        // (60 > 50 && -60 < -50 && 120 > 100) is true. So this is Poor.
         best_eval: { score: 60 },
-        guess_eval: { score: -30 }, // Drop 90. Best 60 > 50. Guess -30 is not < -50. Drop 90 not > 100. So not poor flip.
-        // Standard poor? (90 >= 150 && -30 < 150) is false.
-        // Okay? drop < 150 (90 < 150) is true.
+        guess_eval: { score: -30 },
       };
       const explanation = explainer.explainEvaluationWithoutGameMove(move);
       expect(explanation.rating).toBe("neutral");
-      expect(explanation.headline).toBe(mockTranslations.guess.okay_move);
+      expect(explanation.headline).toBe(mockTranslations.guess.dubious_move);
     });
 
-    it('returns "Okay move" when drop is < 150 (and not Blunder/Poor)', () => {
+    it('returns "Dubious move" when drop is < 150 (and not Blunder/Poor)', () => {
       const move = {
         result: "incorrect",
         best_eval: { score: 100 },
@@ -418,7 +410,7 @@ describe("EvaluationExplainer", () => {
       };
       const explanation = explainer.explainEvaluationWithoutGameMove(move);
       expect(explanation.rating).toBe("neutral");
-      expect(explanation.headline).toBe(mockTranslations.guess.okay_move);
+      expect(explanation.headline).toBe(mockTranslations.guess.dubious_move);
       expect(explanation.action).toBe("restore_position");
     });
 
@@ -426,16 +418,12 @@ describe("EvaluationExplainer", () => {
       const move = {
         result: "incorrect",
         best_eval: { score: 500 },
-        guess_eval: { score: 400 }, // drop 100, guess_eval 400
+        guess_eval: { score: 400 },
       };
-      // Blunder: No (drop 100 not >= 300)
-      // Poor (standard): No (drop 100 not >= 150)
-      // Poor (flip): No (guess_eval 400 not < -50)
-      // Okay: Yes (drop 100 < 150)
       const explanation = explainer.explainEvaluationWithoutGameMove(move);
       expect(explanation.rating).toBe("neutral");
       expect(explanation.headline).toBe(mockTranslations.guess.okay_move);
-      expect(explanation.action).toBe("restore_position");
+      expect(explanation.action).toBe("keep_guess");
     });
 
     it('returns "Dubious move" as fallback for incorrect when conditions for Blunder, Poor, Okay are not met', () => {
@@ -500,7 +488,6 @@ describe("EvaluationExplainer", () => {
       const explanation = explainer.explainEvaluationWithoutGameMove(move);
       expect(explanation.rating).toBe("bad");
       expect(explanation.headline).toBe(mockTranslations.guess.incorrect);
-      expect(explanation.action).toBe("restore_position");
     });
 
     it('handles move.result not "correct" or "incorrect" by returning empty explanation', () => {

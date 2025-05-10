@@ -61,6 +61,10 @@ nb:
         good_move: Godt trekk!
         good_guess: Godt gjettet!
       incorrect: Feil!
+      poor_move: "Dårlig trekk"
+      okay_move: "Ok trekk"
+      dubious_move: "Tvilsomt trekk"
+      blunder: "Grov feil"
       beyond_game: Trekk etter partislutt blir ikke evaluert.
       move_was_passed: Trekket var et passtrekk.
     fen:

@@ -61,6 +61,10 @@ de:
         good_move: Guter Zug!
         good_guess: Gut geraten!
       incorrect: Falsch!
+      poor_move: "Schwacher Zug"
+      okay_move: "Akzeptabler Zug"
+      dubious_move: "Zweifelhafter Zug"
+      blunder: "Grober Fehler"
       beyond_game: Züge nach Partieende werden nicht bewertet.
       move_was_passed: Der Spielzug war ein Aussetzzug.
     fen:

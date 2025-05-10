@@ -71,7 +71,11 @@ ru:
         same_as_game: Это тот ход, который был сыгран.
         good_move: Хороший ход!
         good_guess: Хорошая догадка!
-      incorrect: Неправильно!
+      incorrect: Неверно!
+      poor_move: "Слабый ход"
+      okay_move: "Нормальный ход"
+      dubious_move: "Сомнительный ход"
+      blunder: "Грубая ошибка"
       beyond_game: Ходы после окончания партии не оцениваются.
       move_was_passed: Этот ход был пропущен.
     fen:

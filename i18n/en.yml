@@ -31,7 +31,7 @@ en:
       R: R
       B: B
       N: N
-      P: ""  # Pawns typically have no prefix in English
+      P: "" # Pawns typically have no prefix in English
   game:
     white: White
     black: Black
@@ -61,6 +61,10 @@ en:
         good_move: Good move!
         good_guess: Good guess!
       incorrect: Incorrect!
+      poor_move: "Poor move"
+      okay_move: "Okay move"
+      dubious_move: "Dubious move"
+      blunder: "Blunder"
       move_was_passed: The game move was a passing move.
       beyond_game: Moves beyond the end of the game are not evaluated.
     fen:

@@ -61,7 +61,11 @@ es:
         good_move: ¡Buen movimiento!
         good_guess: ¡Buena suposición!
       incorrect: ¡Incorrecto!
-      beyond_game: Los movimientos después del final de la partida no se evalúan.
+      poor_move: "Mala jugada"
+      okay_move: "Jugada aceptable"
+      dubious_move: "Jugada dudosa"
+      blunder: "Error grave"
+      beyond_game: Las jugadas después del final de la partida no se evalúan.
       move_was_passed: La jugada fue un movimiento de paso.
     fen:
       copied: ¡FEN copiado!

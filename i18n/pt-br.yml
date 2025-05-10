@@ -70,7 +70,11 @@ pt-BR:
         good_move: Bom lance!
         good_guess: Boa tentativa!
       incorrect: Incorreto!
-      beyond_game: Lances após o final da partida não são avaliados.
+      poor_move: "Jogada fraca"
+      okay_move: "Jogada razoável"
+      dubious_move: "Jogada duvidosa"
+      blunder: "Erro grosseiro"
+      beyond_game: Jogadas após o fim da partida não são avaliadas.
       move_was_passed: A jogada foi um lance de passe.
     fen:
       copied: FEN copiado!

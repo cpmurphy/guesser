@@ -61,6 +61,10 @@ fr:
         good_move: Bon coup !
         good_guess: Bonne supposition !
       incorrect: Incorrect !
+      poor_move: "Mauvais coup"
+      okay_move: "Coup acceptable"
+      dubious_move: "Coup douteux"
+      blunder: "Gaffe"
       beyond_game: Les coups après la fin de la partie ne sont pas évalués.
       move_was_passed: Le coup était un coup de passe.
     fen:

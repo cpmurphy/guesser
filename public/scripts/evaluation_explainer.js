@@ -47,10 +47,48 @@ export default class EvaluationExplainer {
       explanation.headline = window.TRANSLATIONS.guess.correct.good_move;
       explanation.action = 'keep_guess';
     } else if (move.result == 'incorrect') {
-      explanation.rating = 'bad';
-      explanation.headline = window.TRANSLATIONS.guess.incorrect;
-      explanation.action = 'restore_position';
+      const bestScoreForThisTurn = move.best_eval && typeof move.best_eval.score === 'number' ? move.best_eval.score : undefined;
+      const guessScore = move.guess_eval && typeof move.guess_eval.score === 'number' ? move.guess_eval.score : undefined;
+
+      explanation.action = 'restore_position'; // Common action for incorrect moves
+
+      if (bestScoreForThisTurn !== undefined && guessScore !== undefined) {
+        const drop = bestScoreForThisTurn - guessScore;
+
+        // Blunder: drop is >= 300 centipawns AND the resulting position is less than a 300 centipawn advantage.
+        if (drop >= 300 && guessScore < 300) {
+          explanation.rating = 'bad';
+          explanation.headline = window.TRANSLATIONS.guess.blunder;
+        }
+        // Poor move:
+        // - drop is >= 150 centipawns AND the resulting position is less than a 150 centipawn advantage.
+        // - OR the move flips from winning (>50cp for bestScore) to losing (<-50cp for guessScore) AND the drop is > 100cp.
+        // This implicitly does not overlap with Blunder due to the else-if structure.
+        else if ((drop >= 150 && guessScore < 150) ||
+                 (bestScoreForThisTurn > 50 && guessScore < -50 && drop > 100)) {
+          explanation.rating = 'bad';
+          explanation.headline = window.TRANSLATIONS.guess.poor_move;
+        }
+        // Okay move: drop is < 150 centipawns.
+        // This category is reached if the move is not a Blunder or a Poor Move, and the drop is relatively small.
+        else if (drop < 150) {
+          explanation.rating = 'neutral';
+          explanation.headline = window.TRANSLATIONS.guess.okay_move;
+        }
+        // Fallback to "Incorrect" for other cases where move.result is 'incorrect'
+        // e.g., if drop >= 150 but guessScore remains high (>=150) and it's not a win-to-loss flip.
+        else {
+          explanation.rating = 'neutral';
+          explanation.headline = window.TRANSLATIONS.guess.dubious_move;
+        }
+      } else {
+        // Fallback if evaluation scores are not available for some reason
+        explanation.rating = 'bad';
+        explanation.headline = window.TRANSLATIONS.guess.incorrect;
+      }
     }
+    // Note: This method does not currently handle move.result == 'game_over' like explainEvaluation does.
+    // If moves "after the end of the game" can have this result, you might want to add a case for it here as well.
     return explanation;
   }
 

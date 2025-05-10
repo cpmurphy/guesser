@@ -305,21 +305,17 @@ export default class Guesser {
           explanation.headline,
           explanation.comment,
         );
-        if (explanation.rating == "good") {
-          if (explanation.action == "use_game_move") {
-            this.boardUi.restoreLastPosition();
-            this.moveForward();
-          } else if (explanation.action == "keep_guess") {
-            this.addExtraMove(move.move);
-          }
-        } else if (explanation.rating == "bad") {
+        if (explanation.action == "use_game_move") {
           this.boardUi.restoreLastPosition();
-        } else if (explanation.rating == "neutral") {
-          if (explanation.action == "pass_move") {
-            this.gameState.updateForPassingMove();
-          } else if (explanation.action == "add_extra_move") {
-            this.addExtraMove(move.move);
-          }
+          this.moveForward();
+        } else if (explanation.action == "keep_guess") {
+          this.addExtraMove(move.move);
+        } else if (explanation.action == "pass_move") {
+          this.gameState.updateForPassingMove();
+        } else if (explanation.action == "add_extra_move") {
+          this.addExtraMove(move.move);
+        } else if (explanation.action == "restore_position") {
+          this.boardUi.restoreLastPosition();
         } else if (move.result === "auto_move") {
           if (this.guessMode() != "both") {
             this.moveForward();

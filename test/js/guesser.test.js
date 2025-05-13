@@ -901,7 +901,7 @@ describe("Guesser", () => {
       const data = createGameData({
         fen: "3k4/8/8/7P/8/8/8/3K4 w - - 0 43",
         moves: ["h6"],
-        uiMoves: [{ piece: "P", moves: ["h7-h6"] }],
+        uiMoves: [{ piece: "P", moves: ["h5-h6"] }],
       });
       const chessboard = new Chessboard("element", {});
       const guesser = new Guesser(data, chessboard);
@@ -1164,7 +1164,7 @@ describe("Guesser", () => {
 
     it("handles fastRewind with promotion moves", async () => {
       const data = createGameData({
-        moves: ["e4", "e5", "d4", "exd4", "e5", "d6", "exd6", "Qxd6", "e8=Q"],
+        moves: ["e4", "e5", "d4", "exd4", "e5", "d6", "exd6", "Nf6", "dxc7", "Ba3", "cxd8=Q+"],
         uiMoves: [
           { piece: "P", moves: ["e2-e4"] },
           { piece: "p", moves: ["e7-e5"] },
@@ -1173,8 +1173,10 @@ describe("Guesser", () => {
           { piece: "P", moves: ["e4-e5"] },
           { piece: "p", moves: ["d7-d6"] },
           { piece: "P", moves: ["e5-d6"], remove: ["p", "d6"] },
-          { piece: "Q", moves: ["d1-d6"], remove: ["P", "d6"] },
-          { piece: "P", moves: ["e7-e8"], add: ["q", "e8"] },
+          { piece: "n", moves: ["g8-f6"] },
+          { piece: "P", moves: ["d6-c7"], remove: ["p", "c7"] },
+          { piece: "b", moves: ["f8-a3"] },
+          { piece: "P", moves: ["c7-d8"], remove: ["q", "d8"], add: ["q", "d8"] },
         ],
       });
       const chessboard = new Chessboard("element", {});

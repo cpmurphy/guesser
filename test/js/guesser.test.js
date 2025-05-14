@@ -928,9 +928,39 @@ describe("Guesser", () => {
         },
       ]);
       expect(guesser.uiMoves.length).toBe(2);
+      expect(guesser.currentMoveIndex).toBe(2);
       expect(guesser.moves.length).toBe(2);
       expect(guesser.uiMoves[1].moves).toEqual(["d8-e8"]);
       expect(guesser.moves[1]).toEqual("Ke8");
+    });
+
+    it("handles the case when the piece has already been moved on the board", () => {
+      const data = createGameData({
+        fen: "3k4/8/8/7P/8/8/8/3K4 w - - 0 43",
+        moves: ["h6"],
+        uiMoves: [{ piece: "P", moves: ["h5-h6"] }],
+      });
+      const chessboard = new Chessboard("element", {});
+      const guesser = new Guesser(data, chessboard);
+
+      // Move forward to get past the initial moves
+      guesser.moveForward();
+
+      // Mock the board state to simulate the piece already being moved
+      chessboard.setPiece("d8", null); // Remove the king from its original position
+      chessboard.setPiece("e8", "bk"); // Place the king at its new position
+
+      // Add the move that matches the current board state
+      guesser.addExtraMove({
+        piece: "k",
+        moves: ["d8-e8"],
+        notation: "Ke8"
+      });
+
+      // Verify that the move was added and the index was incremented
+      expect(guesser.uiMoves.length).toBe(2);
+      expect(guesser.currentMoveIndex).toBe(2);
+      expect(document.getElementById("last-move").textContent).toBe("1... Ke8");
     });
   });
   describe("passing moves", () => {

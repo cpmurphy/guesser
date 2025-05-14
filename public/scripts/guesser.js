@@ -470,7 +470,13 @@ export default class Guesser {
 
     this.uiMoves.push(move);
     this.moves.push(move.notation);
-    this.moveForward();
+    if (this.moveMade(move)) {
+      this.currentMoveIndex++;
+      this.updateButtonStates();
+      this.updateLastMoveDisplay();
+    } else {
+      this.moveForward();
+    }
 
     // Add checkmate symbol if the position is checkmate
     if (!move.notation.endsWith("#")) {
@@ -496,6 +502,11 @@ export default class Guesser {
         }
       }
     }
+  }
+
+  moveMade(move) {
+    const originSquare = move.moves[0].split("-")[0];
+    return this.boardUi.getPiece(originSquare) == null;
   }
 
   generateCompleteFen() {

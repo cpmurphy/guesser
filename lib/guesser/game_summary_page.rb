@@ -27,7 +27,7 @@ module ChessGuesser
         {
           move_number: move_before_win,
           side: winning_side,
-          text: "#{critical_move_number}. #{losing_side == 'white' ? '' : '...'} #{localized_move[:text]}"
+          text: "#{critical_move_number}. #{'...' unless losing_side == 'white'} #{localized_move[:text]}"
         }
       else
         {}

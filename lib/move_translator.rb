@@ -84,7 +84,7 @@ class MoveTranslator
     return nil unless piece
 
     result = initialize_move_result(from, to, piece)
-    capture = determine_capture_status(from, to, piece)
+    capture = capturing?(from, to, piece)
 
     result[:notation] = generate_move_notation(piece, from, to, capture, promotion)
     handle_uci_capture(result, from, to, piece, capture) if capture
@@ -450,7 +450,7 @@ class MoveTranslator
     { piece: piece, moves: ["#{from}-#{to}"] }
   end
 
-  def determine_capture_status(from, to, piece)
+  def capturing?(from, to, piece)
     return true if @board[to]
     return true if piece.upcase == 'P' && from[0] != to[0] && !@board[to]
 
@@ -472,7 +472,7 @@ class MoveTranslator
   end
 
   def generate_piece_notation(piece, to, capture)
-    "#{piece.upcase}#{capture ? 'x' : ''}#{to}"
+    "#{piece.upcase}#{'x' if capture}#{to}"
   end
 
   def handle_uci_capture(result, from, to, piece, _capture)

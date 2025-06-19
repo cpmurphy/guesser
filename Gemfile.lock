@@ -5,10 +5,11 @@ GEM
     base64 (0.2.0)
     concurrent-ruby (1.3.5)
     date (3.4.1)
-    debug (1.10.0)
+    debug (1.11.0)
       irb (~> 1.10)
       reline (>= 0.3.8)
     docile (1.4.1)
+    erb (5.0.1)
     haml (6.3.0)
       temple (>= 0.8.2)
       thor
@@ -16,7 +17,8 @@ GEM
     i18n (1.14.7)
       concurrent-ruby (~> 1.0)
     io-console (0.8.0)
-    irb (1.14.3)
+    irb (1.15.2)
+      pp (>= 0.6.0)
       rdoc (>= 4.0.0)
       reline (>= 0.4.2)
     json (2.12.2)
@@ -33,8 +35,11 @@ GEM
       racc
     pgn2 (0.4.0)
       whittle
+    pp (0.6.2)
+      prettyprint
+    prettyprint (0.2.0)
     prism (1.4.0)
-    psych (5.2.2)
+    psych (5.2.6)
       date
       stringio
     puma (6.6.0)
@@ -53,10 +58,11 @@ GEM
     rackup (2.2.1)
       rack (>= 3)
     rainbow (3.1.1)
-    rdoc (6.10.0)
+    rdoc (6.14.0)
+      erb
       psych (>= 4.0.0)
     regexp_parser (2.10.0)
-    reline (0.6.0)
+    reline (0.6.1)
       io-console (~> 0.5)
     rubocop (1.76.2)
       json (~> 2.3)
@@ -93,7 +99,7 @@ GEM
       rack-session (>= 2.0.0, < 3)
       tilt (~> 2.0)
     stockfish (0.3.1)
-    stringio (3.1.2)
+    stringio (3.1.7)
     temple (0.10.3)
     thor (1.3.2)
     tilt (2.5.0)

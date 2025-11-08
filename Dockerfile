@@ -13,7 +13,7 @@ WORKDIR /app
 # Install only essential packages
 RUN mkdir -p /app/bin && \
     apt-get update -qq && \
-    apt-get install --no-install-recommends -y curl libjemalloc2 libvips sqlite3 && \
+    apt-get install --no-install-recommends -y curl libjemalloc2 && \
     rm -rf /var/lib/apt/lists /var/cache/apt/archives
 
 ENV APP_ENV="production" \
@@ -41,19 +41,18 @@ COPY Stockfish Stockfish
 RUN cd Stockfish/src && \
     make clean && \
     CXXFLAGS='-march=native' make -j2 clean profile-build ARCH=x86-64-avx2 && \
+    strip stockfish && \
     mv stockfish /app/bin/ && \
     cd / && rm -rf Stockfish
 
 # Final stage
 FROM base
 
-# Remove a package we don't need
-RUN apt-get -y remove imagemagick-6-common && apt-get -y autoremove
-
 # Copy only necessary artifacts from build stage
 COPY --from=build "${BUNDLE_PATH}" "${BUNDLE_PATH}"
 COPY --from=build /app/bin/stockfish /app/bin/stockfish
 COPY . /app
+RUN rm -rf /app/Stockfish
 
 # Set up non-root user
 RUN groupadd --system --gid 1000 appgroup && \

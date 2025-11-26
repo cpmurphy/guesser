@@ -11,7 +11,6 @@ gem 'rackup'
 gem 'secure_headers'
 gem 'sinatra'
 gem 'stockfish'
-gem 'webrick'
 
 group :development, :test do
   gem 'debug', '>= 1.0.0'

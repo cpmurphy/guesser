@@ -106,7 +106,6 @@ GEM
     unicode-display_width (3.2.0)
       unicode-emoji (~> 4.1)
     unicode-emoji (4.1.0)
-    webrick (1.9.2)
     whittle (0.0.8)
 
 PLATFORMS
@@ -129,7 +128,6 @@ DEPENDENCIES
   simplecov
   sinatra
   stockfish
-  webrick
 
 BUNDLED WITH
    2.6.2

@@ -231,4 +231,12 @@ class MoveTranslatorTest < Minitest::Test
     assert_equal({ piece: 'P', moves: ['e2-e4'] }, @translator.translate_move('e4'))
     assert_equal({ moves: [] }, @translator.translate_move('--'))
   end
+
+  def test_en_passant_capture_after_loading_from_fen_with_ep_target
+    @translator.load_game_from_fen('6r1/1pk2p2/p1p1p2p/P2r2pP/4KP2/R2P4/1P6/7R w - g6 0 25')
+    result = @translator.translate_move('hxg6')
+
+    assert_equal({ piece: 'P', moves: ['h5-g6'], remove: %w[p g5] }, result)
+    assert_equal('6r1/1pk2p2/p1p1p1Pp/P2r4/4KP2/R2P4/1P6/7R b - - 0 25', @translator.board_as_fen)
+  end
 end

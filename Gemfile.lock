@@ -10,7 +10,7 @@ GEM
       reline (>= 0.3.8)
     docile (1.4.1)
     erb (5.0.1)
-    haml (7.0.2)
+    haml (7.1.0)
       temple (>= 0.8.2)
       thor
       tilt

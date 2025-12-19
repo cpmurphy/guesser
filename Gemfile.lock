@@ -27,6 +27,7 @@ GEM
     logger (1.7.0)
     minitest (6.0.0)
       prism (~> 1.5)
+    minitest-mock (5.27.0)
     mustermann (3.0.4)
       ruby2_keywords (~> 0.0.1)
     nio4r (2.7.4)
@@ -118,6 +119,7 @@ DEPENDENCIES
   haml
   i18n
   minitest
+  minitest-mock
   pgn2
   puma (>= 5.0)
   rack

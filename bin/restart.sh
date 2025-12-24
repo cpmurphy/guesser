@@ -1,7 +1,6 @@
 #! /bin/bash
-
-set -e
-set -x
+set -o nounset
+set -o errexit
 
 SCRIPT_DIR=$(dirname "$0")
 
@@ -12,20 +11,18 @@ SCRIPT_DIR=$(dirname "$0")
 
 # run a script on the server to deploy the new version
 # ensure that we don't keep running if any of the commands fail
-ssh "${DEPLOY_USER}"@"${DEPLOY_HOST}" "DEPLOY_DIR=${DEPLOY_DIR}" 'bash -s' <<'EOF'
-set -e
+ssh "${DEPLOY_USER}"@"${DEPLOY_HOST}" "DEPLOY_DIR=${DEPLOY_DIR}" "APP_NAME=${APP_NAME}" 'bash -s' <<'EOF'
+set -o nounset
+set -o errexit
 set -x
 cd "${DEPLOY_DIR}"
-# stop any old chess_guesser container
-docker stop chess_guesser || true
-docker rm chess_guesser || true
+docker stop "$APP_NAME" || true
+docker rm "$APP_NAME" || true
 # now run the image using regular docker
-docker run -d --name chess_guesser -p 3000:3000 \
+docker run -d --name "$APP_NAME" -p 3000:3000 \
   -e RACK_ENV=production \
  --restart=unless-stopped \
  --log-driver json-file \
  --log-opt max-size=10m \
- --log-opt max-file=3 chess_guesser
-# prune any unused docker images
-docker system prune -f
+ --log-opt max-file=3 "$APP_NAME"
 EOF

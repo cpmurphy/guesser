@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require 'rake/testtask'
+require 'bundler/setup'
 
 desc 'Run tests'
 Rake::TestTask.new do |t|

@@ -139,7 +139,6 @@ class AnalyzerTest < Minitest::Test
   def mock_engine_configuration_for(engine)
     engine.expect :execute, nil, ["setoption name MultiPV value #{Analyzer::DEFAULT_MULTIPV}"]
     engine.expect :execute, nil, ['setoption name Hash value 128']
-    engine.expect :execute, nil, ['setoption name Threads value 1']
   end
 
   def mock_analysis_result(analysis_string)

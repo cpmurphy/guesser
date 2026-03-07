@@ -144,7 +144,6 @@ class Analyzer
   def configure_engine
     @engine.execute("setoption name MultiPV value #{DEFAULT_MULTIPV}")
     @engine.execute('setoption name Hash value 128')
-    @engine.execute('setoption name Threads value 1')
   end
 
   def ensure_engine_running

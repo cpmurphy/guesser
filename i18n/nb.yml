@@ -67,6 +67,8 @@ nb:
       blunder: "Grov feil"
       beyond_game: Trekk etter partislutt blir ikke evaluert.
       move_was_passed: Trekket var et passtrekk.
+      engine_error_title: Kunne ikke vurdere trekket
+      engine_error_detail: Sjakkmotoren er midlertidig utilgjengelig. Prøv trekket ditt igjen om et øyeblikk.
     fen:
       copied: FEN kopiert!
     evaluation:

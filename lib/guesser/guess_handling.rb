@@ -70,8 +70,8 @@ module ChessGuesser
       evaluation[:move] = ui_move_object
       [evaluation].to_json
     rescue StandardError => e
-      status 500
-      halt({ error: "Server error while processing move beyond game: #{e.message}" }.to_json)
+      status 503
+      halt({ error: "Move evaluation failed: #{e.message}" }.to_json)
     end
 
     def handle_normal_move(game, current_move, guess)
@@ -88,8 +88,8 @@ module ChessGuesser
       end
       response.to_json
     rescue StandardError => e
-      status 400 # Or 500 if it's an internal server error rather than bad input
-      halt({ error: "Invalid move evaluation: #{e.message}" }.to_json)
+      status 503
+      halt({ error: "Move evaluation failed: #{e.message}" }.to_json)
     end
 
     def build_guessed_move(guessed_move)

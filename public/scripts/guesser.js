@@ -286,6 +286,18 @@ export default class Guesser {
     this.updateLastMoveDisplay();
   }
 
+  handleGuessFailure(serverMessage = "") {
+    this.boardUi.restoreLastPosition();
+    this.updateButtonStates();
+    const title = window.TRANSLATIONS.guess.engine_error_title;
+    const detail = window.TRANSLATIONS.guess.engine_error_detail;
+    const comment =
+      serverMessage && serverMessage.trim().length > 0
+        ? `${detail}\n\n${serverMessage.trim()}`
+        : detail;
+    this.resultDisplay.update("bad", title, comment);
+  }
+
   handleGuessResponse(data) {
     data.forEach((move) => {
       if (move.result == "auto_move") {
@@ -362,8 +374,25 @@ export default class Guesser {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(guessData),
     })
-      .then((response) => response.json())
-      .then(this.handleGuessResponse.bind(this));
+      .then(async (response) => {
+        let data;
+        try {
+          data = await response.json();
+        } catch {
+          this.handleGuessFailure("");
+          return;
+        }
+        const serverError =
+          data && typeof data.error === "string" ? data.error : "";
+        if (!response.ok || !Array.isArray(data) || serverError) {
+          this.handleGuessFailure(serverError);
+          return;
+        }
+        this.handleGuessResponse(data);
+      })
+      .catch(() => {
+        this.handleGuessFailure("");
+      });
   }
 
   isExactMatch(source, target, promotedPiece, currentMove) {
@@ -384,6 +413,7 @@ export default class Guesser {
     const fen = this.boardUi.getPosition();
     this.boardUi.showPromotionDialog(target, color, (result) => {
       if (result && result.piece) {
+        this.boardUi.saveLastPosition(this.boardUi.getPosition());
         this.boardUi.setPiece(result.square, result.piece, true);
         this.boardUi.setPiece(source, null);
         this.submitGuess(source, target, piece, result.piece, oldPos);

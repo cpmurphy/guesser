@@ -67,6 +67,8 @@ es:
       blunder: "Error grave"
       beyond_game: Las jugadas después del final de la partida no se evalúan.
       move_was_passed: La jugada fue un movimiento de paso.
+      engine_error_title: No se pudo evaluar la jugada
+      engine_error_detail: El motor de ajedrez no está disponible por ahora. Vuelve a intentar la jugada en un momento.
     fen:
       copied: ¡FEN copiado!
     evaluation:

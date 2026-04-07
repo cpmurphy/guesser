@@ -76,6 +76,8 @@ pt-BR:
       blunder: "Erro grosseiro"
       beyond_game: Jogadas após o fim da partida não são avaliadas.
       move_was_passed: A jogada foi um lance de passe.
+      engine_error_title: Não foi possível avaliar o lance
+      engine_error_detail: O motor de xadrez está temporariamente indisponível. Tente o lance novamente em instantes.
     fen:
       copied: FEN copiado!
     evaluation:

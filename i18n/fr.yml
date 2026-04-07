@@ -67,6 +67,8 @@ fr:
       blunder: "Gaffe"
       beyond_game: Les coups après la fin de la partie ne sont pas évalués.
       move_was_passed: Le coup était un coup de passe.
+      engine_error_title: "Impossible d'évaluer le coup"
+      engine_error_detail: "Le moteur d'échecs est temporairement indisponible. Réessayez votre coup dans un instant."
     fen:
       copied: Position FEN copiée !
     evaluation:

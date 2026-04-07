@@ -20,6 +20,9 @@ global.window = {
       incorrect: "Incorrect!",
       move_was_passed: "The game move was a passing move.",
       beyond_game: "Moves beyond the end of the game are not evaluated.",
+      engine_error_title: "Could not evaluate move",
+      engine_error_detail:
+        "The chess engine is temporarily unavailable. Please try your move again in a moment.",
     },
     fen: {
       copied: "FEN copied!",
@@ -398,6 +401,98 @@ describe("Guesser", () => {
         "7k/4P2p/5K2/8/8/8/8/8 w - - 0 1",
       );
       expect(guesser.gameState.halfmoveClock).toBe(0);
+    });
+
+    it("restores the board and shows a message when /guess returns an error", async () => {
+      const data = createGameData({
+        moves: ["e4"],
+        uiMoves: [{ piece: "P", moves: ["e2-e4"] }],
+      });
+      const chessboard = new Chessboard("element", {});
+      const g = new Guesser(data, chessboard);
+      const beforeFen =
+        "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
+      g.boardUi.saveLastPosition(beforeFen);
+      chessboard.setPosition(
+        "rnbqkbnr/pppppppp/8/8/3P4/8/PPP1PPPP/RNBQKBNR b KQkq - 0 1",
+      );
+
+      global.fetch = vi.fn().mockResolvedValue({
+        ok: false,
+        status: 503,
+        json: () =>
+          Promise.resolve({ error: "Move evaluation failed: engine timeout" }),
+      });
+
+      const setPositionSpy = vi.spyOn(chessboard, "setPosition");
+
+      g.submitGuess("d2", "d4", "wp", null, beforeFen);
+      await vi.waitFor(() => {
+        expect(setPositionSpy).toHaveBeenCalledWith(beforeFen);
+      });
+      expect(document.getElementById("guess_result").textContent).toBe(
+        window.TRANSLATIONS.guess.engine_error_title,
+      );
+      expect(document.getElementById("guess_comment").textContent).toContain(
+        window.TRANSLATIONS.guess.engine_error_detail,
+      );
+      expect(document.getElementById("guess_comment").textContent).toContain(
+        "Move evaluation failed: engine timeout",
+      );
+      vi.restoreAllMocks();
+    });
+
+    it("restores the board when /guess response is not valid JSON", async () => {
+      const data = createGameData({
+        moves: ["e4"],
+        uiMoves: [{ piece: "P", moves: ["e2-e4"] }],
+      });
+      const chessboard = new Chessboard("element", {});
+      const g = new Guesser(data, chessboard);
+      const beforeFen =
+        "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
+      g.boardUi.saveLastPosition(beforeFen);
+      chessboard.setPosition(
+        "rnbqkbnr/pppppppp/8/8/3P4/8/PPP1PPPP/RNBQKBNR b KQkq - 0 1",
+      );
+
+      global.fetch = vi.fn().mockResolvedValue({
+        ok: true,
+        json: () => Promise.reject(new SyntaxError("invalid json")),
+      });
+
+      const setPositionSpy = vi.spyOn(chessboard, "setPosition");
+
+      g.submitGuess("d2", "d4", "wp", null, beforeFen);
+      await vi.waitFor(() => {
+        expect(setPositionSpy).toHaveBeenCalledWith(beforeFen);
+      });
+      vi.restoreAllMocks();
+    });
+
+    it("restores the board when fetch fails", async () => {
+      const data = createGameData({
+        moves: ["e4"],
+        uiMoves: [{ piece: "P", moves: ["e2-e4"] }],
+      });
+      const chessboard = new Chessboard("element", {});
+      const g = new Guesser(data, chessboard);
+      const beforeFen =
+        "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
+      g.boardUi.saveLastPosition(beforeFen);
+      chessboard.setPosition(
+        "rnbqkbnr/pppppppp/8/8/3P4/8/PPP1PPPP/RNBQKBNR b KQkq - 0 1",
+      );
+
+      global.fetch = vi.fn().mockRejectedValue(new Error("network error"));
+
+      const setPositionSpy = vi.spyOn(chessboard, "setPosition");
+
+      g.submitGuess("d2", "d4", "wp", null, beforeFen);
+      await vi.waitFor(() => {
+        expect(setPositionSpy).toHaveBeenCalledWith(beforeFen);
+      });
+      vi.restoreAllMocks();
     });
   });
 

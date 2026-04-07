@@ -67,6 +67,8 @@ en:
       blunder: "Blunder"
       move_was_passed: The game move was a passing move.
       beyond_game: Moves beyond the end of the game are not evaluated.
+      engine_error_title: Could not evaluate move
+      engine_error_detail: The chess engine is temporarily unavailable. Please try your move again in a moment.
     fen:
       copied: FEN copied!
     evaluation:

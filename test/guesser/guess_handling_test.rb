@@ -202,7 +202,7 @@ describe ChessGuesser::GuessHandling do
         @host.move_translator.verify
       end
 
-      it 'halts with 500 if move translation fails (StandardError)' do
+      it 'halts with 503 if move translation fails (StandardError)' do
         @host.evaluator.expect(:handle_guess, { result: 'ok' }, [@guess_beyond_end['old_pos'], @guess_beyond_end['guessed_move'], nil])
         @host.move_translator.expect(:load_game_from_fen, nil, [@guess_beyond_end['old_pos']])
         @host.move_translator.expect(:translate_uci_move, nil) { raise StandardError, 'Translation process failed' }
@@ -211,11 +211,11 @@ describe ChessGuesser::GuessHandling do
         response_json = catch_halt_and_get_response { @host.handle_guess_request(@guess_beyond_end) }
 
         assert_predicate @host, :halted?
-        assert_equal 500, @host.halted_status
+        assert_equal 503, @host.halted_status
         refute_nil response_json
         response = JSON.parse(response_json)
 
-        assert_match(/Server error while processing move beyond game: Translation process failed/, response['error'])
+        assert_match(/Move evaluation failed: Translation process failed/, response['error'])
         @host.evaluator.verify
         @host.move_translator.verify
       end
@@ -276,18 +276,18 @@ describe ChessGuesser::GuessHandling do
         @host.evaluator.verify
       end
 
-      it 'halts with 400 if evaluator.handle_guess raises StandardError' do
+      it 'halts with 503 if evaluator.handle_guess raises StandardError' do
         @host.evaluator.expect(:handle_guess, nil) { raise StandardError, 'General evaluation failure' }
         @host.evaluator.expect(:close, nil)
 
         response_json = catch_halt_and_get_response { @host.handle_guess_request(@valid_guess_payload) }
 
         assert_predicate @host, :halted?
-        assert_equal 400, @host.halted_status
+        assert_equal 503, @host.halted_status
         refute_nil response_json
         response = JSON.parse(response_json)
 
-        assert_match(/Invalid move evaluation: General evaluation failure/, response['error'])
+        assert_match(/Move evaluation failed: General evaluation failure/, response['error'])
         @host.evaluator.verify
       end
     end

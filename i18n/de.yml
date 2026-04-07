@@ -67,6 +67,8 @@ de:
       blunder: "Grober Fehler"
       beyond_game: Züge nach Partieende werden nicht bewertet.
       move_was_passed: Der Spielzug war ein Aussetzzug.
+      engine_error_title: Zug konnte nicht bewertet werden
+      engine_error_detail: Die Schach-Engine ist vorübergehend nicht erreichbar. Bitte versuche den Zug gleich erneut.
     fen:
       copied: FEN kopiert!
     evaluation:

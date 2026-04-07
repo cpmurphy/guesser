@@ -114,6 +114,7 @@ export default class Guesser {
     document.getElementById("black").textContent = data.black;
     this.currentMoveIndex = 0;
     this.startingMoveIndex = 0;
+    this.continuedPastRecording = false;
     if (
       data.currentWholeMove &&
       data.currentWholeMove > this.startingWholeMove
@@ -256,9 +257,32 @@ export default class Guesser {
     }
     this.updateButtonStates();
     if (this.gameOver()) {
-      this.resultDisplay.displayGameResult(this.gameResult);
+      this.refreshEndOfGameDisplay();
     }
     this.updateLastMoveDisplay();
+  }
+
+  refreshEndOfGameDisplay() {
+    if (!this.gameOver()) return;
+    if (!this.continuedPastRecording) {
+      this.resultDisplay.displayGameResult(this.gameResult);
+      return;
+    }
+    const fen = this.boardUi.getPosition();
+    if (this.gameState.isGameTerminated(fen, this.currentMoveIndex)) {
+      this.resultDisplay.displayGameResult(this.terminalResultForDisplay());
+    } else {
+      this.resultDisplay.removeGameResultBadge();
+    }
+  }
+
+  terminalResultForDisplay() {
+    const fen = this.boardUi.getPosition();
+    const idx = this.currentMoveIndex;
+    if (this.gameState.isCheckmate(fen, idx)) {
+      return this.gameState.isWhiteToMove(idx) ? "0-1" : "1-0";
+    }
+    return "1/2-1/2";
   }
 
   updateGameState(uiMove) {
@@ -492,6 +516,8 @@ export default class Guesser {
   }
 
   addExtraMove(move) {
+    this.continuedPastRecording = true;
+    this.resultDisplay.removeGameResultBadge();
     if (this.currentMoveIndex <= this.moves.length - 1) {
       // truncate the uiMoves and moves arrays
       this.uiMoves = this.uiMoves.slice(0, this.currentMoveIndex);
@@ -532,6 +558,9 @@ export default class Guesser {
         }
       }
     }
+    if (this.gameOver()) {
+      this.refreshEndOfGameDisplay();
+    }
   }
 
   moveMade(move) {
@@ -568,7 +597,7 @@ export default class Guesser {
     this.updateButtonStates();
     this.updateLastMoveDisplay();
     if (this.gameOver()) {
-      this.resultDisplay.displayGameResult(this.gameResult);
+      this.refreshEndOfGameDisplay();
     }
   }
 

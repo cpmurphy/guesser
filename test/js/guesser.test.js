@@ -879,6 +879,42 @@ describe("Guesser", () => {
       });
     });
 
+    it("removes the recorded PGN result from the guess area after an engine move past the recording", async () => {
+      const data = createGameData({
+        moves: ["e4"],
+        uiMoves: [{ piece: "P", moves: ["e2-e4"] }],
+        gameResult: "0-1",
+      });
+
+      const chessboard = new Chessboard("element", {});
+      const guesser = new Guesser(data, chessboard);
+
+      guesser.moveForward();
+      expect(guesser.currentMoveIndex).toBe(1);
+      expect(document.getElementById("guess_result").textContent).toContain(
+        "0-1",
+      );
+
+      global.fetch.mockResolvedValue({
+        ok: true,
+        json: () =>
+          Promise.resolve({
+            move: {
+              piece: "p",
+              moves: ["e7-e5"],
+              notation: "e5",
+            },
+          }),
+      });
+
+      await guesser.requestEngineBestMove();
+      await vi.waitFor(() => {
+        expect(document.getElementById("guess_result").textContent).not.toContain(
+          "0-1",
+        );
+      });
+    });
+
     it("handles engine errors gracefully", async () => {
       const data = createGameData({
         moves: ["e4"],

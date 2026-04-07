@@ -35,6 +35,13 @@ export default class ResultDisplay {
     guessComment.textContent = commentText;
   }
 
+  removeGameResultBadge() {
+    const guessResult = document.getElementById('guess_result');
+    if (!guessResult) return;
+    const span = guessResult.querySelector('.game-result');
+    if (span) span.remove();
+  }
+
   displayGameResult(gameResult) {
     const guessResult = document.getElementById('guess_result');
 

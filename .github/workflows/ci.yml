@@ -17,10 +17,12 @@ jobs:
         uses: ruby/setup-ruby@v1
         with:
           ruby-version: .ruby-version
-          bundler-cache: true
 
-      - name: Scan for common Rails security vulnerabilities using static analysis
-        run: bin/brakeman --no-pager
+      - name: Install Ruby dependency scanner
+        run: gem install bundler-audit --no-document
+
+      - name: Scan for security vulnerabilities in Ruby dependencies
+        run: bundle-audit check --update
 
   scan_js:
     runs-on: ubuntu-latest
@@ -29,14 +31,13 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v6
 
-      - name: Set up Ruby
-        uses: ruby/setup-ruby@v1
+      - name: Set up NPM
+        uses: actions/setup-node@v4
         with:
-          ruby-version: .ruby-version
-          bundler-cache: true
+          node-version: '20.x'
 
       - name: Scan for security vulnerabilities in JavaScript dependencies
-        run: bin/importmap audit
+        run: npm audit
 
   lint:
     runs-on: ubuntu-latest

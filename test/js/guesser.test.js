@@ -425,6 +425,10 @@ describe("Guesser", () => {
       });
 
       const setPositionSpy = vi.spyOn(chessboard, "setPosition");
+      // chessboard.setPosition is already a vi.fn() in the mock, and the board
+      // was positioned to beforeFen during construction. Clear prior calls so
+      // waitFor observes the restore triggered by the failed guess, not those.
+      setPositionSpy.mockClear();
 
       g.submitGuess("d2", "d4", "wp", null, beforeFen);
       await vi.waitFor(() => {

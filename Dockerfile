@@ -26,9 +26,9 @@ ENV APP_ENV="production" \
 # Throw-away build stage to reduce size of final image
 FROM base AS build
 
-# Install build dependencies
+# Install build dependencies (clang/libclang-dev and cargo are required to compile pgn2)
 RUN apt-get update -qq && \
-    apt-get install --no-install-recommends -y build-essential git wget pkg-config && \
+    apt-get install --no-install-recommends -y build-essential git wget pkg-config clang libclang-dev cargo && \
     rm -rf /var/lib/apt/lists /var/cache/apt/archives
 
 # Install gems

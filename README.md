@@ -35,7 +35,15 @@ Enjoy playing through games and guessing the moves.  See how you do in famous ch
 - Bundler gem
 - Rake (the ruby build tool)
 - npm (the Node package manager)
+- Clang and libclang development headers (required to compile the `pgn2` gem)
+- Rust/Cargo (also required to compile `pgn2`)
 - Docker (optional, for containerized deployment)
+
+On Debian/Ubuntu:
+
+```
+sudo apt install clang libclang-dev cargo
+```
 
 ### Local Setup
 

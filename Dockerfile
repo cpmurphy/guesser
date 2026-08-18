@@ -26,10 +26,17 @@ ENV APP_ENV="production" \
 # Throw-away build stage to reduce size of final image
 FROM base AS build
 
-# Install build dependencies (clang/libclang-dev and cargo are required to compile pgn2)
+# Install build dependencies (clang/libclang-dev are required to compile pgn2)
 RUN apt-get update -qq && \
-    apt-get install --no-install-recommends -y build-essential git wget pkg-config clang libclang-dev cargo && \
+    apt-get install --no-install-recommends -y build-essential git wget pkg-config clang libclang-dev && \
     rm -rf /var/lib/apt/lists /var/cache/apt/archives
+
+# Distro cargo is too old for pgn2's Cargo.lock (version 4 needs Cargo 1.78+)
+ENV RUSTUP_HOME=/usr/local/rustup \
+    CARGO_HOME=/usr/local/cargo \
+    PATH="/usr/local/cargo/bin:$PATH"
+RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | \
+    sh -s -- -y --profile minimal --default-toolchain stable
 
 # Install gems
 COPY Gemfile Gemfile.lock ./

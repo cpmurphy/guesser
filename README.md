@@ -36,13 +36,14 @@ Enjoy playing through games and guessing the moves.  See how you do in famous ch
 - Rake (the ruby build tool)
 - npm (the Node package manager)
 - Clang and libclang development headers (required to compile the `pgn2` gem)
-- Rust/Cargo (also required to compile `pgn2`)
+- Rust 1.78+ / Cargo (also required to compile `pgn2`; distro `cargo` packages are often too old)
 - Docker (optional, for containerized deployment)
 
 On Debian/Ubuntu:
 
 ```
-sudo apt install clang libclang-dev cargo
+sudo apt install clang libclang-dev
+curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
 ```
 
 ### Local Setup

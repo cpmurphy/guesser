@@ -4,7 +4,7 @@
     "@vitest/coverage-v8": "^4.1.10",
     "copyfiles": "^2.4.1",
     "jsdom": "^30.0.1",
-    "vitest": "^4.1.10"
+    "vitest": "^4.1.11"
   },
   "scripts": {
     "test": "vitest",

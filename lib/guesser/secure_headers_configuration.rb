@@ -3,7 +3,7 @@
 module ChessGuesser
   module SecureHeadersConfiguration
     SecureHeaders::Configuration.default do |config|
-      # rubocop:disable Lint/PercentStringArray
+      # rubocop:disable-next Lint/PercentStringArray
       config.csp = {
         default_src: %w['self'],
         script_src: %w['self' 'unsafe-inline' 'unsafe-eval'],
@@ -18,7 +18,6 @@ module ChessGuesser
         base_uri: %w['self'],
         upgrade_insecure_requests: true
       }
-      # rubocop:enable Lint/PercentStringArray
       config.x_frame_options = 'DENY'
       config.x_content_type_options = 'nosniff'
       config.x_xss_protection = '1; mode=block'

@@ -124,6 +124,7 @@ DEPENDENCIES
   minitest-mock
   pgn2
   puma (>= 5.0)
+  racc
   rack
   rack-test
   rackup

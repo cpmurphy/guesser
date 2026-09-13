@@ -34,7 +34,7 @@ Enjoy playing through games and guessing the moves.  See how you do in famous ch
 - Ruby (version 3.2.3 or higher recommended)
 - Bundler gem
 - Rake (the ruby build tool)
-- npm (the Node package manager)
+- Node.js and npm
 - Clang and libclang development headers (required to compile the `pgn2` gem)
 - Rust 1.78+ / Cargo (also required to compile `pgn2`; distro `cargo` packages are often too old)
 - Docker (optional, for containerized deployment)

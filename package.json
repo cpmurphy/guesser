@@ -4,7 +4,7 @@
     "node": "^22.22.2 || ^24.15.0 || >=26.0.0"
   },
   "devDependencies": {
-    "@vitest/coverage-v8": "^5.0.0",
+    "@vitest/coverage-v8": "^5.0.1",
     "copyfiles": "^2.4.1",
     "jsdom": "^30.0.1",
     "vitest": "^5.0.0"

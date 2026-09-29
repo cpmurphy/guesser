@@ -20,6 +20,6 @@
     "prestart": "npm run copy-all"
   },
   "dependencies": {
-    "cm-chessboard": "^8.14.1"
+    "cm-chessboard": "^8.14.2"
   }
 }

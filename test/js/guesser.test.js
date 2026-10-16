@@ -89,6 +89,21 @@ describe("Guesser", () => {
   });
 
   describe("moveBackward", () => {
+    it("does nothing at the start of the game", () => {
+      const data = createGameData({
+        moves: ["e4", "e5"],
+        uiMoves: [
+          { piece: "P", moves: ["e2-e4"] },
+          { piece: "p", moves: ["e7-e5"] },
+        ],
+      });
+      const chessboard = new Chessboard("element", {});
+      const guesser = new Guesser(data, chessboard);
+
+      expect(() => guesser.moveBackward()).not.toThrow();
+      expect(guesser.currentMoveIndex).toBe(0);
+    });
+
     it("handles when player redoes a bad move", () => {
       const data = createGameData({
         fen: "3q2k1/4Pppp/8/8/8/8/8/7K w - - 0 28",
@@ -1190,6 +1205,59 @@ describe("Guesser", () => {
     });
   });
 
+  describe("controls", () => {
+    it("leaves navigation disabled until the game is loaded, then enables the legal controls", () => {
+      [
+        "fastRewindBtn",
+        "backwardBtn",
+        "forwardBtn",
+        "fastForwardBtn",
+        "flipBoardBtn",
+        "exportFenBtn",
+        "engineMoveBtn",
+      ].forEach((id) => {
+        document.getElementById(id).disabled = true;
+      });
+      document.getElementById("move-input").disabled = true;
+
+      const data = createGameData({
+        moves: ["e4", "e5"],
+        uiMoves: [
+          { piece: "P", moves: ["e2-e4"] },
+          { piece: "p", moves: ["e7-e5"] },
+        ],
+      });
+      const chessboard = new Chessboard("element", {});
+      const guesser = new Guesser(data, chessboard);
+
+      expect(guesser.loaded).toBe(true);
+      expect(document.getElementById("fastRewindBtn").disabled).toBe(true);
+      expect(document.getElementById("backwardBtn").disabled).toBe(true);
+      expect(document.getElementById("forwardBtn").disabled).toBe(false);
+      expect(document.getElementById("fastForwardBtn").disabled).toBe(false);
+      expect(document.getElementById("flipBoardBtn").disabled).toBe(false);
+      expect(document.getElementById("exportFenBtn").disabled).toBe(false);
+      expect(document.getElementById("engineMoveBtn").disabled).toBe(true);
+      expect(document.getElementById("move-input").disabled).toBe(false);
+    });
+
+    it("ignores a fast rewind click that arrives before the game is loaded", () => {
+      const data = createGameData({
+        moves: ["e4"],
+        uiMoves: [{ piece: "P", moves: ["e2-e4"] }],
+      });
+      const chessboard = new Chessboard("element", {});
+      const guesser = new Guesser(data, chessboard);
+      guesser.loaded = false;
+      guesser.currentMoveIndex = 1;
+      guesser.uiMoves = undefined;
+      document.getElementById("fastRewindBtn").disabled = false;
+
+      expect(() => document.getElementById("fastRewindBtn").click()).not.toThrow();
+      expect(guesser.currentMoveIndex).toBe(1);
+    });
+  });
+
   describe("fastForward and fastRewind", () => {
     beforeEach(() => {
       vi.useFakeTimers();
@@ -1276,6 +1344,34 @@ describe("Guesser", () => {
       expect(guesser.currentMoveIndex).toBe(2);
       expect(chessboard.getPiece("e4")).toBe("wp");
       expect(chessboard.getPiece("e5")).toBe("bp");
+    });
+
+    it("does not throw when fastRewind overlaps an in-progress rewind", async () => {
+      const data = createGameData({
+        moves: ["e4", "e5", "Nf3", "Nc6", "Bb5"],
+        uiMoves: [
+          { piece: "P", moves: ["e2-e4"] },
+          { piece: "p", moves: ["e7-e5"] },
+          { piece: "N", moves: ["g1-f3"] },
+          { piece: "N", moves: ["b8-c6"] },
+          { piece: "B", moves: ["f1-b5"] },
+        ],
+      });
+      const chessboard = new Chessboard("element", {});
+      const guesser = new Guesser(data, chessboard);
+
+      guesser.fastForward();
+      await vi.runAllTimersAsync();
+      expect(guesser.currentMoveIndex).toBe(5);
+
+      guesser.fastRewind();
+      await vi.advanceTimersByTimeAsync(10);
+      expect(() => guesser.fastRewind()).not.toThrow();
+      await vi.runAllTimersAsync();
+
+      expect(guesser.currentMoveIndex).toBe(0);
+      expect(chessboard.getPiece("e2")).toBe("wp");
+      expect(chessboard.getPiece("e7")).toBe("bp");
     });
 
     it("handles fastRewind when already at the start of the game", async () => {

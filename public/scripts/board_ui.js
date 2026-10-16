@@ -91,7 +91,7 @@ export default class BoardUi {
   }
 
   reverseMove(uiMove, isWhiteToMove) {
-    if (uiMove.moves && Array.isArray(uiMove.moves)) {
+    if (uiMove?.moves && Array.isArray(uiMove.moves)) {
       if (uiMove.add) {
         // reverse the addition of the piece
         this.setPiece(uiMove.add[1], this.pawnForCurrentMove(isWhiteToMove));

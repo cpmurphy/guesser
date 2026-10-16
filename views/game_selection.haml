@@ -38,7 +38,7 @@
       #pgn_paste_container.form-group{style: "display: none;"}
         %textarea#pgn_text_input{name: "pgn_text", rows: "10", cols: "50", placeholder: t('upload.paste_placeholder')}
 
-      %button#upload_pgn_btn.btn{type: "submit"}= t('upload.submit')
+      %button#upload_pgn_btn.btn{type: "submit", disabled: true}= t('upload.submit')
 
     %script{src:asset_path("scripts/pgn_uploader.js"), type: "module"}
     %script{src:asset_path("scripts/locale_selector.js"), type: "module"}

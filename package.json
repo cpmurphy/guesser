@@ -5,6 +5,7 @@
   },
   "devDependencies": {
     "@vitest/coverage-v8": "^5.0.4",
+    "@antithesishq/bombadil": "^0.7.8",
     "copyfiles": "^2.4.1",
     "jsdom": "^30.1.2",
     "vitest": "^5.0.4"
@@ -17,7 +18,8 @@
     "copy-js": "copyfiles -u 3 \"node_modules/cm-chessboard/src/**/*.js\" public/scripts/3rdparty",
     "copy-all": "npm run copy-assets && npm run copy-js",
     "prebuild": "npm run copy-all",
-    "prestart": "npm run copy-all"
+    "prestart": "npm run copy-all",
+    "test_property": "bombadil browser test --time-limit=1m http://localhost:9292"
   },
   "dependencies": {
     "cm-chessboard": "^8.15.1"

@@ -68,6 +68,11 @@ th, td {
   border-radius: 4px;
 }
 
+button.btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
 .upload-form {
   max-width: 100%;
 }

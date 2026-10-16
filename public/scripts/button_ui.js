@@ -92,6 +92,23 @@ export default class ButtonUi {
     }
   }
 
+  disableAllControls() {
+    Object.values(this.buttons).forEach((btn) => {
+      if (btn) btn.disabled = true;
+    });
+    const moveInput = document.getElementById('move-input');
+    if (moveInput) moveInput.disabled = true;
+  }
+
+  enableAuxiliaryControls() {
+    ['flipBoard', 'exportFen'].forEach((name) => {
+      const btn = this.buttons[name];
+      if (btn) btn.disabled = false;
+    });
+    const moveInput = document.getElementById('move-input');
+    if (moveInput) moveInput.disabled = false;
+  }
+
   updateButtonStates(currentMoveIndex, movesLength, isPastRecordedMoves, isGameTerminated) {
     const buttons = [
       { id: 'fastRewindBtn', disabled: currentMoveIndex <= 0 },
@@ -109,11 +126,10 @@ export default class ButtonUi {
     });
   }
 
-  initializeButtonStates(pgnLoaded) {
-    const backBtn = this.buttons.backward;
-    if (backBtn) backBtn.disabled = true;
-    
-    const forwardBtn = this.buttons.forward;
-    if (forwardBtn) forwardBtn.disabled = !pgnLoaded;
+  initializeButtonStates() {
+    ['fastRewind', 'backward', 'forward', 'fastForward', 'engineMove'].forEach((name) => {
+      const btn = this.buttons[name];
+      if (btn) btn.disabled = true;
+    });
   }
 } 

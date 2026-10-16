@@ -63,20 +63,33 @@ export default class Guesser {
   }
 
   setupUserInterface() {
+    this.loaded = false;
+    this.buttonUi.disableAllControls();
     this.buttonUi.setupMoveButtons(
-      this.fastRewind.bind(this),
-      this.moveBackward.bind(this),
-      this.moveForward.bind(this),
-      this.fastForward.bind(this),
+      this.runIfLoaded(this.fastRewind.bind(this)),
+      this.runIfLoaded(this.moveBackward.bind(this)),
+      this.runIfLoaded(this.moveForward.bind(this)),
+      this.runIfLoaded(this.fastForward.bind(this)),
       this.resultDisplay.hideGuessResult.bind(this.resultDisplay),
     );
     this.setupMoveInputListener();
     this.buttonUi.setupFlipBoardButton(
-      this.boardUi.flipBoard.bind(this.boardUi),
+      this.runIfLoaded(this.boardUi.flipBoard.bind(this.boardUi)),
     );
     this.setupMoveHandlers();
-    this.buttonUi.setupExportFenButton(this.generateCompleteFen.bind(this));
-    this.buttonUi.setupEngineMoveButton(this.requestEngineBestMove.bind(this));
+    this.buttonUi.setupExportFenButton(
+      this.runIfLoaded(this.generateCompleteFen.bind(this)),
+    );
+    this.buttonUi.setupEngineMoveButton(
+      this.runIfLoaded(this.requestEngineBestMove.bind(this)),
+    );
+  }
+
+  runIfLoaded(action) {
+    return (...args) => {
+      if (!this.loaded) return;
+      return action(...args);
+    };
   }
 
   setupMoveHandlers() {
@@ -94,12 +107,11 @@ export default class Guesser {
     this.boardUi.setPosition(fen);
     this.gameState = new this.GameState(fen, this.ChessRules, this.Fen);
     this.resultDisplay.hideGuessResult();
-    this.initializeButtonStates(false);
+    this.initializeButtonStates();
   }
 
   onGameLoaded(data) {
     this.initializeGameState(data.fen);
-    this.initializeButtonStates(data.moves.length > 0);
     this.initializeGuessMode(data.currentWholeMove, data.sideToMove);
     this.moves = data.moves;
     this.recordedGameLength = data.moves.length;
@@ -115,6 +127,7 @@ export default class Guesser {
     this.currentMoveIndex = 0;
     this.startingMoveIndex = 0;
     this.continuedPastRecording = false;
+    this.loaded = true;
     if (
       data.currentWholeMove &&
       data.currentWholeMove > this.startingWholeMove
@@ -129,9 +142,13 @@ export default class Guesser {
     }
     this.updateLastMoveDisplay();
     this.updateGuessMode();
+    this.buttonUi.enableAuxiliaryControls();
+    this.updateButtonStates();
   }
 
   onMoveStart(square) {
+    if (!this.loaded) return false;
+
     const piece = this.boardUi.getPiece(square);
 
     if (!piece) {
@@ -165,6 +182,8 @@ export default class Guesser {
   }
 
   onMoveCompleted(from, to) {
+    if (!this.loaded) return false;
+
     const piece = this.boardUi.getPiece(from);
     const fen = this.boardUi.getPosition();
 
@@ -194,6 +213,7 @@ export default class Guesser {
 
   setupMoveInputListener() {
     this.moveInput.addEventListener("keypress", (e) => {
+      if (!this.loaded) return;
       if (e.key === "Enter") {
         const wholeMoveNumber = parseInt(this.moveInput.value, 10);
         if (
@@ -239,27 +259,30 @@ export default class Guesser {
     }
   }
 
-  initializeButtonStates(pgnLoaded) {
-    this.buttonUi.initializeButtonStates(pgnLoaded);
+  initializeButtonStates() {
+    this.buttonUi.initializeButtonStates();
   }
 
   moveForward() {
-    if (!this.gameOver()) {
-      const uiMove = this.uiMoves[this.currentMoveIndex];
-      if (uiMove.moves.length > 0) {
-        this.updateGameState(uiMove, uiMove.piece);
-        this.boardUi.executeMove(
-          uiMove,
-          this.gameState.isWhiteToMove(this.currentMoveIndex),
-        );
-      }
-      this.currentMoveIndex++;
+    if (this.gameOver() || !this.uiMoves) return false;
+
+    const uiMove = this.uiMoves[this.currentMoveIndex];
+    if (!uiMove?.moves) return false;
+
+    if (uiMove.moves.length > 0) {
+      this.updateGameState(uiMove, uiMove.piece);
+      this.boardUi.executeMove(
+        uiMove,
+        this.gameState.isWhiteToMove(this.currentMoveIndex),
+      );
     }
+    this.currentMoveIndex++;
     this.updateButtonStates();
     if (this.gameOver()) {
       this.refreshEndOfGameDisplay();
     }
     this.updateLastMoveDisplay();
+    return true;
   }
 
   refreshEndOfGameDisplay() {
@@ -300,14 +323,20 @@ export default class Guesser {
   }
 
   moveBackward() {
+    if (!(this.currentMoveIndex > 0) || !this.uiMoves) return false;
+
+    const uiMove = this.uiMoves[this.currentMoveIndex - 1];
+    if (!uiMove) return false;
+
     this.currentMoveIndex--;
     this.gameState.rewind();
     this.boardUi.reverseMove(
-      this.uiMoves[this.currentMoveIndex],
+      uiMove,
       this.gameState.isWhiteToMove(this.currentMoveIndex),
     );
     this.updateButtonStates();
     this.updateLastMoveDisplay();
+    return true;
   }
 
   handleGuessFailure(serverMessage = "") {
@@ -467,11 +496,16 @@ export default class Guesser {
   }
 
   sequentialMove(numMoves, moveFunction) {
+    if (this.playbackTimer) {
+      clearTimeout(this.playbackTimer);
+      this.playbackTimer = null;
+    }
+
     const move = () => {
-      if (numMoves > 0) {
-        moveFunction();
+      this.playbackTimer = null;
+      if (numMoves > 0 && moveFunction()) {
         numMoves--;
-        setTimeout(move, 10);
+        this.playbackTimer = setTimeout(move, 10);
       }
     };
 

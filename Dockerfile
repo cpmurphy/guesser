@@ -13,7 +13,7 @@ WORKDIR /app
 # Install only essential packages
 RUN mkdir -p /app/bin && \
     apt-get update -qq && \
-    apt-get install --no-install-recommends -y curl libjemalloc2 && \
+    apt-get install --no-install-recommends -y libjemalloc2 && \
     rm -rf /var/lib/apt/lists /var/cache/apt/archives
 
 ENV APP_ENV="production" \
@@ -28,7 +28,7 @@ FROM base AS build
 
 # Install build dependencies (clang/libclang-dev are required to compile pgn2)
 RUN apt-get update -qq && \
-    apt-get install --no-install-recommends -y build-essential git wget pkg-config clang libclang-dev && \
+    apt-get install --no-install-recommends -y build-essential curl git wget pkg-config clang libclang-dev && \
     rm -rf /var/lib/apt/lists /var/cache/apt/archives
 
 # Distro cargo is too old for pgn2's Cargo.lock (version 4 needs Cargo 1.78+)
@@ -58,15 +58,23 @@ FROM base
 # Copy only necessary artifacts from build stage
 COPY --from=build "${BUNDLE_PATH}" "${BUNDLE_PATH}"
 COPY --from=build /app/bin/stockfish /app/bin/stockfish
-COPY . /app
-RUN rm -rf /app/Stockfish
+# Copy only what the app needs at runtime. A blanket "COPY ." would pull in the
+# Stockfish source tree, and deleting it afterwards doesn't shrink the image.
+COPY Gemfile Gemfile.lock config.ru chess_guesser.rb ./
+COPY bin/docker-entrypoint bin/
+COPY data data
+COPY i18n i18n
+COPY lib lib
+COPY public public
+COPY views views
 
-# Set up non-root user
+# Set up non-root user. The app doesn't write to /app, so the files stay
+# root-owned; a recursive chown would duplicate every file in a new layer.
 RUN groupadd --system --gid 1000 appgroup && \
-    useradd appuser --uid 1000 --gid 1000 --create-home --shell /bin/bash && \
-    chown -R appuser:appgroup /app
+    useradd appuser --uid 1000 --gid 1000 --create-home --shell /bin/bash
 USER appuser
 
 # Start the server by default, this can be overwritten at runtime
+ENTRYPOINT ["/app/bin/docker-entrypoint"]
 EXPOSE 3000
 CMD ["bundle", "exec", "rackup", "--host", "0.0.0.0", "-p", "3000"]

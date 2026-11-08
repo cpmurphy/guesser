@@ -43,7 +43,7 @@ docker load -i chess_guesser.tar
 docker stop chess_guesser || true
 docker rm chess_guesser || true
 # now run the image using regular docker
-docker run -d --name chess_guesser -p 3000:3000 \
+docker run -d --name chess_guesser -p 127.0.0.1:3000:3000 \
   -e RACK_ENV=production \
  --restart=unless-stopped \
  --log-driver json-file \

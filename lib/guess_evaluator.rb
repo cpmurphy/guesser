@@ -26,7 +26,7 @@ class GuessEvaluator
   #   :best_eval: a hash containing evaluation details for both the guess and game move
   #   :guess_eval: evaluation of the guessed move
   #   :game_eval: evaluation of the game move
-  def handle_guess(original_fen, guessed_move, game_move)
+  def handle_guess(original_fen, guessed_move, game_move, subject: nil)
     source = guessed_move['source']
     target = guessed_move['target']
 
@@ -39,7 +39,7 @@ class GuessEvaluator
     guessed_move_uci = "#{guessed_move['source']}#{guessed_move['target']}#{guessed_move['promotion'] || ''}"
 
     # Get judgment
-    judgment = evaluate_moves(original_fen, game_move_uci, guessed_move_uci)
+    judgment = evaluate_moves(original_fen, game_move_uci, guessed_move_uci, subject)
 
     # Build and return evaluation
     build_evaluation(create_evaluation_params(judgment, guessed_move_uci, game_move_uci))
@@ -65,12 +65,18 @@ class GuessEvaluator
     { result: 'needs_promotion', source: source, target: target }
   end
 
-  def evaluate_moves(original_fen, game_move_uci, guessed_move_uci)
+  def evaluate_moves(original_fen, game_move_uci, guessed_move_uci, subject)
     if game_move_uci == '--'
-      @move_judge.evaluate_standalone(original_fen, guessed_move_uci)
+      judge(:evaluate_standalone, [original_fen, guessed_move_uci], subject)
     else
-      @move_judge.compare_moves(original_fen, guessed_move_uci, game_move_uci)
+      judge(:compare_moves, [original_fen, guessed_move_uci, game_move_uci], subject)
     end
+  end
+
+  def judge(method, args, subject)
+    return @move_judge.public_send(method, *args) unless subject
+
+    @move_judge.public_send(method, *args, subject: subject)
   end
 
   def create_evaluation_params(judgment, guessed_move_uci, game_move_uci)

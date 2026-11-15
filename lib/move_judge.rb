@@ -11,10 +11,10 @@ class MoveJudge
     @analyzer.close
   end
 
-  def compare_moves(old_fen, guessed_move_uci, game_move_uci)
-    best_eval = @analyzer.evaluate_best_move(old_fen)
-    guess_eval = @analyzer.evaluate_move(old_fen, guessed_move_uci)
-    game_eval = @analyzer.evaluate_move(old_fen, game_move_uci)
+  def compare_moves(old_fen, guessed_move_uci, game_move_uci, subject: nil)
+    best_eval = call_analyzer(:evaluate_best_move, [old_fen], subject)
+    guess_eval = call_analyzer(:evaluate_move, [old_fen, guessed_move_uci], subject)
+    game_eval = call_analyzer(:evaluate_move, [old_fen, game_move_uci], subject)
     guess_score = 0 - guess_eval[:score]
     good_move = guess_score > 500
 
@@ -38,13 +38,23 @@ class MoveJudge
       game_eval: game_eval.merge(score: game_score) }
   end
 
-  def evaluate_standalone(old_fen, guessed_move_uci)
-    best_eval = @analyzer.evaluate_best_move(old_fen)
-    guess_eval = @analyzer.evaluate_move(old_fen, guessed_move_uci)
+  def evaluate_standalone(old_fen, guessed_move_uci, subject: nil)
+    best_eval = call_analyzer(:evaluate_best_move, [old_fen], subject)
+    guess_eval = call_analyzer(:evaluate_move, [old_fen, guessed_move_uci], subject)
     guess_score = 0 - guess_eval[:score]
     best_score = best_eval[:score]
     { good_move: guess_score >= best_score * 0.75,
       best_eval: best_eval.merge(score: best_score),
       guess_eval: guess_eval.merge(score: guess_score) }
+  end
+
+  private
+
+  # Omit a nil subject so callers that stub the analyzer keep matching on
+  # positional arguments alone.
+  def call_analyzer(method, args, subject)
+    return @analyzer.public_send(method, *args) unless subject
+
+    @analyzer.public_send(method, *args, subject: subject)
   end
 end

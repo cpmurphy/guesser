@@ -1,0 +1,65 @@
+#!/usr/bin/env ruby
+# frozen_string_literal: true
+
+# Copies the app's chess rules into stockfish-pool, nested under
+# StockfishPool::Rules. Edit lib/chess_rules, then run this. san.rb is app-only.
+#   bin/sync-chess-rules          # write the pool copies
+#   bin/sync-chess-rules --check  # exit 1 if a pool copy has drifted
+
+if ARGV.any? { |arg| arg != '--check' }
+  warn 'Usage: bin/sync-chess-rules [--check]'
+  exit 1
+end
+
+ROOT = File.expand_path('..', __dir__)
+FILES = %w[position.rb moves.rb position_check.rb].freeze
+
+def split_preamble(lines)
+  preamble = []
+  rest = lines.dup
+  if rest.first&.start_with?('# frozen_string_literal')
+    preamble << rest.shift
+    preamble << rest.shift if rest.first&.strip&.empty?
+  end
+  while require_line?(rest.first) || blank_before_require?(rest)
+    preamble << rest.shift
+  end
+  preamble << rest.shift if rest.first&.strip&.empty?
+  [preamble, rest]
+end
+
+def require_line?(line)
+  line&.start_with?('require')
+end
+
+def blank_before_require?(rest)
+  return false unless rest.first&.strip&.empty?
+
+  rest.drop(1).find { |line| !line.strip.empty? }&.start_with?('require')
+end
+
+def wrap(source)
+  preamble, body = split_preamble(source.lines)
+  text = body.join.sub(/^module ChessRules$/, 'module Rules')
+  text = text.gsub('ChessRules.', 'Rules.')
+  indented = text.lines.map { |line| line.strip.empty? ? line : "  #{line}" }.join
+  "#{preamble.join}module StockfishPool\n#{indented}end\n"
+end
+
+check = ARGV.include?('--check')
+drifted = FILES.select do |name|
+  source = File.join(ROOT, 'lib/chess_rules', name)
+  dest = File.join(ROOT, 'stockfish-pool/lib/stockfish_pool/rules', name)
+  generated = wrap(File.read(source))
+  if check
+    File.read(dest) != generated
+  else
+    File.write(dest, generated)
+    false
+  end
+end
+
+if drifted.any?
+  drifted.each { |name| warn "#{name} does not match lib/chess_rules. Run bin/sync-chess-rules." }
+  exit 1
+end

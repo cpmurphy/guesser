@@ -12,6 +12,7 @@ gem 'rackup'
 gem 'secure_headers'
 gem 'sinatra'
 gem 'stockfish'
+gem 'stockfish_pool_client', path: 'stockfish-pool/client'
 
 group :development, :test do
   gem 'debug', '>= 1.0.0'

@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require 'json'
+require 'stockfish_pool_client'
 
 module ChessGuesser
   module GuessHandling
@@ -60,7 +61,7 @@ module ChessGuesser
       guessed_move_data = guess['guessed_move']
       original_fen = guess['old_pos']
 
-      evaluation = @evaluator.handle_guess(original_fen, guessed_move_data, nil)
+      evaluation = judge_guess(original_fen, guessed_move_data, nil, guess['subject'])
 
       uci_move_string = build_guessed_move(guessed_move_data)
 
@@ -69,6 +70,8 @@ module ChessGuesser
 
       evaluation[:move] = ui_move_object
       [evaluation].to_json
+    rescue StockfishPool::Client::Error
+      raise
     rescue StandardError => e
       status 503
       halt({ error: "Move evaluation failed: #{e.message}" }.to_json)
@@ -79,7 +82,7 @@ module ChessGuesser
       original_fen = guess['old_pos']
       ui_game_move = guess['game_move']
 
-      evaluation = @evaluator.handle_guess(original_fen, guessed_move, ui_game_move)
+      evaluation = judge_guess(original_fen, guessed_move, ui_game_move, guess['subject'])
       response = [evaluation]
       # If correct, automatically play the move for the non-guessing side
       if evaluation[:result] == 'correct' &&
@@ -87,9 +90,17 @@ module ChessGuesser
         response.push({ result: 'auto_move' })
       end
       response.to_json
+    rescue StockfishPool::Client::Error
+      raise
     rescue StandardError => e
       status 503
       halt({ error: "Move evaluation failed: #{e.message}" }.to_json)
+    end
+
+    def judge_guess(fen, guessed_move, game_move, subject)
+      return @evaluator.handle_guess(fen, guessed_move, game_move) unless subject
+
+      @evaluator.handle_guess(fen, guessed_move, game_move, subject: subject)
     end
 
     def build_guessed_move(guessed_move)

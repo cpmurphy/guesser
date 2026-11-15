@@ -1,3 +1,8 @@
+PATH
+  remote: stockfish-pool/client
+  specs:
+    stockfish_pool_client (0.1.0)
+
 GEM
   remote: https://rubygems.org/
   specs:
@@ -134,6 +139,7 @@ DEPENDENCIES
   simplecov
   sinatra
   stockfish
+  stockfish_pool_client!
 
 BUNDLED WITH
    2.6.2

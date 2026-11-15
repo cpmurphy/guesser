@@ -60,7 +60,21 @@ curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
    rake copy_deps    # This will install npm packages and copy required files
    ```
 
-3. Ensure you have Stockfish installed and update the `engine_path` in `bin/engine.rb` if necessary.
+3. Install Stockfish if you want the app to analyze on its own. With no engine
+   environment variables set, the app runs that local engine. To use a
+   stockfish-pool instead (including one already running for another app), set
+   `ENGINE_URL` and `ENGINE_TOKEN`. A pool can be started by hand with:
+
+   ```
+   cd stockfish-pool
+   API_TOKENS=dev-token-0123456789abcdefgh bundle exec puma -C config/puma.rb
+   ```
+
+   Production deploy reads those two variables from `deploy_env.sh` and does
+   not start or replace a pool. Give this app its own token of at least 24
+   characters, append it to the running pool's `API_TOKENS`, and restart the
+   pool once so it picks the token up. Set `ENGINE_NETWORK` in `deploy_env.sh`
+   as well when the pool is on a Docker network the app container should join.
 
 ### Docker Setup
 

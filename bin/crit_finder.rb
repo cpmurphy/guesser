@@ -12,7 +12,7 @@ class CriticalMomentFinder
 
   def initialize(game)
     @game = game
-    @analyzer = Analyzer.new
+    @analyzer = Analyzer.new('stockfish', lane: :batch, subject: 'guesser-crit')
     @positions = generate_positions
   end
 

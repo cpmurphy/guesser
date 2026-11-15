@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+require 'digest'
 require 'tempfile'
 require 'sinatra'
 require 'json'
@@ -56,6 +57,22 @@ class GuesserApp < Sinatra::Base
 
   def t(key)
     I18n.t(key, locale: @locale)
+  end
+
+  def engine_subject
+    Digest::SHA256.hexdigest(request.ip.to_s)
+  end
+
+  def respond_to_analysis_error(error, prefix)
+    failure = Analyzer.failure_response(error)
+    if failure
+      headers['Retry-After'] = failure[:retry_after].to_s if failure[:retry_after]
+      status failure[:status]
+      return { error: failure[:message] }.to_json
+    end
+
+    status 500
+    { error: "#{prefix}: #{error.message}" }.to_json
   end
 
   get '/' do
@@ -131,19 +148,13 @@ class GuesserApp < Sinatra::Base
     begin
       # Parse and validate JSON structure
       guess = JSON.parse(request.body.read)
+      guess['subject'] = engine_subject
       handle_guess_request(guess)
     rescue JSON::ParserError
       status 400
       { error: 'Invalid JSON format' }.to_json
-    rescue Analyzer::TimeoutError => e
-      status 408
-      { error: e.message }.to_json
-    rescue Analyzer::EngineError => e
-      status 503
-      { error: e.message }.to_json
     rescue StandardError => e
-      status 500
-      { error: "Server error: #{e.message}" }.to_json
+      respond_to_analysis_error(e, 'Server error')
     end
   end
 
@@ -154,7 +165,7 @@ class GuesserApp < Sinatra::Base
 
     begin
       analyzer = Analyzer.new
-      best_move = analyzer.evaluate_best_move(fen)
+      best_move = analyzer.evaluate_best_move(fen, subject: engine_subject)
 
       if best_move && best_move[:move]
         move = best_move[:move]
@@ -166,15 +177,8 @@ class GuesserApp < Sinatra::Base
         status 400
         { error: 'No valid move found' }.to_json
       end
-    rescue Analyzer::TimeoutError => e
-      status 408
-      { error: e.message }.to_json
-    rescue Analyzer::EngineError => e
-      status 503
-      { error: e.message }.to_json
     rescue StandardError => e
-      status 500
-      { error: "Engine error: #{e.message}" }.to_json
+      respond_to_analysis_error(e, 'Engine error')
     ensure
       analyzer&.close
     end

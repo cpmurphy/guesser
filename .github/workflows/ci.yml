@@ -72,11 +72,20 @@ jobs:
         with:
           node-version: '24.x'
 
+      - name: Check chess rules stay in sync
+        run: bin/sync-chess-rules --check
+
       - name: Run tests
         run: |
           bundle install
           bundle exec ruby -Itest $(ls test/*.rb | grep -v smoke)
           rake npm_install copy_deps ui_test
+
+      - name: Test stockfish-pool
+        run: |
+          cd stockfish-pool
+          bundle install
+          bundle exec rake test
 
       - name: Keep screenshots from failed system tests
         uses: actions/upload-artifact@v7

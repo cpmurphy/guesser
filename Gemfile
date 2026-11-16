@@ -19,6 +19,7 @@ group :development, :test do
   gem 'minitest'
   gem 'minitest-mock'
   gem 'rack-test'
+  gem 'rake'
   gem 'rubocop', require: false
   gem 'rubocop-minitest', require: false
   gem 'simplecov', require: false

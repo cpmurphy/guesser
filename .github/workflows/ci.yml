@@ -79,7 +79,7 @@ jobs:
         run: |
           bundle install
           bundle exec ruby -Itest $(ls test/*.rb | grep -v smoke)
-          rake npm_install copy_deps ui_test
+          bundle exec rake npm_install copy_deps ui_test
 
       - name: Test stockfish-pool
         run: |

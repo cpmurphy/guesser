@@ -52,6 +52,8 @@ COPY --from=build "${BUNDLE_PATH}" "${BUNDLE_PATH}"
 # Copy only what the app needs at runtime. A blanket "COPY ." would pull in the
 # Stockfish source tree, and deleting it afterwards doesn't shrink the image.
 COPY Gemfile Gemfile.lock config.ru chess_guesser.rb ./
+# Bundler loads this path gem again when the process starts, not only at install.
+COPY stockfish-pool/client stockfish-pool/client
 COPY bin/docker-entrypoint bin/healthcheck bin/
 COPY data data
 COPY i18n i18n

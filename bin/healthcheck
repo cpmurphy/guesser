@@ -1,0 +1,15 @@
+#!/usr/bin/env ruby
+# frozen_string_literal: true
+
+# Container health check: exits 0 when the web app answers on its port.
+require 'net/http'
+
+begin
+  port = Integer(ENV.fetch('PORT', 3000))
+  response = Net::HTTP.start('127.0.0.1', port, open_timeout: 2, read_timeout: 3) do |http|
+    http.get('/')
+  end
+  exit(response.is_a?(Net::HTTPOK) ? 0 : 1)
+rescue StandardError
+  exit 1
+end

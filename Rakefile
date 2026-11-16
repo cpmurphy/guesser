@@ -56,7 +56,7 @@ end
 desc 'Run Docker container'
 task :docker_run do
   puts 'Running Docker container...'
-  sh 'docker run -p 3000:3000 chess_guesser'
+  sh 'docker run -p 127.0.0.1:3000:3000 chess_guesser'
 end
 
 desc 'Update asset manifest with new version'

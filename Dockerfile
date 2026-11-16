@@ -1,7 +1,8 @@
 # syntax = docker/dockerfile:1
 
 # This Dockerfile is designed for production, not development.
-# docker build -t chess-guesser .
+# docker build -t chess-guesser .                  # standalone, with Stockfish
+# docker build --target app -t chess-guesser:app . # no Stockfish; uses ENGINE_URL
 # docker run -d -p 80:80 -p 443:443 --name chess-guesser chess-guesser
 
 # Make sure RUBY_VERSION matches the Ruby version in .ruby-version
@@ -38,43 +39,49 @@ ENV RUSTUP_HOME=/usr/local/rustup \
 RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | \
     sh -s -- -y --profile minimal --default-toolchain stable
 
-# Install gems
+# Install gems. The pool client is a path gem, so its source has to be present.
 COPY Gemfile Gemfile.lock ./
+COPY stockfish-pool/client stockfish-pool/client
 RUN bundle install && \
     rm -rf ~/.bundle/ "${BUNDLE_PATH}"/ruby/*/cache "${BUNDLE_PATH}"/ruby/*/bundler/gems/*/.git
 
-# Build Stockfish
-COPY Stockfish Stockfish
-RUN cd Stockfish/src && \
-    make clean && \
-    CXXFLAGS='-march=native' make -j2 clean profile-build ARCH=x86-64-avx2 && \
-    strip stockfish && \
-    mv stockfish /app/bin/ && \
-    cd / && rm -rf Stockfish
+# The web app, without a Stockfish binary. Production sets ENGINE_URL.
+FROM base AS app
 
-# Final stage
-FROM base
-
-# Copy only necessary artifacts from build stage
 COPY --from=build "${BUNDLE_PATH}" "${BUNDLE_PATH}"
-COPY --from=build /app/bin/stockfish /app/bin/stockfish
 # Copy only what the app needs at runtime. A blanket "COPY ." would pull in the
 # Stockfish source tree, and deleting it afterwards doesn't shrink the image.
 COPY Gemfile Gemfile.lock config.ru chess_guesser.rb ./
-COPY bin/docker-entrypoint bin/
+COPY bin/docker-entrypoint bin/healthcheck bin/
 COPY data data
 COPY i18n i18n
 COPY lib lib
 COPY public public
 COPY views views
 
-# Set up non-root user. The app doesn't write to /app, so the files stay
-# root-owned; a recursive chown would duplicate every file in a new layer.
+# The app doesn't write to /app, so the files stay root-owned; a recursive
+# chown would duplicate every file in a new layer.
 RUN groupadd --system --gid 1000 appgroup && \
     useradd appuser --uid 1000 --gid 1000 --create-home --shell /bin/bash
 USER appuser
 
-# Start the server by default, this can be overwritten at runtime
 ENTRYPOINT ["/app/bin/docker-entrypoint"]
 EXPOSE 3000
 CMD ["bundle", "exec", "rackup", "--host", "0.0.0.0", "-p", "3000"]
+
+# Stockfish for the standalone image only. `podman build --target app` skips this.
+FROM build AS stockfish
+
+COPY Stockfish Stockfish
+RUN cd Stockfish/src && \
+    make clean && \
+    CXXFLAGS='-march=native' make -j2 clean profile-build ARCH=x86-64-avx2 && \
+    strip stockfish && \
+    mv stockfish /app/bin/stockfish && \
+    cd / && rm -rf /app/Stockfish
+
+# Default image: the app plus a local engine, for machines with no pool.
+FROM app AS standalone
+
+COPY --from=stockfish /app/bin/stockfish /app/bin/stockfish
+USER appuser

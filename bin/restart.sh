@@ -19,7 +19,7 @@ cd "${DEPLOY_DIR}"
 docker stop "$APP_NAME" || true
 docker rm "$APP_NAME" || true
 # now run the image using regular docker
-docker run -d --name "$APP_NAME" -p 3000:3000 \
+docker run -d --name "$APP_NAME" -p 127.0.0.1:3000:3000 \
   -e RACK_ENV=production \
  --restart=unless-stopped \
  --log-driver json-file \

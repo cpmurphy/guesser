@@ -1,0 +1,7 @@
+# Network shared by stockfish-pool and the web apps that call it (chess-guesser,
+# and chess-learner when that app is already running). Internal: nothing on it
+# can reach the internet, so a compromised engine has nowhere to call out.
+[Network]
+NetworkName=sf-engine
+Internal=true
+Subnet=10.89.20.0/24

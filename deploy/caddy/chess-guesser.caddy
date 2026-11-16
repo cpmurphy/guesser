@@ -1,0 +1,15 @@
+# Site block for chess-guesser; add it to your Caddyfile and change the
+# hostname. Caddy obtains and renews the TLS certificate itself.
+#
+# This app publishes 127.0.0.1:3000.
+
+chess.example.com {
+	encode zstd gzip
+
+	# PGN uploads are small; nothing else sends a body worth more than this.
+	request_body {
+		max_size 1MB
+	}
+
+	reverse_proxy 127.0.0.1:3000
+}

@@ -68,7 +68,7 @@ describe("Guesser", () => {
     document.body.innerHTML = `
       <div id="board"></div>
       <div id="last-move"></div>
-      <div id="move-input"></div>
+      <input id="move-input" type="text">
       <div id="white"></div>
       <div id="black"></div>
       <button id="flipBoardBtn"></button>
@@ -1239,6 +1239,22 @@ describe("Guesser", () => {
       expect(document.getElementById("exportFenBtn").disabled).toBe(false);
       expect(document.getElementById("engineMoveBtn").disabled).toBe(true);
       expect(document.getElementById("move-input").disabled).toBe(false);
+    });
+
+    it("keeps only digits in the move input", () => {
+      const moveInput = document.getElementById("move-input");
+
+      moveInput.value = "1a2";
+      moveInput.dispatchEvent(new Event("input"));
+      expect(moveInput.value).toBe("12");
+
+      moveInput.value = "٤５";
+      moveInput.dispatchEvent(new Event("input"));
+      expect(moveInput.value).toBe("");
+
+      moveInput.value = "42";
+      moveInput.dispatchEvent(new Event("input"));
+      expect(moveInput.value).toBe("42");
     });
 
     it("ignores a fast rewind click that arrives before the game is loaded", () => {

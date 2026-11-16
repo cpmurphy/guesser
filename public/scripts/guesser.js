@@ -212,6 +212,13 @@ export default class Guesser {
   }
 
   setupMoveInputListener() {
+    this.moveInput.addEventListener("input", () => {
+      const digits = this.moveInput.value.replace(/[^0-9]/g, "");
+      if (this.moveInput.value !== digits) {
+        this.moveInput.value = digits;
+      }
+    });
+
     this.moveInput.addEventListener("keypress", (e) => {
       if (!this.loaded) return;
       if (e.key === "Enter") {

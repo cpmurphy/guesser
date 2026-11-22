@@ -12,8 +12,12 @@ gem 'rackup'
 gem 'secure_headers'
 gem 'sinatra'
 gem 'stockfish'
-# Keep this tag equal to POOL_REF (bin/check-pool-ref enforces it). For local client work:
-#   bundle config local.stockfish_pool_client /path/to/stockfish-pool/client
+# Keep this tag equal to POOL_REF (bin/check-pool-ref enforces it). For local
+# client work, point Bundler at the repository root (not client/); a tag pin
+# also needs the branch check turned off:
+#   bundle config set local.stockfish_pool_client /path/to/stockfish-pool
+#   bundle config set disable_local_branch_check true
+# Undo with `bundle config unset` on both settings.
 gem 'stockfish_pool_client',
     git: 'https://github.com/cpmurphy/stockfish-pool.git',
     glob: 'client/*.gemspec',

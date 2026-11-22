@@ -1,36 +1,35 @@
-#! /bin/bash
+#!/usr/bin/env bash
+# Opens a shell in, or follows the logs of, a container on the server named
+# in deploy_env.sh.
+#
+#   bin/remote.sh [bash]       shell in the web app container (default)
+#   bin/remote.sh logs         follow the web app's journal
+#   bin/remote.sh pool-logs    follow the engine service's journal
+#
+# deploy_env.sh (repository root, not committed; see deploy/deploy_env.sh.example)
+# sets DEPLOY_USER and DEPLOY_HOST, and optionally FRONTEND_NAME and BACKEND_NAME.
+set -euo pipefail
 
-set -e
+cd "$(dirname "$0")/.."
+[ -f deploy_env.sh ] || { echo "deploy_env.sh not found; copy deploy/deploy_env.sh.example" >&2; exit 1; }
+# shellcheck source=/dev/null
+. ./deploy_env.sh
 
-SCRIPT_DIR=$(dirname "$0")
+: "${DEPLOY_USER:?set DEPLOY_USER in deploy_env.sh}"
+: "${DEPLOY_HOST:?set DEPLOY_HOST in deploy_env.sh}"
+FRONTEND_NAME=${FRONTEND_NAME:-chess-guesser}
+BACKEND_NAME=${BACKEND_NAME:-stockfish-pool}
 
-# load the deployment environment variables
-# Needed are: DEPLOY_USER, DEPLOY_HOST, DEPLOY_DIR
-# shellcheck source=deploy_env.sh
-. "${SCRIPT_DIR}"/../deploy_env.sh
+remote="${DEPLOY_USER}@${DEPLOY_HOST}"
+# Rootless podman and journalctl --user need the user's runtime directory;
+# ssh sessions that run a command do not always set it.
+# shellcheck disable=SC2016 # expanded on the server, not here
+runtime='export XDG_RUNTIME_DIR=${XDG_RUNTIME_DIR:-/run/user/$(id -u)};'
 
-APP_NAME=chess_guesser
-
-# Function to show usage
-usage() {
-  echo "Usage: $0 [command]"
-  echo "Commands:"
-  echo "  bash        - Start a bash shell in the container (default)"
-  echo "  logs        - Show container logs"
-  exit 1
-}
-
-# Get the command (default to bash)
-CMD=${1:-bash}
-
-case $CMD in
-  bash)
-    ssh -t "${DEPLOY_USER}"@"${DEPLOY_HOST}" "cd ${DEPLOY_DIR} && docker exec -it ${APP_NAME} bash"
-    ;;
-  logs)
-    ssh -t "${DEPLOY_USER}"@"${DEPLOY_HOST}" "cd ${DEPLOY_DIR} && docker logs -f ${APP_NAME}"
-    ;;
-  *)
-    usage
-    ;;
+# shellcheck disable=SC2029 # the names are meant to expand here
+case "${1:-bash}" in
+  bash) ssh -t "$remote" "$runtime podman exec -it '$FRONTEND_NAME' bash" ;;
+  logs) ssh -t "$remote" "$runtime journalctl --user -u '$FRONTEND_NAME.service' -f" ;;
+  pool-logs) ssh -t "$remote" "$runtime journalctl --user -u '$BACKEND_NAME.service' -f" ;;
+  *) echo "usage: bin/remote.sh [bash | logs | pool-logs]" >&2; exit 2 ;;
 esac

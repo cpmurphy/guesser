@@ -39,9 +39,8 @@ ENV RUSTUP_HOME=/usr/local/rustup \
 RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | \
     sh -s -- -y --profile minimal --default-toolchain stable
 
-# Install gems. The pool client is a path gem, so its source has to be present.
+# Install gems (stockfish_pool_client comes from the git tag in the Gemfile)
 COPY Gemfile Gemfile.lock ./
-COPY stockfish-pool/client stockfish-pool/client
 RUN bundle install && \
     rm -rf ~/.bundle/ "${BUNDLE_PATH}"/ruby/*/cache "${BUNDLE_PATH}"/ruby/*/bundler/gems/*/.git
 
@@ -52,8 +51,6 @@ COPY --from=build "${BUNDLE_PATH}" "${BUNDLE_PATH}"
 # Copy only what the app needs at runtime. A blanket "COPY ." would pull in the
 # Stockfish source tree, and deleting it afterwards doesn't shrink the image.
 COPY Gemfile Gemfile.lock config.ru chess_guesser.rb ./
-# Bundler loads this path gem again when the process starts, not only at install.
-COPY stockfish-pool/client stockfish-pool/client
 COPY bin/docker-entrypoint bin/healthcheck bin/
 COPY data data
 COPY i18n i18n

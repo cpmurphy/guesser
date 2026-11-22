@@ -24,50 +24,32 @@ Metrics/ClassLength:
   Max: 150
   Exclude:
     - 'test/**/*'
-    - 'stockfish-pool/test/**/*'
-    - 'stockfish-pool/client/test/**/*'
 
 Metrics/ModuleLength:
   Max: 120
   Exclude:
     - 'test/**/*'
-    - 'stockfish-pool/test/**/*'
-    - 'stockfish-pool/client/test/**/*'
 
 Metrics/MethodLength:
   Max: 26
   Exclude:
     - 'test/**/*'
-    - 'stockfish-pool/test/**/*'
-    - 'stockfish-pool/client/test/**/*'
 
 Metrics/AbcSize:
   Max: 25
   Exclude:
     - 'test/**/*'
-    - 'stockfish-pool/test/**/*'
-    - 'stockfish-pool/client/test/**/*'
 
 Metrics/BlockLength:
   Max: 30
   Exclude:
     - 'test/**/*'
-    - 'stockfish-pool/test/**/*'
-    - 'stockfish-pool/client/test/**/*'
     - 'config/routes.rb'
 
 Layout/LineLength:
   Max: 120
   Exclude:
     - 'test/**/*'
-    - 'stockfish-pool/test/**/*'
-    - 'stockfish-pool/client/test/**/*'
-
-# The pool's tests state several facts per example. Its own config restates this.
-Minitest/MultipleAssertions:
-  Exclude:
-    - 'stockfish-pool/test/**/*'
-    - 'stockfish-pool/client/test/**/*'
 
 # Common sense adjustments
 Naming/VariableNumber:

@@ -62,11 +62,13 @@ curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
 
 3. Install Stockfish if you want the app to analyze on its own. With no engine
    environment variables set, the app runs that local engine. To use a
-   stockfish-pool instead (including one already running for another app), set
-   `ENGINE_URL` and `ENGINE_TOKEN`. A pool can be started by hand with:
+   [stockfish-pool](https://github.com/cpmurphy/stockfish-pool) instead
+   (including one already running for another app), set `ENGINE_URL` and
+   `ENGINE_TOKEN`. A pool can be started by hand with:
 
    ```
-   cd stockfish-pool
+   git clone https://github.com/cpmurphy/stockfish-pool.git
+   cd stockfish-pool && bundle install
    API_TOKENS=dev-token-0123456789abcdefgh bundle exec puma -C config/puma.rb
    ```
 

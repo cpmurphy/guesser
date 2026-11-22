@@ -63,7 +63,6 @@ echo "Deploying commit $revision ($(git log -1 --format=%s))"
 if [ "${SKIP_TESTS:-}" != 1 ]; then
   step "Running tests and lint"
   bundle exec rake test
-  (cd stockfish-pool && bundle exec rake test)
   bin/rubocop
 fi
 

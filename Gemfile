@@ -12,7 +12,7 @@ gem 'rackup'
 gem 'secure_headers'
 gem 'sinatra'
 gem 'stockfish'
-# Keep this tag equal to POOL_REF. For local client work:
+# Keep this tag equal to POOL_REF (bin/check-pool-ref enforces it). For local client work:
 #   bundle config local.stockfish_pool_client /path/to/stockfish-pool/client
 gem 'stockfish_pool_client',
     git: 'https://github.com/cpmurphy/stockfish-pool.git',

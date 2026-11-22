@@ -22,6 +22,7 @@ if [ -z "${STOCKFISH_ARCH:-}" ] && ! grep -qw avx2 /proc/cpuinfo; then
   exit 1
 fi
 
+bin/check-pool-ref
 podman build --target app -t localhost/chess-guesser:app .
 
 if [ "${BUILD_POOL_IMAGE:-1}" = 1 ]; then

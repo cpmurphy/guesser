@@ -9,11 +9,11 @@ internet ──TLS──> Caddy (host) ──> 127.0.0.1:3000 ──> chess-gues
 ```
 
 - **chess-guesser** (`localhost/chess-guesser:app`): the web app, without Stockfish. It's published on `127.0.0.1:3000` only, its root filesystem is read-only, and it has no capabilities. It calls the pool at `http://stockfish-pool:4000`.
-- **stockfish-pool** (`localhost/stockfish-pool:latest`): the engine service. A deploy leaves it alone when it is already running, and reuses its token instead of generating a new one.
+- **stockfish-pool** (`localhost/stockfish-pool:latest`): the engine service, built from the [stockfish-pool](https://github.com/cpmurphy/stockfish-pool) tag in `POOL_REF` when this deploy starts it. A deploy leaves a running pool alone and reuses its token.
   - It's on an internal network only, with no published ports and no route to the internet.
   - Its root filesystem is read-only, it has no capabilities, and it runs as a non-root user inside a separate user namespace.
   - Its cpu, memory and pids are capped.
-- **Rate limits and quotas** are described in `stockfish-pool/README.md`. This deploy does not change them on a pool that is already running.
+- **Rate limits and quotas** are described in the [stockfish-pool README](https://github.com/cpmurphy/stockfish-pool). This deploy does not change them on a pool that is already running.
 
 ## Deploying from your workstation (bin/deploy.sh)
 

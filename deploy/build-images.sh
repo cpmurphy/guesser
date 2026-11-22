@@ -7,9 +7,11 @@
 #   STOCKFISH_ARCH=x86-64-sse41-popcnt deploy/build-images.sh   # CPUs without AVX2
 #   BUILD_POOL_IMAGE=0 deploy/build-images.sh # web app only
 #
-# Stockfish must suit the CPU it will RUN on. Without STOCKFISH_ARCH this
-# checks the local CPU; when building for another machine (bin/deploy.sh does),
-# set STOCKFISH_ARCH for that machine and the local check is skipped.
+# The pool image is built from the stockfish-pool checkout at POOL_REF (see
+# bin/pool-checkout). Stockfish must suit the CPU it will RUN on. Without
+# STOCKFISH_ARCH this checks the local CPU; when building for another machine
+# (bin/deploy.sh does), set STOCKFISH_ARCH for that machine and the local
+# check is skipped.
 set -euo pipefail
 
 cd "$(dirname "$0")/.."
@@ -23,9 +25,10 @@ fi
 podman build --target app -t localhost/chess-guesser:app .
 
 if [ "${BUILD_POOL_IMAGE:-1}" = 1 ]; then
-  git submodule update --init Stockfish
-  podman build -f stockfish-pool/Containerfile --build-arg STOCKFISH_ARCH="$arch" \
-    -t localhost/stockfish-pool:latest .
+  pool=$(bin/pool-checkout)
+  ref=$(tr -d '[:space:]' <POOL_REF)
+  echo "Building stockfish-pool from $pool ($ref)"
+  STOCKFISH_ARCH="$arch" "$pool/deploy/build-image.sh"
   echo "Built localhost/chess-guesser:app and localhost/stockfish-pool:latest"
 else
   echo "Built localhost/chess-guesser:app (left the stockfish-pool image out)"

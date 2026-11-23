@@ -8,7 +8,7 @@
     "@antithesishq/bombadil": "^0.7.10",
     "copyfiles": "^2.4.1",
     "jsdom": "^31.0.1",
-    "vitest": "^5.1.0"
+    "vitest": "^5.1.1"
   },
   "scripts": {
     "test": "vitest",

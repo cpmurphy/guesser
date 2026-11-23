@@ -5,7 +5,7 @@
   },
   "devDependencies": {
     "@vitest/coverage-v8": "^5.1.0",
-    "@antithesishq/bombadil": "^0.7.10",
+    "@antithesishq/bombadil": "^0.8.0",
     "copyfiles": "^2.4.1",
     "jsdom": "^31.0.1",
     "vitest": "^5.1.0"
